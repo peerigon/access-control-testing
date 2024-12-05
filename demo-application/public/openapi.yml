@@ -1,0 +1,83 @@
+openapi: 3.0.3
+info:
+  title: Example API
+  version: 1.0.0
+  description: API zur Verwaltung von Benutzern und allgemeinen Informationen.
+paths:
+  /:
+    get:
+      summary: Hello World Endpoint
+      description: Dieser Endpoint ist für jeden Benutzer aufrufbar
+      responses:
+        '200':
+          description: Erfolgreiche Antwort
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hello:
+                    type: string
+                    example: world
+  /admin/users:
+    get:
+      summary: Liste aller Benutzer
+      description: Gibt eine Liste aller registrierten Benutzer zurück.
+      responses:
+        '200':
+          description: Erfolgreiche Antwort
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: Max Mustermann
+                    email:
+                      type: string
+                      example: max@beispiel.de
+  /admin/users/{id}:
+    get:
+      summary: Einzelner Benutzer
+      description: Gibt einen spezifischen Benutzers anhand der ID zurück.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User-ID
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Erfolgreiche Antwort
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: Max Mustermann
+                  email:
+                    type: string
+                    example: max@beispiel.de
+        '404':
+          description: Benutzer nicht gefunden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Benutzer nicht gefunden.
