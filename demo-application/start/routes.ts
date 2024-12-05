@@ -9,8 +9,6 @@
 
 import router from '@adonisjs/core/services/router'
 import User from '#models/user'
-import AutoSwagger from 'adonis-autoswagger'
-import swagger from '#config/swagger'
 
 router.get('/', async () => {
   return {
@@ -34,11 +32,3 @@ router
     })
   })
   .prefix('/admin')
-
-router.get('/openapi', async () => {
-  return AutoSwagger.default.json(router.toJSON(), swagger)
-})
-
-router.get('/docs', async () => {
-  return AutoSwagger.default.scalar('/swagger', swagger)
-})
