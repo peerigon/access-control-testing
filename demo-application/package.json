@@ -57,6 +57,7 @@
     "@adonisjs/lucid": "^21.3.0",
     "@adonisjs/static": "^1.1.1",
     "@vinejs/vine": "^2.1.0",
+    "access-control-testing": "file:.yalc/access-control-testing",
     "better-sqlite3": "^11.5.0",
     "luxon": "^3.5.0",
     "reflect-metadata": "^0.2.2"
