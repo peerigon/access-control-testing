@@ -45,7 +45,7 @@ paths:
   /admin/users/{id}:
     get:
       summary: Einzelner Benutzer
-      description: Gibt einen spezifischen Benutzers anhand der ID zurück.
+      description: Gibt einen spezifischen Benutzer anhand der ID zurück.
       parameters:
         - name: id
           in: path
@@ -54,6 +54,7 @@ paths:
           schema:
             type: integer
             example: 1
+          x-resource-name: User
       responses:
         '200':
           description: Erfolgreiche Antwort
