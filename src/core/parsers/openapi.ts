@@ -1,16 +1,41 @@
+import Oas from "oas";
 import OASNormalize from "oas-normalize";
+import { OASDocument } from "oas/dist/types";
+
 export class OpenAPIParser {
-    constructor(private specificationPath: ConstructorParameters<typeof OASNormalize>[0]) {}
+  private openApiSource: Oas | undefined = undefined;
 
-    async #parseOpenAPI() {
-        const oas = new OASNormalize(this.specificationPath);
+  constructor(
+    private specificationPath: ConstructorParameters<typeof OASNormalize>[0],
+  ) {}
 
-        try {
-            const jsonSpecification = await oas.validate();
-        } catch (e) {
-            // todo: add proper error handling
-            console.error(e);
-        }
+  private async parseOpenAPI() {
+    const oas = new OASNormalize(this.specificationPath);
+
+    try {
+      const jsonSpecification = await oas.validate();
+      return jsonSpecification;
+    } catch (e) {
+      // todo: add proper error handling
+      console.error(e);
+    }
+  }
+
+  /**
+   * Parses the OpenAPI specification and returns the Oas object to work with later
+   * @private
+   */
+  private async getOasSource(): Promise<Oas> {
+    if (this.openApiSource === undefined) {
+      const jsonSpecification = await this.parseOpenAPI();
+      this.openApiSource = new Oas(jsonSpecification as OASDocument); // todo: fix type
     }
 
+    return this.openApiSource;
+  }
+
+  async getPaths() {
+    const oas = await this.getOasSource();
+    return oas.getPaths();
+  }
 }
