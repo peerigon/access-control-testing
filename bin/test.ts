@@ -18,4 +18,4 @@ configure({
   plugins: [expect(), browserClient({ runInSuites: ["browser"] })],
 });
 
-run();
+void run();

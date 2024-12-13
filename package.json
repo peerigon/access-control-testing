@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "node --loader ts-node/esm --enable-source-maps bin/test.ts"
+    "test": "tsx bin/test.ts"
   },
   "license": "MIT",
   "devDependencies": {
@@ -21,6 +21,7 @@
     "playwright": "^1.49.1",
     "prettier": "^3.4.2",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   },
   "dependencies": {
