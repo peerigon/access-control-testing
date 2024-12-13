@@ -1,24 +1,31 @@
 import { cosmiconfig } from "cosmiconfig";
 import { MODULE_NAME } from "../constants";
+import { ConfigurationSchema } from "../schemas";
+import { Configuration } from "../types";
 
 const explorer = cosmiconfig(MODULE_NAME);
 
 export class ConfigurationParser {
-  public async parse() {
+  public async parse(): Promise<Configuration> {
     console.log("Parsing configuration...");
     try {
-      const result = await explorer.search();
+      const configSearchResult = await explorer.search();
 
-      if (typeof result?.config !== "object") {
+      if (typeof configSearchResult?.config !== "object") {
         // todo: better error handling
         throw new Error("No configuration found");
       }
 
-      return result.config;
-      // todo: validate config schema (zod?)
-      // todo: create and return ToolConfiguration object from config
+      const { config } = configSearchResult;
+      return this.parseSchema(config);
     } catch (e) {
-      // todo: handle error
+      // todo: improve error message / error handling
+      // todo: read missing or invalid prop from Zod error and show it in the error message
+      throw new Error("Error while parsing tool configuration: " + e);
     }
+  }
+
+  private parseSchema(config: object): Configuration {
+    return ConfigurationSchema.parse(config);
   }
 }

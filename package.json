@@ -21,6 +21,7 @@
   "dependencies": {
     "cosmiconfig": "^9.0.0",
     "oas": "^25.1.0",
-    "oas-normalize": "^11.1.4"
+    "oas-normalize": "^11.1.4",
+    "zod": "^3.24.1"
   }
 }
