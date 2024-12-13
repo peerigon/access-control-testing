@@ -1,6 +1,7 @@
 import Oas from "oas";
 import OASNormalize from "oas-normalize";
 import { OASDocument } from "oas/dist/types";
+import { OpenApiPaths } from "../types";
 
 export class OpenAPIParser {
   private openApiSource: Oas | undefined = undefined;
@@ -8,17 +9,6 @@ export class OpenAPIParser {
   constructor(
     private specificationPath: ConstructorParameters<typeof OASNormalize>[0],
   ) {}
-
-  private async parseOpenAPI() {
-    const oas = new OASNormalize(this.specificationPath);
-
-    try {
-      return await oas.validate();
-    } catch (e) {
-      // todo: add proper error handling
-      console.error(e);
-    }
-  }
 
   /**
    * Parses the OpenAPI specification and returns the Oas object to work with later
@@ -33,19 +23,37 @@ export class OpenAPIParser {
     return this.openApiSource;
   }
 
+  private async parseOpenAPI() {
+    const oas = new OASNormalize(this.specificationPath);
+
+    try {
+      return await oas.validate();
+    } catch (e) {
+      // todo: add proper error handling
+      console.error(e);
+    }
+  }
+
   // todo: return custom type
-  async getPaths() {
+  public async getPaths(): Promise<OpenApiPaths> {
     const oas = await this.getOasSource();
     const oasPaths = oas.getPaths();
 
-    const paths = Object.values(oasPaths).flatMap((oasPath) => {
-      return Object.values(oasPath).map(({ path, method, schema }) => ({
+    return this.transformPathsSchema(oasPaths);
+  }
+
+  /**
+   * Transforms the paths schema from Oas to a minimal schema containing only the necessary information
+   */
+  private transformPathsSchema(
+    oasPaths: ReturnType<Oas["getPaths"]>,
+  ): OpenApiPaths {
+    return Object.values(oasPaths).flatMap((oasPath) =>
+      Object.values(oasPath).map(({ path, method, schema }) => ({
         path,
         method,
         schema, // todo: validate custom properties inside of schema
-      }));
-    });
-
-    return paths;
+      })),
+    );
   }
 }
