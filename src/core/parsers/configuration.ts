@@ -1,7 +1,6 @@
 import { cosmiconfig } from "cosmiconfig";
 import { MODULE_NAME } from "../constants";
 
-// ...
 const explorer = cosmiconfig(MODULE_NAME);
 
 export class ConfigurationParser {

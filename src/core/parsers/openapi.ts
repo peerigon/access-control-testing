@@ -13,8 +13,7 @@ export class OpenAPIParser {
     const oas = new OASNormalize(this.specificationPath);
 
     try {
-      const jsonSpecification = await oas.validate();
-      return jsonSpecification;
+      return await oas.validate();
     } catch (e) {
       // todo: add proper error handling
       console.error(e);
@@ -34,6 +33,7 @@ export class OpenAPIParser {
     return this.openApiSource;
   }
 
+  // todo: return custom type
   async getPaths() {
     const oas = await this.getOasSource();
     return oas.getPaths();

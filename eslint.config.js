@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   extends: ["peerigon/presets/typescript.js"],
   env: {
     node: true,
