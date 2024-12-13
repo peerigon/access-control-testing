@@ -36,6 +36,16 @@ export class OpenAPIParser {
   // todo: return custom type
   async getPaths() {
     const oas = await this.getOasSource();
-    return oas.getPaths();
+    const oasPaths = oas.getPaths();
+
+    const paths = Object.values(oasPaths).flatMap((oasPath) => {
+      return Object.values(oasPath).map(({ path, method, schema }) => ({
+        path,
+        method,
+        schema, // todo: validate custom properties inside of schema
+      }));
+    });
+
+    return paths;
   }
 }
