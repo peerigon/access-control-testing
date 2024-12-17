@@ -3,6 +3,17 @@ info:
   title: Example API
   version: 1.0.0
   description: API zur Verwaltung von Benutzern und allgemeinen Informationen.
+components:
+  securitySchemes:
+    basicHttpAuthentication:
+      description: Basic HTTP Authentication
+      type: http
+      scheme: Basic
+    bearerHttpAuthentication:
+      description: Bearer token using a JWT
+      type: http
+      scheme: Bearer
+      bearerFormat: JWT
 paths:
   /:
     get:
@@ -19,6 +30,7 @@ paths:
                   hello:
                     type: string
                     example: world
+      security: [] # No security
   /admin/users:
     get:
       summary: Liste aller Benutzer
@@ -42,6 +54,9 @@ paths:
                     email:
                       type: string
                       example: max@beispiel.de
+      security:
+        - bearerHttpAuthentication: []
+        - basicHttpAuthentication: []
   /admin/users/{id}:
     get:
       summary: Einzelner Benutzer
@@ -54,7 +69,9 @@ paths:
           schema:
             type: integer
             example: 1
-          x-resource-name: User
+          x-act:
+            resource-name:
+            ...:
       responses:
         '200':
           description: Erfolgreiche Antwort
@@ -82,3 +99,20 @@ paths:
                   error:
                     type: string
                     example: Benutzer nicht gefunden.
+  /login:
+    post:
+        summary: Login
+        description: Authentifiziert einen Benutzer und gibt einen JSON Web Token zurück.
+        responses:
+          '200':
+            description: Erfolgreiche Antwort
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    token:
+                      type: string
+                      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        x-act-auth-endpoint:
+          type: "bearer"

@@ -1,9 +1,9 @@
 import { cosmiconfig } from "cosmiconfig";
-import { MODULE_NAME } from "../constants";
+import { TOOL_NAME } from "../constants";
 import { ConfigurationSchema } from "../schemas";
 import { Configuration } from "../types";
 
-const explorer = cosmiconfig(MODULE_NAME);
+const explorer = cosmiconfig(TOOL_NAME);
 
 export class ConfigurationParser {
   public async parse(): Promise<Configuration> {

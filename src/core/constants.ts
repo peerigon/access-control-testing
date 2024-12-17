@@ -5,6 +5,8 @@ const OpenApiFieldNames: Record<string, string> = {
   RESOURCE_NAME: "resource-name",
   AUTH_ENDPOINT: "auth-endpoint",
 };
+
+// todo: make fields visible for auto-completion, e.g. add extra type information
 export const OpenApiFields = new Proxy(OpenApiFieldNames, {
   get(target, prop) {
     if (prop in target && typeof prop === "string") {
