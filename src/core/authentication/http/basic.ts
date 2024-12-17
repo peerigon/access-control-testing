@@ -1,13 +1,18 @@
 import { HttpAuthenticator } from "./authenticator";
-import { AuthenticationCredentials, Session } from "./types";
+import { AuthenticationCredentials, BasicAuthSession } from "./types";
 
-export class BasicAuthenticator extends HttpAuthenticator {
-  protected findOrInitializeSession(
-    credentials: AuthenticationCredentials,
-  ): Session {
-    throw new Error("Method not implemented.");
-  }
-  protected initializeSession(credentials: AuthenticationCredentials): Session {
-    throw new Error("Method not implemented.");
+export class BasicAuthenticator extends HttpAuthenticator<BasicAuthSession> {
+  protected initializeSession(credentials: AuthenticationCredentials) {
+    const authorizationPayload = Buffer.from(
+      `${credentials.identifier}:${credentials.password}`,
+    ).toString("base64");
+
+    const session: BasicAuthSession = {
+      authorizationPayload,
+    };
+
+    this.sessionStore.set(credentials.identifier, session);
+
+    return session;
   }
 }

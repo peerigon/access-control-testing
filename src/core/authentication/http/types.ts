@@ -3,8 +3,13 @@ export type AuthenticationCredentials = {
   password: string;
 };
 
-export type Session = {
-  token: string;
+export type Session = BearerAuthSession | BasicAuthSession;
+
+export type BearerAuthSession = {
+  bearerToken: string;
   expiresAt?: Date;
 };
-// todo: evtl. BasicAuthSession | BearerAuthSession
+
+export type BasicAuthSession = {
+  authorizationPayload: string;
+};
