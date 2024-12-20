@@ -3,6 +3,7 @@ export const TOOL_NAME = "act";
 const OPENAPI_FIELD_PREFIX = `x-${TOOL_NAME}-`;
 const OpenApiFieldNames: Record<string, string> = {
   RESOURCE_NAME: "resource-name",
+  RESOURCE_ACCESS: "resource-access",
   AUTH_ENDPOINT: "auth-endpoint",
 };
 

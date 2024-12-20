@@ -70,8 +70,8 @@ paths:
             type: integer
             example: 1
           x-act:
-            resource-name:
-            ...:
+            resource-name: User
+            resource-access: read
       responses:
         '200':
           description: Erfolgreiche Antwort
