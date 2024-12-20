@@ -1,7 +1,12 @@
 import Oas from "oas";
 import OASNormalize from "oas-normalize";
 import { OASDocument } from "oas/dist/types";
-import { OpenApiPaths } from "../types";
+import { OpenApiFields } from "../constants";
+import {
+  AuthenticationScheme,
+  AuthenticationType,
+  OpenApiPaths,
+} from "../types";
 
 export class OpenAPIParser {
   private openApiSource: Oas | undefined = undefined;
@@ -28,9 +33,13 @@ export class OpenAPIParser {
 
     try {
       return await oas.validate();
+
+      // todo: validate / parse x-act-auth-endpoint etc.
+      // should be object and contain required properties
+      // & is expected to be in at least one path when auth has been defined
     } catch (e) {
       // todo: add proper error handling
-      console.error(e);
+      throw new Error("OpenApi validation error");
     }
   }
 
@@ -55,5 +64,24 @@ export class OpenAPIParser {
         schema, // todo: validate custom properties inside of schema
       })),
     );
+  }
+
+  public async getAuthEndpoint(
+    authenticationType: AuthenticationType,
+    authenticationScheme: AuthenticationScheme,
+  ) {
+    const paths = await this.getPaths();
+
+    // todo: handle cases when 0 or more than 1 is found
+    // maybe 0 or more than 1 are cases to be handled by validation / parsing
+    // for now, just return the first path that matches
+    return paths.find((path) => {
+      const authEndpointInfo = path.schema[OpenApiFields.AUTH_ENDPOINT];
+
+      return (
+        authEndpointInfo?.type === authenticationType &&
+        authEndpointInfo?.scheme === authenticationScheme
+      );
+    });
   }
 }
