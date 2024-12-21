@@ -1,4 +1,4 @@
-import { browserClient } from "@japa/browser-client";
+import { apiClient } from "@japa/api-client";
 import { expect } from "@japa/expect";
 import { configure, processCLIArgs, run } from "@japa/runner";
 
@@ -15,7 +15,9 @@ configure({
       files: ["tests/unit/**/*.spec.ts"],
     },
   ],
-  plugins: [expect(), browserClient({ runInSuites: ["browser"] })],
+  // todo: make base url configurable as param
+  // read the value from a config prop or the OpenAPI spec
+  plugins: [expect(), apiClient("https://localhost:3333")],
 });
 
 void run();

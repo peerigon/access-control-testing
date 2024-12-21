@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@japa/browser-client": "^2.0.3",
+    "@japa/api-client": "^2.0.4",
     "@japa/expect": "^3.0.2",
     "@japa/runner": "^3.1.4",
     "@types/node": "^22.10.1",
