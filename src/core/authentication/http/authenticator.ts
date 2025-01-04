@@ -1,17 +1,21 @@
+import { ApiRequest } from "@japa/api-client/build/src/request";
 import { AuthenticationCredentials, Session } from "./types";
 
 export abstract class HttpAuthenticator<SessionType extends Session> {
-  protected sessionStore: Map<string, SessionType> = new Map();
+  protected sessionStore: Map<
+    AuthenticationCredentials["identifier"],
+    SessionType
+  > = new Map();
 
   /**
    *
    * @protected
-   * @param credentials The credentials used to find the session or to initialize a new one
+   * @param credentials The credentials used to find an existing session or to initialize a new one
    * @returns The session
    */
-  protected findOrInitializeSession(
+  protected async findOrInitializeSession(
     credentials: AuthenticationCredentials,
-  ): SessionType {
+  ): Promise<SessionType> {
     const existingSession = this.sessionStore.get(credentials.identifier);
 
     if (existingSession === undefined) {
@@ -23,12 +27,14 @@ export abstract class HttpAuthenticator<SessionType extends Session> {
 
   protected abstract initializeSession(
     credentials: AuthenticationCredentials,
-  ): SessionType;
+  ): Promise<SessionType>;
 
   /**
    * Enhances the request with the required authentication information
    * @protected
    */
-  // todo
-  // protected abstract authenticateRequest(request): null;
+  public abstract authenticateRequest(
+    request: ApiRequest,
+    credentials: AuthenticationCredentials,
+  ): Promise<ApiRequest>;
 }

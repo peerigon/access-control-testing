@@ -1,3 +1,4 @@
+import { ApiRequest } from "@japa/api-client/build/src/request";
 import { HttpAuthenticator } from "./authenticator";
 import { AuthenticationCredentials, BearerAuthSession } from "./types";
 
@@ -6,7 +7,8 @@ export class BearerAuthenticator extends HttpAuthenticator<BearerAuthSession> {
     super();
     // todo: get and store login route information from params
   }
-  protected initializeSession(credentials: AuthenticationCredentials) {
+
+  protected async initializeSession(credentials: AuthenticationCredentials) {
     // todo: based on route information, perform a login request to the API
     // and store the obtained bearer token
 
@@ -18,5 +20,14 @@ export class BearerAuthenticator extends HttpAuthenticator<BearerAuthSession> {
     this.sessionStore.set(credentials.identifier, session);
 
     return session;
+  }
+
+  public async authenticateRequest(
+    request: ApiRequest,
+    credentials: AuthenticationCredentials,
+  ): Promise<ApiRequest> {
+    const session = await this.findOrInitializeSession(credentials);
+    request.bearerToken(session.bearerToken);
+    return request;
   }
 }
