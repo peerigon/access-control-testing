@@ -1,8 +1,12 @@
 import { ApiRequest } from "@japa/api-client/build/src/request";
 import { HttpAuthenticator } from "./authenticator";
+import { SessionManager } from "./session-manager";
 import { AuthenticationCredentials, BearerAuthSession } from "./types";
 
-export class BearerAuthenticator extends HttpAuthenticator<BearerAuthSession> {
+export class BearerAuthenticator
+  extends SessionManager<BearerAuthSession>
+  implements HttpAuthenticator
+{
   constructor() {
     super();
     // todo: get and store login route information from params

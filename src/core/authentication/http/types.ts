@@ -3,13 +3,10 @@ export type AuthenticationCredentials = {
   password: string;
 };
 
-export type Session = BearerAuthSession | BasicAuthSession;
+// todo: add classic cookie-based session
+export type Session = BearerAuthSession;
 
 export type BearerAuthSession = {
   bearerToken: string;
   expiresAt?: Date;
-};
-
-export type BasicAuthSession = {
-  authorizationPayload: string;
 };
