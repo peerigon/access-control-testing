@@ -15,6 +15,8 @@ export abstract class SessionManager<SessionType extends Session> {
   protected async findOrInitializeSession(
     credentials: AuthenticationCredentials,
   ): Promise<SessionType> {
+    // todo: only use existing session when not alreay expired
+    // todo: remove expired entries before accessing
     const existingSession = this.sessionStore.get(credentials.identifier);
 
     if (existingSession === undefined) {

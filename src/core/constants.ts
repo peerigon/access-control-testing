@@ -19,3 +19,5 @@ export const OpenApiFields = new Proxy(OpenApiFieldNames, {
     return null;
   },
 });
+
+export const HTTP_FORBIDDEN_STATUS_CODE = 403;
