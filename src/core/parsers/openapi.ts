@@ -1,12 +1,9 @@
 import Oas from "oas";
 import OASNormalize from "oas-normalize";
 import { OASDocument } from "oas/dist/types";
+import { AuthParameterLocationDescription } from "../authentication/http/types";
 import { OpenApiFields } from "../constants";
-import {
-  AuthenticationScheme,
-  AuthenticationType,
-  OpenApiPaths,
-} from "../types";
+import { AuthenticationScheme, AuthenticationType } from "../types";
 
 export class OpenAPIParser {
   private openApiSource: Oas | undefined = undefined;
@@ -43,8 +40,7 @@ export class OpenAPIParser {
     }
   }
 
-  // todo: return custom type
-  public async getPaths(): Promise<OpenApiPaths> {
+  public async getPaths() {
     const oas = await this.getOasSource();
     const oasPaths = oas.getPaths();
 
@@ -54,18 +50,11 @@ export class OpenAPIParser {
   /**
    * Transforms the paths schema from Oas to a minimal schema containing only the necessary information
    */
-  private transformPathsSchema(
-    oasPaths: ReturnType<Oas["getPaths"]>,
-  ): OpenApiPaths {
-    return Object.values(oasPaths).flatMap((oasPath) =>
-      Object.values(oasPath).map(({ path, method, schema }) => ({
-        path,
-        method,
-        schema, // todo: validate custom properties inside of schema
-      })),
-    );
+  private transformPathsSchema(oasPaths: ReturnType<Oas["getPaths"]>) {
+    return Object.values(oasPaths).flatMap((oasPath) => Object.values(oasPath));
   }
 
+  // todo: get auth endpoint by securityScheme name instead of type and scheme
   public async getAuthEndpoint(
     authenticationType: AuthenticationType,
     authenticationScheme: AuthenticationScheme,
@@ -75,7 +64,8 @@ export class OpenAPIParser {
     // todo: handle cases when 0 or more than 1 is found
     // maybe 0 or more than 1 are cases to be handled by validation / parsing
     // for now, just return the first path that matches
-    return paths.find((path) => {
+    const authEndpoint = paths.find((path) => {
+      // todo: add type
       const authEndpointInfo = path.schema[OpenApiFields.AUTH_ENDPOINT];
 
       return (
@@ -83,5 +73,94 @@ export class OpenAPIParser {
         authEndpointInfo?.scheme === authenticationScheme
       );
     });
+
+    if (authEndpoint) {
+      // todo: accept other formats of auth endpoint, when username/password is not part of the json request body
+      // const requestBody = authEndpoint.getRequestBody("application/json");
+      const parameters = authEndpoint.getParametersAsJSONSchema();
+
+      let usernameDescription: AuthParameterLocationDescription | null = null;
+      let passwordDescription: AuthParameterLocationDescription | null = null;
+
+      for (const parameter of parameters) {
+        const { type: parameterLocation } = parameter;
+        for (const propertyKey in parameter.schema.properties) {
+          const property = parameter.schema.properties[propertyKey];
+
+          // type can only be username or password
+          // this should be validated before, then we can safely assume that the type is either username or password
+          const authFieldType = property[OpenApiFields.AUTH_FIELD]?.type;
+
+          if (authFieldType === "username") {
+            usernameDescription = {
+              parameterName: propertyKey,
+              parameterLocation,
+            };
+          }
+
+          if (authFieldType === "password") {
+            passwordDescription = {
+              parameterName: propertyKey,
+              parameterLocation,
+            };
+          }
+        }
+
+        if (usernameDescription && passwordDescription) {
+          break;
+        }
+      }
+
+      if (!usernameDescription || !passwordDescription) {
+        // todo: add proper error handling
+        throw new Error("Username or password not found in the request body");
+      }
+
+      let tokenParameterLocationDescription: AuthParameterLocationDescription | null =
+        null;
+
+      const responseStatusCodes = authEndpoint.getResponseStatusCodes();
+
+      // console.log(responseStatusCodes, "responseStatusCodes");
+
+      // todo: create a separate method for this
+      for (let responseStatusCode of responseStatusCodes) {
+        const [response] =
+          authEndpoint.getResponseAsJSONSchema(responseStatusCode);
+
+        for (const propertyKey in response.schema.properties) {
+          const property = response.schema.properties[propertyKey];
+
+          if (property[OpenApiFields.AUTH_FIELD]?.type === "token") {
+            console.log("token", propertyKey);
+            // todo: what about nested parameter locations?
+            tokenParameterLocationDescription = {
+              parameterName: propertyKey,
+              parameterLocation: "responseBody", // todo: add type
+            };
+            // todo: break the loop
+          }
+        }
+      }
+
+      if (!tokenParameterLocationDescription) {
+        // todo: add proper error handling
+        throw new Error("Token not found in the response body");
+      }
+
+      const authParameterLocationDescription = {
+        username: usernameDescription,
+        password: passwordDescription,
+      };
+
+      return {
+        authEndpoint,
+        authParameterLocationDescription,
+        tokenParameterLocationDescription,
+      };
+    } else {
+      // todo: add proper error handling
+      throw new Error("Auth endpoint not found");
+    }
   }
 }
