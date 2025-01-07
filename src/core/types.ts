@@ -7,3 +7,11 @@ export type OpenApiPaths = z.infer<typeof OpenApiPathsSchema>;
 // This is equivalent to type and scheme in OpenAPI, but we only support http bearer / http basic for now
 export type AuthenticationType = "http"; // | "oauth2" | "apiKey"
 export type AuthenticationScheme = "bearer" | "basic";
+
+// or Endpoint
+// what defines a Route? combination of url, method (and url params)
+// todo: support url params
+export type Route = {
+  url: string;
+  method: string;
+};

@@ -10,3 +10,8 @@ export type BearerAuthSession = {
   bearerToken: string;
   expiresAt?: Date;
 };
+
+export type AuthParameterLocationDescription = {
+  parameterName?: string;
+  parameterLocation?: string; // narrow down to query, header, cookie, path, or body
+};
