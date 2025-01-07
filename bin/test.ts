@@ -2,6 +2,7 @@ import { apiClient } from "@japa/api-client";
 import { expect } from "@japa/expect";
 import { configure, processCLIArgs, run } from "@japa/runner";
 
+// todo: remove this file
 processCLIArgs(process.argv.splice(2));
 configure({
   suites: [

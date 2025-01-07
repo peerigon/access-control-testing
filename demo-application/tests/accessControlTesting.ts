@@ -1,6 +1,14 @@
-import { helloWorld } from 'access-control-testing'
+// todo: replace this with from 'access-control-testing' later
+import { Act } from '../../src/api'
 
-helloWorld()
+const test = async () => {
+  // todo: seed the database with testing data
 
-// todo: seed the database with some fake data as before hook
-// todo: provide necessary data to the tool and start the scan
+  //const users = [new User('admin', 'admin'), new User('user', 'password')]
+
+  console.log('======')
+  const act = new Act()
+  await act.scan()
+}
+
+test()
