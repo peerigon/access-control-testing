@@ -1,6 +1,6 @@
 import { apiClient } from "@japa/api-client";
 import { expect } from "@japa/expect";
-import { configure, processCLIArgs, run } from "@japa/runner";
+import { configure, run } from "@japa/runner";
 
 export class Act {
   private async runTests() {
@@ -16,7 +16,7 @@ export class Act {
       ],
       // todo: make base url configurable as param
       // read the value from a config prop or the OpenAPI spec
-      plugins: [expect(), apiClient("https://localhost:3333")],
+      plugins: [expect(), apiClient("http://localhost:3333")],
     });
 
     void run();

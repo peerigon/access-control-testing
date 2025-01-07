@@ -18,7 +18,7 @@ configure({
   ],
   // todo: make base url configurable as param
   // read the value from a config prop or the OpenAPI spec
-  plugins: [expect(), apiClient("https://localhost:3333")],
+  plugins: [expect(), apiClient("http://localhost:3333")],
 });
 
 void run();
