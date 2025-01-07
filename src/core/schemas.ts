@@ -1,7 +1,17 @@
 import { z } from "zod";
 
+const AuthenticationSchema = z.union([
+  z.object({
+    useOpenApi: z.literal(true),
+  }),
+  z.object({
+    loginUrl: z.string().url(),
+  }),
+]);
+
 export const ConfigurationSchema = z.object({
   openApiUrl: z.string(),
+  authentication: AuthenticationSchema,
 });
 
 // todo: add stricter types
