@@ -1,5 +1,5 @@
 import { ApiRequest } from "@japa/api-client/build/src/request";
-import { AuthenticationCredentials, Session } from "./types";
+import { AuthenticationCredentials } from "./types";
 
 export interface HttpAuthenticator {
   /**
@@ -9,5 +9,5 @@ export interface HttpAuthenticator {
   authenticateRequest(
     request: ApiRequest,
     credentials: AuthenticationCredentials,
-  ): Promise<ApiRequest>;
+  ): Promise<void>;
 }

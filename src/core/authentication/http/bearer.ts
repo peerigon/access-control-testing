@@ -71,9 +71,8 @@ export class BearerAuthenticator
   public async authenticateRequest(
     request: ApiRequest,
     credentials: AuthenticationCredentials,
-  ): Promise<ApiRequest> {
+  ) {
     const session = await this.findOrInitializeSession(credentials);
     request.bearerToken(session.bearerToken);
-    return request;
   }
 }
