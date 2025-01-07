@@ -103,6 +103,26 @@ paths:
     post:
         summary: Login
         description: Authentifiziert einen Benutzer und gibt einen JSON Web Token zurück.
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    example: johndoe
+                    description: Benutzername des Benutzers
+                    x-act-auth-field:
+                      type: username
+                  password:
+                    type: string
+                    format: password
+                    example: secretpassword
+                    description: Passwort des Benutzers
+                    x-act-auth-field:
+                      type: password
         responses:
           '200':
             description: Erfolgreiche Antwort
@@ -114,5 +134,11 @@ paths:
                     token:
                       type: string
                       example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                      x-act-auth-field:
+                        type: token
+                    df:
+                      type: string
+                      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
         x-act-auth-endpoint:
-          type: "bearer"
+          type: "http"
+          scheme: "bearer"
