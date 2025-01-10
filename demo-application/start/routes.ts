@@ -12,6 +12,10 @@ import router from '@adonisjs/core/services/router'
 import User from '#models/user'
 import { middleware } from '#start/kernel'
 
+const middlewareAuth = middleware.auth({
+  guards: ['api', 'web'],
+})
+
 router.get('/', async () => {
   return {
     hello: 'world',
@@ -33,10 +37,10 @@ router
       return User.findOrFail(params.id)
     })
   })
-  .use(middleware.auth())
+  .use(middlewareAuth)
   .prefix('/admin')
 
-router.post('/login', async ({ request }) => {
+router.post('/login/bearer', async ({ request }) => {
   const { email, password } = request.body()
 
   //const h = await hash.make(password)
@@ -51,10 +55,29 @@ router.post('/login', async ({ request }) => {
     }
   )
 
-  console.log('Login successful ')
+  console.log('Login successful')
   return token
   // todo: allow token to be defined in nested property at a later point
   /*return {
     token,
   }*/
 })
+
+router.post('/login/cookie', async ({ request, auth }) => {
+  const { email, password } = request.body()
+
+  const user = await User.verifyCredentials(email, password)
+  await auth.use('web').login(user)
+
+  console.log('Login successful')
+})
+
+router
+  .post('/logout/cookie', async ({ auth }) => {
+    await auth.use('web').logout()
+  })
+  .use(
+    middleware.auth({
+      guards: ['web'],
+    })
+  )

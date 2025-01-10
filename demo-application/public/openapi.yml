@@ -99,9 +99,9 @@ paths:
                   error:
                     type: string
                     example: Benutzer nicht gefunden.
-  /login:
+  /login/bearer:
     post:
-        summary: Login
+        summary: Login mit Bearer Token
         description: Authentifiziert einen Benutzer und gibt einen JSON Web Token zurück.
         requestBody:
           required: true
@@ -142,3 +142,72 @@ paths:
         x-act-auth-endpoint:
           type: "http"
           scheme: "bearer"
+  /login/cookie:
+    post:
+      summary: Login mit Cookie
+      description: Authentifiziert einen Benutzer mit E-Mail und Passwort und setzt ein Cookie.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: "E-Mail-Adresse des Benutzers"
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  description: "Passwort des Benutzers"
+                  example: "mypassword123"
+      responses:
+        "200":
+          description: "Login erfolgreich"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Login erfolgreich"
+        "401":
+          description: "Ungültige Anmeldedaten"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Ungültige E-Mail oder Passwort"
+  /logout/cookie:
+    post:
+      summary: "Logout mit Cookie"
+      description: Loggt den aktuell authentifizierten Benutzer aus und löscht das Cookie.
+      responses:
+        "200":
+          description: "Logout erfolgreich"
+          content:
+            application/json:
+              schema:
+                type: string
+                example: ""
+        "401":
+          description: "Nicht authentifiziert"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                          example: "Unauthorized access"
