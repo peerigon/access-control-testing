@@ -117,8 +117,9 @@ paths:
               properties:
                 username:
                   type: string
-                  example: johndoe
-                  description: Benutzername des Benutzers
+                  format: email
+                  description: E-Mail-Adresse des Benutzers
+                  example: user@example.com
                   x-act-auth-field:
                     type: username
                 password:
@@ -156,16 +157,20 @@ paths:
             schema:
               type: object
               properties:
-                email:
+                username:
                   type: string
                   format: email
-                  description: "E-Mail-Adresse des Benutzers"
-                  example: "user@example.com"
+                  description: E-Mail-Adresse des Benutzers
+                  example: user@example.com
+                  x-act-auth-field:
+                    type: username
                 password:
                   type: string
                   format: password
-                  description: "Passwort des Benutzers"
-                  example: "mypassword123"
+                  example: secretpassword
+                  description: Passwort des Benutzers
+                  x-act-auth-field:
+                    type: password
       responses:
         "200":
           description: "Login erfolgreich"
@@ -192,6 +197,7 @@ paths:
                         message:
                           type: string
                           example: "Invalid user credentials"
+      x-act-auth-endpoint: cookieAuthentication
   /logout/cookie:
     post:
       summary: "Logout mit Cookie"
