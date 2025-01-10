@@ -1,7 +1,10 @@
 import Oas from "oas";
 import OASNormalize from "oas-normalize";
-import { OASDocument } from "oas/dist/types";
-import { AuthParameterLocationDescription } from "../authentication/http/types";
+import { HttpMethods, OASDocument } from "oas/dist/types";
+import {
+  AuthenticatorType,
+  AuthParameterLocationDescription,
+} from "../authentication/http/types";
 import { OpenApiFields } from "../constants";
 
 export class OpenAPIParser {
@@ -112,29 +115,34 @@ export class OpenAPIParser {
         throw new Error("Username or password not found in the request body");
       }
 
-      const authParameterLocationDescription = {
+      const authRequestParameterDescription = {
         username: usernameDescription,
         password: passwordDescription,
       };
 
-      // todo: if is bearer (check again if still working)
-      /* return {
-        authEndpoint,
-        authParameterLocationDescription,
-        tokenParameterLocationDescription:
-          this.getTokenParameterLocationDescription(authEndpoint),
-      };*/
+      if (authenticatorType === AuthenticatorType.HTTP_BEARER) {
+        return {
+          authEndpoint,
+          authRequestParameterDescription,
+          authResponseParameterDescription:
+            this.getTokenParameterDescription(authEndpoint),
+        };
+      }
 
-      // todo: if is cookie
-      // or: rename to returnParameterLocationDescription or similar, so it can be used for both
-      return {
-        authEndpoint,
-        authParameterLocationDescription,
-        cookieParameterLocationDescription: {
-          parameterName: "adonis-session", // todo: get this from the OpenAPI spec
-          parameterLocation: "cookie",
-        },
-      };
+      if (authenticatorType === AuthenticatorType.API_KEY_COOKIE) {
+        return {
+          authEndpoint,
+          authRequestParameterDescription,
+          authResponseParameterDescription: {
+            parameterName: "adonis-session", // todo: get this from the OpenAPI spec
+            parameterLocation: "cookie",
+          },
+        };
+      }
+
+      // todo: rename to returnParameterLocationDescription or similar, so it can be used for both
+
+      throw new Error("Authenticator type not supported");
     } else {
       // todo: add proper error handling
       throw new Error("Auth endpoint not found");
@@ -142,7 +150,7 @@ export class OpenAPIParser {
   }
 
   // todo: move out filtering part to a separate function (to be reused for username/password extract function)
-  private getTokenParameterLocationDescription(
+  private getTokenParameterDescription(
     authEndpoint: ReturnType<OpenAPIParser["getPaths"]>[0],
   ): AuthParameterLocationDescription {
     const responseStatusCodes = authEndpoint.getResponseStatusCodes();
@@ -170,5 +178,60 @@ export class OpenAPIParser {
 
     // todo: add proper error handling
     throw new Error("Token not found in the response body");
+  }
+
+  public async getSecurityScheme(operation: any) {}
+
+  // todo: stricter types
+  // todo: what if there are 0 security schemes?
+  public async getSecurityScheme(url: string, httpMethod: string) {
+    const oas = await this.getOasSource();
+    // todo: figure out what happens to parametrized routes
+    const operation = oas.getOperation(url, httpMethod as HttpMethods);
+
+    if (!operation) {
+      // todo: add proper error handling
+      throw new Error("Operation not found");
+    }
+
+    //const securityScheme = operation.getSecurity();
+    const securitySchemeCombinations = operation.getSecurityWithTypes();
+
+    console.log("securitySchemeCombinations", securitySchemeCombinations);
+
+    // todo: figure out if there should be another logic to choose the appropriate security scheme
+    // for now, just use the first combination of security schemes available
+    const [firstSecuritySchemeCombination] = securitySchemeCombinations;
+
+    // todo: assert that securityScheme has length 1
+    // there is an AND condition for all security schemes in the array securityScheme
+    // for now, this is not supported and should throw an error / should be skipped
+    if (!firstSecuritySchemeCombination || !firstSecuritySchemeCombination[0]) {
+      throw new Error("Security scheme not found");
+    }
+
+    return firstSecuritySchemeCombination[0].security;
+  }
+
+  public getAuthenticatorTypeBySecurityScheme(
+    securityScheme: Awaited<ReturnType<OpenAPIParser["getSecurityScheme"]>>,
+  ): AuthenticatorType {
+    const type = securityScheme.type.toLowerCase();
+    const scheme = securityScheme.scheme?.toLowerCase();
+    const location = securityScheme.in?.toLowerCase();
+
+    if (type === "http") {
+      if (scheme === "bearer") {
+        return AuthenticatorType.HTTP_BEARER;
+      } else if (scheme === "basic") {
+        return AuthenticatorType.HTTP_BASIC;
+      }
+    }
+
+    if (type === "apikey" && location === "cookie") {
+      return AuthenticatorType.API_KEY_COOKIE;
+    }
+
+    return AuthenticatorType.NONE;
   }
 }
