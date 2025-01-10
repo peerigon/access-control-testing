@@ -18,9 +18,6 @@ export class BearerAuthenticator
   }
 
   protected async initializeSession(credentials: AuthenticationCredentials) {
-    // todo: based on route information, perform a login request to the API
-    // and store the obtained bearer token
-
     // todo: make base url configurable as param
     // read the value from a config prop or the OpenAPI spec
     const apiClient = new ApiClient("http://localhost:3333");
@@ -54,7 +51,6 @@ export class BearerAuthenticator
       );
     }
 
-    // assert token existance (and maybe of format bearer?)
     // todo: add error handling
 
     // todo: if token expiry is not defined in response (in our case token.expiresAt), read out token to store this extra piece of information

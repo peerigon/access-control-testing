@@ -54,6 +54,9 @@ export class OpenAPIParser {
   }
 
   public async getAuthEndpoint(securitySchemeIdentifier: string) {
+    // todo: validate that securityScheme is only one of the supported ones
+    // if not, throw an error or skip
+
     const paths = await this.getPaths();
 
     // todo: handle cases when 0 or more than 1 is found
@@ -109,51 +112,63 @@ export class OpenAPIParser {
         throw new Error("Username or password not found in the request body");
       }
 
-      let tokenParameterLocationDescription: AuthParameterLocationDescription | null =
-        null;
-
-      const responseStatusCodes = authEndpoint.getResponseStatusCodes();
-
-      // console.log(responseStatusCodes, "responseStatusCodes");
-
-      // todo: create a separate method for this
-      for (let responseStatusCode of responseStatusCodes) {
-        const [response] =
-          authEndpoint.getResponseAsJSONSchema(responseStatusCode);
-
-        for (const propertyKey in response.schema.properties) {
-          const property = response.schema.properties[propertyKey];
-
-          if (property[OpenApiFields.AUTH_FIELD]?.type === "token") {
-            console.log("token", propertyKey);
-            // todo: what about nested parameter locations?
-            tokenParameterLocationDescription = {
-              parameterName: propertyKey,
-              parameterLocation: "responseBody", // todo: add type
-            };
-            // todo: break the loop
-          }
-        }
-      }
-
-      if (!tokenParameterLocationDescription) {
-        // todo: add proper error handling
-        throw new Error("Token not found in the response body");
-      }
-
       const authParameterLocationDescription = {
         username: usernameDescription,
         password: passwordDescription,
       };
 
+      // todo: if is bearer (check again if still working)
+      /* return {
+        authEndpoint,
+        authParameterLocationDescription,
+        tokenParameterLocationDescription:
+          this.getTokenParameterLocationDescription(authEndpoint),
+      };*/
+
+      // todo: if is cookie
+      // or: rename to returnParameterLocationDescription or similar, so it can be used for both
       return {
         authEndpoint,
         authParameterLocationDescription,
-        tokenParameterLocationDescription,
+        cookieParameterLocationDescription: {
+          parameterName: "adonis-session", // todo: get this from the OpenAPI spec
+          parameterLocation: "cookie",
+        },
       };
     } else {
       // todo: add proper error handling
       throw new Error("Auth endpoint not found");
     }
+  }
+
+  // todo: move out filtering part to a separate function (to be reused for username/password extract function)
+  private getTokenParameterLocationDescription(
+    authEndpoint: ReturnType<OpenAPIParser["getPaths"]>[0],
+  ): AuthParameterLocationDescription {
+    const responseStatusCodes = authEndpoint.getResponseStatusCodes();
+
+    // console.log(responseStatusCodes, "responseStatusCodes");
+
+    // todo: create a separate method for this
+    for (let responseStatusCode of responseStatusCodes) {
+      const [response] =
+        authEndpoint.getResponseAsJSONSchema(responseStatusCode);
+
+      for (const propertyKey in response.schema.properties) {
+        const property = response.schema.properties[propertyKey];
+
+        if (property[OpenApiFields.AUTH_FIELD]?.type === "token") {
+          console.log("token", propertyKey);
+          // todo: what about nested parameter locations?
+          return {
+            parameterName: propertyKey,
+            parameterLocation: "body", // todo: add type
+          };
+        }
+      }
+    }
+
+    // todo: add proper error handling
+    throw new Error("Token not found in the response body");
   }
 }
