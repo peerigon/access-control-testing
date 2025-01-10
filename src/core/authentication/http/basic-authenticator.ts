@@ -1,8 +1,8 @@
 import { ApiRequest } from "@japa/api-client/build/src/request";
-import { HttpAuthenticator } from "./authenticator";
+import { RequestAuthenticator } from "./authenticator";
 import { AuthenticationCredentials } from "./types";
 
-export class BasicAuthenticator implements HttpAuthenticator {
+export class BasicAuthenticator implements RequestAuthenticator {
   public async authenticateRequest(
     request: ApiRequest,
     credentials: AuthenticationCredentials,

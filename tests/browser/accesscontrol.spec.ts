@@ -1,7 +1,7 @@
 import { ApiResponse } from "@japa/api-client";
 import { test } from "@japa/runner";
 import { AuthenticationStore } from "../../src/core/authentication/authentication-store";
-import { HttpAuthenticator } from "../../src/core/authentication/http/authenticator";
+import { RequestAuthenticator } from "../../src/core/authentication/http/authenticator";
 import { AuthenticationCredentials } from "../../src/core/authentication/http/types";
 import { HTTP_FORBIDDEN_STATUS_CODE } from "../../src/core/constants";
 import { User } from "../../src/core/entities/user";
@@ -58,7 +58,7 @@ function buildTestDataset(): Array<{
 async function getAuthenticatorByRoute(
   url: string,
   httpMethod: string,
-): Promise<HttpAuthenticator | null> {
+): Promise<RequestAuthenticator | null> {
   const securityScheme = await openAPIParser.getSecurityScheme(url, httpMethod);
   const securitySchemeKey = securityScheme._key;
 

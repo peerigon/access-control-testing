@@ -1,4 +1,4 @@
-import { HttpAuthenticator } from "./http/authenticator";
+import { RequestAuthenticator } from "./http/authenticator";
 import { BasicAuthenticator } from "./http/basic-authenticator";
 import { BearerAuthenticator } from "./http/bearer-authenticator";
 import { CookieAuthenticator } from "./http/cookie-authenticator";
@@ -7,7 +7,7 @@ import { AuthenticatorType } from "./http/types";
 export class AuthenticationStore {
   static authenticatorStore: Record<
     AuthenticatorType,
-    HttpAuthenticator | null
+    RequestAuthenticator | null
   > = {
     [AuthenticatorType.HTTP_BEARER]: null,
     [AuthenticatorType.HTTP_BASIC]: null,
