@@ -3,7 +3,6 @@ import OASNormalize from "oas-normalize";
 import { OASDocument } from "oas/dist/types";
 import { AuthParameterLocationDescription } from "../authentication/http/types";
 import { OpenApiFields } from "../constants";
-import { AuthenticationScheme, AuthenticationType } from "../types";
 
 export class OpenAPIParser {
   private openApiSource: Oas | undefined = undefined;
@@ -54,11 +53,7 @@ export class OpenAPIParser {
     return Object.values(oasPaths).flatMap((oasPath) => Object.values(oasPath));
   }
 
-  // todo: get auth endpoint by securityScheme name instead of type and scheme
-  public async getAuthEndpoint(
-    authenticationType: AuthenticationType,
-    authenticationScheme: AuthenticationScheme,
-  ) {
+  public async getAuthEndpoint(securitySchemeIdentifier: string) {
     const paths = await this.getPaths();
 
     // todo: handle cases when 0 or more than 1 is found
@@ -66,12 +61,10 @@ export class OpenAPIParser {
     // for now, just return the first path that matches
     const authEndpoint = paths.find((path) => {
       // todo: add type
-      const authEndpointInfo = path.schema[OpenApiFields.AUTH_ENDPOINT];
+      const authEndpointSecuritySchemeIdentifier =
+        path.schema[OpenApiFields.AUTH_ENDPOINT];
 
-      return (
-        authEndpointInfo?.type === authenticationType &&
-        authEndpointInfo?.scheme === authenticationScheme
-      );
+      return authEndpointSecuritySchemeIdentifier === securitySchemeIdentifier;
     });
 
     if (authEndpoint) {

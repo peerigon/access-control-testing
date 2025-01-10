@@ -72,8 +72,7 @@ test.group("Access Control Testing", (group) => {
         // todo: can this be cached or stored inside the state of the OpenApiParser?
         // so that mapping etc. only has to take place when specific auth strategy hasn't been queried yet
         const authEndpoint = await openAPIParser.getAuthEndpoint(
-          "http",
-          "bearer",
+          "bearerHttpAuthentication",
         );
 
         // todo: find out which authentication to use for the given route, create a function for this
