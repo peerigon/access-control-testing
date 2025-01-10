@@ -52,7 +52,9 @@ router.post('/login', async ({ request }) => {
   )
 
   console.log('Login successful ')
-  return {
+  return token
+  // todo: allow token to be defined in nested property at a later point
+  /*return {
     token,
-  }
+  }*/
 })
