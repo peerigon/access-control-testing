@@ -1,6 +1,6 @@
 import { ApiClient } from "@japa/api-client";
 import { ApiRequest } from "@japa/api-client/build/src/request";
-import { OpenAPIParser } from "../../parsers/openapi";
+import { OpenAPIParser } from "../../parsers/openapi-parser";
 import { HttpAuthenticator } from "./authenticator";
 import { SessionManager } from "./session-manager";
 import { AuthenticationCredentials, BearerAuthSession } from "./types";

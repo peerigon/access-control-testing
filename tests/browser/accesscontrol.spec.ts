@@ -1,12 +1,12 @@
 import { ApiResponse } from "@japa/api-client";
 import { test } from "@japa/runner";
+import { AuthenticationStore } from "../../src/core/authentication/authentication-store";
 import { HttpAuthenticator } from "../../src/core/authentication/http/authenticator";
 import { AuthenticationCredentials } from "../../src/core/authentication/http/types";
-import { AuthenticationStore } from "../../src/core/authentication/store";
 import { HTTP_FORBIDDEN_STATUS_CODE } from "../../src/core/constants";
 import { User } from "../../src/core/entities/user";
-import { ConfigurationParser } from "../../src/core/parsers/configuration";
-import { OpenAPIParser } from "../../src/core/parsers/openapi";
+import { ConfigurationParser } from "../../src/core/parsers/configuration-parser";
+import { OpenAPIParser } from "../../src/core/parsers/openapi-parser";
 import { Route } from "../../src/core/types";
 
 const configurationParser = new ConfigurationParser();

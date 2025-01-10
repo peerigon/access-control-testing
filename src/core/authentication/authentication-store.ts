@@ -1,7 +1,7 @@
 import { HttpAuthenticator } from "./http/authenticator";
-import { BasicAuthenticator } from "./http/basic";
-import { BearerAuthenticator } from "./http/bearer";
-import { CookieAuthenticator } from "./http/cookie";
+import { BasicAuthenticator } from "./http/basic-authenticator";
+import { BearerAuthenticator } from "./http/bearer-authenticator";
+import { CookieAuthenticator } from "./http/cookie-authenticator";
 import { AuthenticatorType } from "./http/types";
 
 export class AuthenticationStore {
