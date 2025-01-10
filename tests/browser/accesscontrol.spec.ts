@@ -1,7 +1,8 @@
 import { ApiResponse } from "@japa/api-client";
 import { test } from "@japa/runner";
-import { BearerAuthenticator } from "../../src/core/authentication/http/bearer";
+import { HttpAuthenticator } from "../../src/core/authentication/http/authenticator";
 import { AuthenticationCredentials } from "../../src/core/authentication/http/types";
+import { AuthenticationStore } from "../../src/core/authentication/store";
 import { HTTP_FORBIDDEN_STATUS_CODE } from "../../src/core/constants";
 import { User } from "../../src/core/entities/user";
 import { ConfigurationParser } from "../../src/core/parsers/configuration";
@@ -27,7 +28,7 @@ function buildTestDataset(): Array<{
     {
       user: user1,
       route: {
-        url: "/admin/users",
+        url: "http://localhost:3333/admin/users",
         method: "get",
         // maybe include securitySchemeIdentifier here?
       },
@@ -37,12 +38,51 @@ function buildTestDataset(): Array<{
     {
       user: user1,
       route: {
-        url: "/admin/users",
+        url: "http://localhost:3333/admin/users",
+        method: "get",
+      },
+      expectedRequestToBeAllowed: false, // todo: these objects will get mapped (.map) and the state here will be calculated by a dedicated function
+    },
+    {
+      user: user1,
+      route: {
+        url: "http://localhost:3333/admin/users/123",
         method: "get",
       },
       expectedRequestToBeAllowed: false, // todo: these objects will get mapped (.map) and the state here will be calculated by a dedicated function
     },
   ];
+}
+
+// todo: this should return the corresponding authenticator based on the requested route
+async function getAuthenticatorByRoute(
+  url: string,
+  httpMethod: string,
+): Promise<HttpAuthenticator | null> {
+  const securityScheme = await openAPIParser.getSecurityScheme(url, httpMethod);
+  const securitySchemeKey = securityScheme._key;
+
+  console.log(securityScheme);
+  console.log("GOT SECURITY SCHEME: " + securitySchemeKey);
+
+  const authenticatorType =
+    openAPIParser.getAuthenticatorTypeBySecurityScheme(securityScheme);
+
+  // todo: can this result be cached or stored inside the state of the OpenApiParser?
+  // so that mapping etc. only has to take place when specific auth strategy hasn't been queried yet
+  const authEndpoint = await openAPIParser.getAuthEndpoint(
+    securitySchemeKey,
+    authenticatorType,
+  );
+
+  // todo: one method that gets authendpoint for url, httpmethod
+
+  const authenticator = AuthenticationStore.getOrCreateAuthenticator(
+    authenticatorType,
+    authEndpoint,
+  );
+
+  return authenticator;
 }
 
 test.group("Access Control Testing", (group) => {
@@ -69,23 +109,20 @@ test.group("Access Control Testing", (group) => {
           password: user.password,
         };
 
-        // todo: can this be cached or stored inside the state of the OpenApiParser?
-        // so that mapping etc. only has to take place when specific auth strategy hasn't been queried yet
-        const authEndpoint = await openAPIParser.getAuthEndpoint(
-          "bearerHttpAuthentication",
-        );
-
-        // todo: find out which authentication to use for the given route, create a function for this
-        // decide based on the result of getAuthEndpoint which authenticator to use
-        const authenticator = new BearerAuthenticator(authEndpoint);
-
         const response: ApiResponse = await client
           .request(route.url, route.method)
           .setup(async (request: ApiRequest) => {
+            const authenticator = await getAuthenticatorByRoute(
+              route.url,
+              route.method,
+            );
             await authenticator.authenticateRequest(request, credentials);
+            /*console.log("dump request cookies");
+            request.dumpCookies();*/
           });
 
-        response.dump();
+        /*  console.log("response dump");
+        response.dump();*/
 
         // check response status
         // todo: make it configurable what is considered as forbidden

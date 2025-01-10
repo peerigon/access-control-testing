@@ -56,7 +56,10 @@ export class OpenAPIParser {
     return Object.values(oasPaths).flatMap((oasPath) => Object.values(oasPath));
   }
 
-  public async getAuthEndpoint(securitySchemeIdentifier: string) {
+  public async getAuthEndpoint(
+    securitySchemeIdentifier: string,
+    authenticatorType: AuthenticatorType,
+  ) {
     // todo: validate that securityScheme is only one of the supported ones
     // if not, throw an error or skip
 
@@ -93,7 +96,7 @@ export class OpenAPIParser {
           if (authFieldType === "username") {
             usernameDescription = {
               parameterName: propertyKey,
-              parameterLocation,
+              parameterLocation, // todo: fix type
             };
           }
 
@@ -140,8 +143,6 @@ export class OpenAPIParser {
         };
       }
 
-      // todo: rename to returnParameterLocationDescription or similar, so it can be used for both
-
       throw new Error("Authenticator type not supported");
     } else {
       // todo: add proper error handling
@@ -179,8 +180,6 @@ export class OpenAPIParser {
     // todo: add proper error handling
     throw new Error("Token not found in the response body");
   }
-
-  public async getSecurityScheme(operation: any) {}
 
   // todo: stricter types
   // todo: what if there are 0 security schemes?

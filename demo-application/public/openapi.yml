@@ -3,6 +3,9 @@ info:
   title: Example API
   version: 1.0.0
   description: API zur Verwaltung von Benutzern und allgemeinen Informationen.
+servers:
+  - url: http://localhost:3333
+    description: Development server
 components:
   securitySchemes:
     basicHttpAuthentication:
@@ -104,6 +107,10 @@ paths:
                   error:
                     type: string
                     example: Benutzer nicht gefunden.
+      security:
+        - cookieAuthentication: [ ]
+        - bearerHttpAuthentication: [ ]
+        - basicHttpAuthentication: [ ]
   /login/bearer:
     post:
       summary: Login mit Bearer Token

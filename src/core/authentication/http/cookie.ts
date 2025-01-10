@@ -18,6 +18,7 @@ export class CookieAuthenticator
   }
 
   protected async initializeSession(credentials: AuthenticationCredentials) {
+    console.log("init new cookie session");
     // todo: make base url configurable as param
     // read the value from a config prop or the OpenAPI spec
     const apiClient = new ApiClient("http://localhost:3333");
@@ -27,22 +28,22 @@ export class CookieAuthenticator
 
     const {
       authEndpoint,
-      authParameterLocationDescription,
-      cookieParameterLocationDescription,
+      authRequestParameterDescription,
+      authResponseParameterDescription,
     } = this.authEndpointInformation;
 
     // todo: add username, password values from credentials to the fields
-    // names are in authParameterLocationDescription
+    // names are in authRequestParameterDescription
     // todo: create a helper function that creates the request (this is the same as in BearerAuthenticator)
     const response: ApiResponse = await apiClient
       .request(authEndpoint.path, authEndpoint.method)
       .json({
-        email: credentials.identifier, // todo: make field names generic, get this from authParameterLocationDescription
+        email: credentials.identifier, // todo: make field names generic, get this from authRequestParameterDescription
         password: credentials.password,
       });
 
     const { parameterName: cookieParameterName } =
-      cookieParameterLocationDescription;
+      authResponseParameterDescription;
 
     // todo: make this configurable
     // todo: clarify if STORE_ALL_COOKIES mode could help with csrf protection set

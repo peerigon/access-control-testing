@@ -24,3 +24,10 @@ export type AuthParameterLocationDescription = {
   // todo: verify if all locations are valid; make enum out of it?
   parameterLocation?: "query" | "header" | "cookie" | "path" | "body";
 };
+
+export enum AuthenticatorType {
+  HTTP_BEARER = "httpBearer",
+  HTTP_BASIC = "httpBasic",
+  API_KEY_COOKIE = "apiKeyCookie",
+  NONE = "none",
+}

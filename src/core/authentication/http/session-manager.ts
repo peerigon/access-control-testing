@@ -23,6 +23,8 @@ export abstract class SessionManager<SessionType extends Session> {
       return this.initializeSession(credentials);
     }
 
+    console.log("Reusing existing session");
+
     return existingSession;
   }
 

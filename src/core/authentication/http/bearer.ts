@@ -20,27 +20,28 @@ export class BearerAuthenticator
   protected async initializeSession(credentials: AuthenticationCredentials) {
     // todo: make base url configurable as param
     // read the value from a config prop or the OpenAPI spec
+    console.log("init new bearer session");
     const apiClient = new ApiClient("http://localhost:3333");
     // todo: fix issue with type
     const {
       authEndpoint,
-      authParameterLocationDescription,
-      tokenParameterLocationDescription,
+      authRequestParameterDescription,
+      authResponseParameterDescription,
     } = this.authEndpointInformation;
 
     // console.log(authEndpoint.path);
 
     // todo: add username, password values from credentials to the fields
-    // names are in authParameterLocationDescription
+    // names are in authRequestParameterDescription
     const response = await apiClient
       .request(authEndpoint.path, authEndpoint.method)
       .json({
-        email: credentials.identifier, // todo: make field names generic, get this from authParameterLocationDescription
+        email: credentials.identifier, // todo: make field names generic, get this from authRequestParameterDescription
         password: credentials.password,
       });
 
     const { parameterName: tokenParameterName } =
-      tokenParameterLocationDescription;
+      authResponseParameterDescription;
 
     const token: string | undefined = response.body()[tokenParameterName];
 
