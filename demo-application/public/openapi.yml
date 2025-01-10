@@ -144,9 +144,7 @@ paths:
                   df:
                     type: string
                     example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-      x-act-auth-endpoint:
-        type: "http"
-        scheme: "bearer"
+      x-act-auth-endpoint: bearerHttpAuthentication
   /login/cookie:
     post:
       summary: Login mit Cookie
@@ -179,16 +177,21 @@ paths:
                   message:
                     type: string
                     example: "Login erfolgreich"
-        "401":
+        "400":
           description: "Ungültige Anmeldedaten"
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  error:
-                    type: string
-                    example: "Ungültige E-Mail oder Passwort"
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                          example: "Invalid user credentials"
   /logout/cookie:
     post:
       summary: "Logout mit Cookie"
