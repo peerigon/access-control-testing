@@ -41,11 +41,11 @@ router
   .prefix('/admin')
 
 router.post('/login/bearer', async ({ request }) => {
-  const { email, password } = request.body()
+  const { username, password } = request.body()
 
   //const h = await hash.make(password)
 
-  const user = await User.verifyCredentials(email, password)
+  const user = await User.verifyCredentials(username, password)
 
   const token = await User.accessTokens.create(
     user, // for user
@@ -64,9 +64,9 @@ router.post('/login/bearer', async ({ request }) => {
 })
 
 router.post('/login/cookie', async ({ request, auth }) => {
-  const { email, password } = request.body()
+  const { username, password } = request.body()
 
-  const user = await User.verifyCredentials(email, password)
+  const user = await User.verifyCredentials(username, password)
   await auth.use('web').login(user)
 
   console.log('Login successful')
