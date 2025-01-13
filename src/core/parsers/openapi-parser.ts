@@ -56,10 +56,18 @@ export class OpenAPIParser {
     return Object.values(oasPaths).flatMap((oasPath) => Object.values(oasPath));
   }
 
+  // todo: move return type to another file
   public async getAuthEndpoint(
     securitySchemeIdentifier: string,
     authenticatorType: AuthenticatorType,
-  ) {
+  ): Promise<{
+    authEndpoint: ReturnType<OpenAPIParser["getPaths"]>[0];
+    authRequestParameterDescription: {
+      username: AuthParameterLocationDescription;
+      password: AuthParameterLocationDescription;
+    };
+    authResponseParameterDescription: AuthParameterLocationDescription;
+  }> {
     // todo: validate that securityScheme is only one of the supported ones
     // if not, throw an error or skip
 
