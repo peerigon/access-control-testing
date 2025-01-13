@@ -1,4 +1,5 @@
 import { ApiResponse } from "@japa/api-client";
+import { ApiRequest } from "@japa/api-client/build/src/request";
 import { test } from "@japa/runner";
 import { AuthenticationStore } from "../../src/core/authentication/authentication-store";
 import { RequestAuthenticator } from "../../src/core/authentication/http/authenticator";
@@ -14,7 +15,7 @@ const configurationParser = new ConfigurationParser();
 const { openApiUrl } = await configurationParser.parse();
 
 const openAPIParser = new OpenAPIParser(openApiUrl);
-const paths = await openAPIParser.getPaths();
+// const paths = await openAPIParser.getPaths();
 
 // todo: implement this & move function outside
 // for now just dummy implementation
@@ -86,14 +87,6 @@ async function getAuthenticatorByRoute(
 }
 
 test.group("Access Control Testing", (group) => {
-  group.each.setup(() => {
-    console.log("executed before the test");
-  });
-
-  group.each.teardown(() => {
-    console.log("executed after the test");
-  });
-
   // todo: figure out if Playwright is still needed?
   // using Japa Datasets: https://japa.dev/docs/datasets
   test("validate access control")
@@ -116,7 +109,10 @@ test.group("Access Control Testing", (group) => {
               route.url,
               route.method,
             );
-            await authenticator.authenticateRequest(request, credentials);
+
+            if (authenticator) {
+              await authenticator.authenticateRequest(request, credentials);
+            }
             /*console.log("dump request cookies");
             request.dumpCookies();*/
           });
@@ -124,12 +120,9 @@ test.group("Access Control Testing", (group) => {
         /*  console.log("response dump");
         response.dump();*/
 
-        // check response status
         // todo: make it configurable what is considered as forbidden
         // for now, forbidden is when the corresponding status code has been sent
         const statusCode = response.status();
-        console.log("Status code", statusCode);
-        console.log("Status type", response.statusType());
 
         if (expectedRequestToBeAllowed) {
           // can be one of 2XX codes but could also be an error that occurred due to wrong syntax of request
