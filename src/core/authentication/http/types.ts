@@ -20,9 +20,9 @@ export type CookieAuthSession = {
 };
 
 export type AuthParameterLocationDescription = {
-  parameterName?: string;
+  parameterName: string;
   // todo: verify if all locations are valid; make enum out of it?
-  parameterLocation?: "query" | "header" | "cookie" | "path" | "body";
+  parameterLocation: "query" | "header" | "cookie" | "path" | "body";
 };
 
 export enum AuthenticatorType {
