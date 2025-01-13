@@ -1,7 +1,4 @@
 export default {
-  extends: ["peerigon/presets/typescript.js"],
-  env: {
-    node: true,
-  },
+  extends: ["peerigon/presets/typescript-node.js"],
   root: true,
 };
