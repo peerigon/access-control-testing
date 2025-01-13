@@ -3,7 +3,6 @@ export type AuthenticationCredentials = {
   password: string;
 };
 
-// todo: add classic cookie-based session
 export type Session = BearerAuthSession | CookieAuthSession;
 
 export type BearerAuthSession = {

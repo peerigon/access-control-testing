@@ -1,5 +1,4 @@
 import { ApiRequest } from "@japa/api-client/build/src/request";
-import { OpenAPIParser } from "../../parsers/openapi-parser";
 import { RequestAuthenticator } from "./authenticator";
 import { SessionManager } from "./session-manager";
 import { AuthenticationCredentials, BearerAuthSession } from "./types";
@@ -8,14 +7,6 @@ export class BearerAuthenticator
   extends SessionManager<BearerAuthSession>
   implements RequestAuthenticator
 {
-  constructor(
-    private authEndpointInformation: Awaited<
-      ReturnType<OpenAPIParser["getAuthEndpoint"]>
-    >,
-  ) {
-    super();
-  }
-
   protected async initializeSession(credentials: AuthenticationCredentials) {
     console.log("init new bearer session");
     const { response, authResponseParameterDescription } =
