@@ -32,14 +32,24 @@ export class CookieAuthenticator
       authResponseParameterDescription,
     } = this.authEndpointInformation;
 
-    // todo: add username, password values from credentials to the fields
+    const { parameterName: usernameParameterName } =
+      authRequestParameterDescription.username;
+    const { parameterName: passwordParameterName } =
+      authRequestParameterDescription.password;
+
+    if (!usernameParameterName || !passwordParameterName) {
+      // todo: better error handling
+      // todo: maybe use a default value as fallback for email/password field names
+      throw new Error("Username and password parameter names are required");
+    }
+
     // names are in authRequestParameterDescription
     // todo: create a helper function that creates the request (this is the same as in BearerAuthenticator)
     const response: ApiResponse = await apiClient
       .request(authEndpoint.path, authEndpoint.method)
       .json({
-        email: credentials.identifier, // todo: make field names generic, get this from authRequestParameterDescription
-        password: credentials.password,
+        [usernameParameterName]: credentials.identifier, // todo: make field names generic, get this from authRequestParameterDescription
+        [passwordParameterName]: credentials.password,
       });
 
     const { parameterName: cookieParameterName } =
