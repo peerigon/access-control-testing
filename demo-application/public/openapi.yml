@@ -6,6 +6,8 @@ info:
 servers:
   - url: http://localhost:3333
     description: Development server
+  - url: https://staging.example.com
+    description: Staging server (not live yet)
 components:
   securitySchemes:
     basicHttpAuthentication:
