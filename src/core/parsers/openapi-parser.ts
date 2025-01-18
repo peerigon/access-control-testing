@@ -5,7 +5,7 @@ import {
   AuthenticatorType,
   AuthParameterLocationDescription,
 } from "../authentication/http/types";
-import { OpenApiFields } from "../constants";
+import { getOpenApiField, OpenApiFieldNames } from "../constants";
 
 export class OpenAPIParser {
   private openApiSource: Oas | undefined = undefined;
@@ -78,8 +78,10 @@ export class OpenAPIParser {
     // for now, just return the first path that matches
     const authEndpoint = paths.find((path) => {
       // todo: add type
-      const authEndpointSecuritySchemeIdentifier =
-        path.schema[OpenApiFields.AUTH_ENDPOINT];
+      const authEndpointSecuritySchemeIdentifier = getOpenApiField(
+        path.schema,
+        OpenApiFieldNames.AUTH_ENDPOINT,
+      );
 
       return authEndpointSecuritySchemeIdentifier === securitySchemeIdentifier;
     });
@@ -99,7 +101,10 @@ export class OpenAPIParser {
 
           // type can only be username or password
           // this should be validated before, then we can safely assume that the type is either username or password
-          const authFieldType = property[OpenApiFields.AUTH_FIELD]?.type;
+          const authFieldType = getOpenApiField(
+            property,
+            OpenApiFieldNames.AUTH_FIELD,
+          )?.type;
 
           if (authFieldType === "username") {
             usernameDescription = {
@@ -174,7 +179,10 @@ export class OpenAPIParser {
       for (const propertyKey in response.schema.properties) {
         const property = response.schema.properties[propertyKey];
 
-        if (property[OpenApiFields.AUTH_FIELD]?.type === "token") {
+        if (
+          getOpenApiField(property, OpenApiFieldNames.AUTH_FIELD)?.type ===
+          "token"
+        ) {
           console.log("token", propertyKey);
           // todo: what about nested parameter locations?
           return {
