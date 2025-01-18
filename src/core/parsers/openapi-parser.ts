@@ -50,6 +50,36 @@ export class OpenAPIParser {
   }
 
   /**
+   * Returns all available paths enriched with resource information for each parameter representing a resource identifier
+   */
+  // todo: either add skip flag to individual paths or just leave out all the login endpoints
+  public async getUrlsWithParameterInfo() {
+    const paths = await this.getPaths();
+
+    return paths.map((path) => {
+      const { parameters } = path.schema;
+
+      const resources = parameters?.map((parameter) => ({
+        parameterName: parameter.name,
+        parameterLocation: parameter.in,
+        resourceName: getOpenApiField(
+          parameter,
+          OpenApiFieldNames.RESOURCE_NAME,
+        ),
+        resourceAccess: getOpenApiField(
+          parameter,
+          OpenApiFieldNames.RESOURCE_ACCESS,
+        ),
+      }));
+
+      return {
+        url: path.path, // todo: prepend base url for full-formed URL -> maybe return URL object instead of string?
+        resources,
+      };
+    });
+  }
+
+  /**
    * Transforms the paths schema from Oas to a minimal schema containing only the necessary information
    */
   private transformPathsSchema(oasPaths: ReturnType<Oas["getPaths"]>) {
