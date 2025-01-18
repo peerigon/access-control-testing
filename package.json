@@ -20,7 +20,6 @@
     "eslint-config-peerigon": "^40.0.0",
     "eslint-plugin-jsdoc": "^50.6.1",
     "eslint-plugin-n": "^17.15.1",
-    "playwright": "^1.49.1",
     "prettier": "^3.4.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",

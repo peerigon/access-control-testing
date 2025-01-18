@@ -47,7 +47,6 @@ async function getAuthenticatorByRoute(
 }
 
 test.group("Access Control Testing", (group) => {
-  // todo: figure out if Playwright is still needed?
   // using Japa Datasets: https://japa.dev/docs/datasets
   test("validate access control")
     .with(new TestcaseGenerator(openAPIParser).generateTestDataset)
