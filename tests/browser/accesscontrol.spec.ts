@@ -10,11 +10,12 @@ import { TestcaseGenerator } from "../../src/core/tests/testcase-generator";
 
 const configurationParser = new ConfigurationParser();
 // todo: fix top-level await
+// todo: no more Configuration -> constructor options? but how to get params into this file?
 const { openApiUrl } = await configurationParser.parse();
 
 const openAPIParser = new OpenAPIParser(openApiUrl);
 // const paths = await openAPIParser.getPaths();
-openAPIParser.getApiBaseUrl();
+// openAPIParser.getApiBaseUrl();
 
 // todo: this should return the corresponding authenticator based on the requested route
 async function getAuthenticatorByRoute(
@@ -49,7 +50,7 @@ test.group("Access Control Testing", (group) => {
   // todo: figure out if Playwright is still needed?
   // using Japa Datasets: https://japa.dev/docs/datasets
   test("validate access control")
-    .with(new TestcaseGenerator().generateTestDataset)
+    .with(new TestcaseGenerator(openAPIParser).generateTestDataset)
     .run(
       async (
         { client, expect },
