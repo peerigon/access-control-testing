@@ -1,14 +1,12 @@
-import { ApiResponse } from "@japa/api-client";
-import { ApiRequest } from "@japa/api-client/build/src/request";
+import { ApiRequest, ApiResponse } from "@japa/api-client";
 import { test } from "@japa/runner";
 import { AuthenticationStore } from "../../src/core/authentication/authentication-store";
 import { RequestAuthenticator } from "../../src/core/authentication/http/authenticator";
 import { AuthenticationCredentials } from "../../src/core/authentication/http/types";
 import { HTTP_FORBIDDEN_STATUS_CODE } from "../../src/core/constants";
-import { User } from "../../src/core/entities/user";
 import { ConfigurationParser } from "../../src/core/parsers/configuration-parser";
 import { OpenAPIParser } from "../../src/core/parsers/openapi-parser";
-import { Route } from "../../src/core/types";
+import { TestcaseGenerator } from "../../src/core/tests/testcase-generator";
 
 const configurationParser = new ConfigurationParser();
 // todo: fix top-level await
@@ -16,44 +14,7 @@ const { openApiUrl } = await configurationParser.parse();
 
 const openAPIParser = new OpenAPIParser(openApiUrl);
 // const paths = await openAPIParser.getPaths();
-
-// todo: implement this & move function outside
-// for now just dummy implementation
-function buildTestDataset(): Array<{
-  user: User;
-  route: Route;
-  expectedRequestToBeAllowed: boolean;
-}> {
-  const user1 = new User("niklas.haug@tha.de", "niklas.haug@tha.de");
-  return [
-    {
-      user: user1,
-      route: {
-        url: "http://localhost:3333/admin/users",
-        method: "get",
-        // maybe include securitySchemeIdentifier here?
-      },
-      expectedRequestToBeAllowed: false, // todo: these objects will get mapped (.map) and the state here will be calculated by a dedicated function
-    },
-    // same object just to verify whether existing session gets properly reused
-    {
-      user: user1,
-      route: {
-        url: "http://localhost:3333/admin/users",
-        method: "get",
-      },
-      expectedRequestToBeAllowed: false, // todo: these objects will get mapped (.map) and the state here will be calculated by a dedicated function
-    },
-    {
-      user: user1,
-      route: {
-        url: "http://localhost:3333/admin/users/123",
-        method: "get",
-      },
-      expectedRequestToBeAllowed: false, // todo: these objects will get mapped (.map) and the state here will be calculated by a dedicated function
-    },
-  ];
-}
+openAPIParser.getApiBaseUrl();
 
 // todo: this should return the corresponding authenticator based on the requested route
 async function getAuthenticatorByRoute(
@@ -76,8 +37,6 @@ async function getAuthenticatorByRoute(
     authenticatorType,
   );
 
-  // todo: one method that gets authendpoint for url, httpmethod
-
   const authenticator = AuthenticationStore.getOrCreateAuthenticator(
     authenticatorType,
     authEndpoint,
@@ -90,7 +49,7 @@ test.group("Access Control Testing", (group) => {
   // todo: figure out if Playwright is still needed?
   // using Japa Datasets: https://japa.dev/docs/datasets
   test("validate access control")
-    .with(buildTestDataset)
+    .with(new TestcaseGenerator().generateTestDataset)
     .run(
       async (
         { client, expect },
