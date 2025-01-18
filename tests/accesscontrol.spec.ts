@@ -1,12 +1,12 @@
 import { ApiRequest, ApiResponse } from "@japa/api-client";
 import { test } from "@japa/runner";
-import { AuthenticationStore } from "../../src/core/authentication/authentication-store";
-import { RequestAuthenticator } from "../../src/core/authentication/http/authenticator";
-import { AuthenticationCredentials } from "../../src/core/authentication/http/types";
-import { HTTP_FORBIDDEN_STATUS_CODE } from "../../src/core/constants";
-import { ConfigurationParser } from "../../src/core/parsers/configuration-parser";
-import { OpenAPIParser } from "../../src/core/parsers/openapi-parser";
-import { TestcaseGenerator } from "../../src/core/tests/testcase-generator";
+import { AuthenticationStore } from "../src/core/authentication/authentication-store";
+import { RequestAuthenticator } from "../src/core/authentication/http/authenticator";
+import { AuthenticationCredentials } from "../src/core/authentication/http/types";
+import { HTTP_FORBIDDEN_STATUS_CODE } from "../src/core/constants";
+import { ConfigurationParser } from "../src/core/parsers/configuration-parser";
+import { OpenAPIParser } from "../src/core/parsers/openapi-parser";
+import { TestcaseGenerator } from "../src/core/tests/testcase-generator";
 
 const configurationParser = new ConfigurationParser();
 // todo: fix top-level await

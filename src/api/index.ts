@@ -20,14 +20,12 @@ class Act {
   }
 
   private async runTests() {
-    // todo: set manually, not via cli args
-    // processCLIArgs(process.argv.splice(2));
     configure({
       suites: [
         {
           name: "accesscontrol",
           timeout: 30 * 1000,
-          files: ["tests/browser/accesscontrol.spec.ts"],
+          files: ["tests/accesscontrol.spec.ts"],
         },
       ],
       // todo: make base url configurable as param
@@ -35,7 +33,7 @@ class Act {
       plugins: [expect(), apiClient(this._baseUrl.toString())],
     });
 
-    void run();
+    await run();
   }
 
   public async scan() {
