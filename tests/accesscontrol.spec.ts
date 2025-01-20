@@ -13,16 +13,16 @@ const configurationParser = new ConfigurationParser();
 // todo: no more Configuration -> constructor options? but how to get params into this file?
 const { openApiUrl } = await configurationParser.parse();
 
-const openAPIParser = new OpenAPIParser(openApiUrl);
+const openAPIParser = await OpenAPIParser.create(openApiUrl);
 // const paths = await openAPIParser.getPaths();
 // openAPIParser.getApiBaseUrl();
 
 // todo: this should return the corresponding authenticator based on the requested route
-async function getAuthenticatorByRoute(
+function getAuthenticatorByRoute(
   url: string,
   httpMethod: string,
-): Promise<RequestAuthenticator | null> {
-  const securityScheme = await openAPIParser.getSecurityScheme(url, httpMethod);
+): RequestAuthenticator | null {
+  const securityScheme = openAPIParser.getSecurityScheme(url, httpMethod);
   const securitySchemeKey = securityScheme._key;
 
   console.log(securityScheme);
@@ -33,7 +33,7 @@ async function getAuthenticatorByRoute(
 
   // todo: can this result be cached or stored inside the state of the OpenApiParser?
   // so that mapping etc. only has to take place when specific auth strategy hasn't been queried yet
-  const authEndpoint = await openAPIParser.getAuthEndpoint(
+  const authEndpoint = openAPIParser.getAuthEndpoint(
     securitySchemeKey,
     authenticatorType,
   );
@@ -64,7 +64,7 @@ test.group("Access Control Testing", (group) => {
         const response: ApiResponse = await client
           .request(route.url, route.method)
           .setup(async (request: ApiRequest) => {
-            const authenticator = await getAuthenticatorByRoute(
+            const authenticator = getAuthenticatorByRoute(
               route.url,
               route.method,
             );

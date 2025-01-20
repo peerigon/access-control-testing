@@ -8,11 +8,10 @@ export class TestcaseGenerator {
   constructor(private readonly openApiParser: OpenAPIParser) {}
 
   // todo: this shouldn't be async, solve async in source (OpenAPI parser)
-  private async getAllRoutes(): Promise<Array<Route>> {
+  private getAllRoutes(): Array<Route> {
     // todo: generate full-formed URLs with parameters
     // todo: for now only query parameters and path parameters are supported, maybe add support for other types of parameters
-    const urlsWithParameterInfo =
-      await this.openApiParser.getUrlsWithParameterInfo();
+    const urlsWithParameterInfo = this.openApiParser.getUrlsWithParameterInfo();
 
     // todo: combine this info with info about the resources and the relationship between them
     return [

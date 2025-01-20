@@ -51,9 +51,8 @@ export class OpenAPIParser {
     }
   }
 
-  public async getPaths() {
-    const oas = await this.getOasSource();
-    const oasPaths = oas.getPaths();
+  public getPaths() {
+    const oasPaths = this.openApiSource.getPaths();
 
     return this.transformPathsSchema(oasPaths);
   }
@@ -62,8 +61,8 @@ export class OpenAPIParser {
    * Returns all available paths enriched with resource information for each parameter representing a resource identifier
    */
   // todo: either add skip flag to individual paths or just leave out all the login endpoints
-  public async getUrlsWithParameterInfo() {
-    const paths = await this.getPaths();
+  public getUrlsWithParameterInfo() {
+    const paths = this.getPaths();
 
     return paths.map((path) => {
       const { parameters } = path.schema;
@@ -96,21 +95,21 @@ export class OpenAPIParser {
   }
 
   // todo: move return type to another file
-  public async getAuthEndpoint(
+  public getAuthEndpoint(
     securitySchemeIdentifier: string,
     authenticatorType: AuthenticatorType,
-  ): Promise<{
+  ): {
     authEndpoint: ReturnType<OpenAPIParser["getPaths"]>[0];
     authRequestParameterDescription: {
       username: AuthParameterLocationDescription;
       password: AuthParameterLocationDescription;
     };
     authResponseParameterDescription: AuthParameterLocationDescription;
-  }> {
+  } {
     // todo: validate that securityScheme is only one of the supported ones
     // if not, throw an error or skip
 
-    const paths = await this.getPaths();
+    const paths = this.getPaths();
 
     // todo: handle cases when 0 or more than 1 is found
     // maybe 0 or more than 1 are cases to be handled by validation / parsing
@@ -238,10 +237,12 @@ export class OpenAPIParser {
 
   // todo: stricter types
   // todo: what if there are 0 security schemes?
-  public async getSecurityScheme(url: string, httpMethod: string) {
-    const oas = await this.getOasSource();
+  public getSecurityScheme(url: string, httpMethod: string) {
     // todo: figure out what happens to parametrized routes
-    const operation = oas.getOperation(url, httpMethod as HttpMethods);
+    const operation = this.openApiSource.getOperation(
+      url,
+      httpMethod as HttpMethods,
+    );
 
     if (!operation) {
       // todo: add proper error handling
@@ -268,7 +269,7 @@ export class OpenAPIParser {
   }
 
   public getAuthenticatorTypeBySecurityScheme(
-    securityScheme: Awaited<ReturnType<OpenAPIParser["getSecurityScheme"]>>,
+    securityScheme: ReturnType<OpenAPIParser["getSecurityScheme"]>,
   ): AuthenticatorType {
     const type = securityScheme.type.toLowerCase();
     const scheme = securityScheme.scheme?.toLowerCase();

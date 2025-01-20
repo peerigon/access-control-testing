@@ -9,8 +9,8 @@ export abstract class SessionManager<SessionType extends Session> {
   > = new Map();
 
   constructor(
-    private authEndpointInformation: Awaited<
-      ReturnType<OpenAPIParser["getAuthEndpoint"]>
+    private authEndpointInformation: ReturnType<
+      OpenAPIParser["getAuthEndpoint"]
     >,
   ) {}
 
