@@ -7,28 +7,37 @@ import {
 } from "../authentication/http/types";
 import { getOpenApiField, OpenApiFieldNames } from "../constants";
 
-export class OpenAPIParser {
-  private openApiSource: Oas | undefined = undefined;
+type SpecificationPath = ConstructorParameters<typeof OASNormalize>[0];
 
-  constructor(
-    private specificationPath: ConstructorParameters<typeof OASNormalize>[0],
-  ) {}
+export class OpenAPIParser {
+  private constructor(private readonly openApiSource: Oas) {} // private specificationPath: ConstructorParameters<typeof OASNormalize>[0],
+
+  /**
+   * Parses the OpenAPI specification and returns a new instance of the OpenAPIParser.
+   * Implemented as a factory method to allow for async initialization.
+   * @param specificationPath The path to the OpenAPI specification
+   */
+  public static async create(specificationPath: string) {
+    const openApiSource = await OpenAPIParser.getOasSource(specificationPath);
+
+    return new OpenAPIParser(openApiSource);
+  }
 
   /**
    * Parses the OpenAPI specification and returns the Oas object to work with later
    * @private
    */
-  private async getOasSource(): Promise<Oas> {
-    if (this.openApiSource === undefined) {
-      const jsonSpecification = await this.parseOpenAPI();
-      this.openApiSource = new Oas(jsonSpecification as OASDocument); // todo: fix type
-    }
+  private static async getOasSource(
+    specificationPath: SpecificationPath,
+  ): Promise<Oas> {
+    const jsonSpecification =
+      await OpenAPIParser.parseOpenAPI(specificationPath);
 
-    return this.openApiSource;
+    return new Oas(jsonSpecification as OASDocument); // todo: fix type
   }
 
-  private async parseOpenAPI() {
-    const oas = new OASNormalize(this.specificationPath);
+  private static async parseOpenAPI(specificationPath: SpecificationPath) {
+    const oas = new OASNormalize(specificationPath);
 
     try {
       return await oas.validate();
