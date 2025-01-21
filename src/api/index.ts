@@ -3,6 +3,7 @@ import { expect } from "@japa/expect";
 import { configure, run } from "@japa/runner";
 import { Resource } from "../core/entities/resource";
 import { User } from "../core/entities/user";
+import { TestReporter } from "../core/tests/test-reporter";
 
 class Act {
   get baseUrl(): URL {
@@ -21,6 +22,15 @@ class Act {
 
   private async runTests() {
     configure({
+      reporters: {
+        activated: [TestReporter.name],
+        list: [
+          {
+            name: TestReporter.name,
+            handler: (...args: unknown[]) => new TestReporter().boot(...args),
+          },
+        ],
+      },
       suites: [
         {
           name: "accesscontrol",
