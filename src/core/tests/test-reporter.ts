@@ -5,17 +5,18 @@ export class TestReporter extends BaseReporter {
   static name = "custom";
 
   onTestEnd(testPayload) {
-    // for now, only print tests with error
-    // todo: maybe also print a small summary for successful tests?
-    if (testPayload.hasError) {
-      // todo: why does type assertion not work?
-      const testDataset: TestDataset = testPayload.dataset.row;
+    const { hasError: testFailed } = testPayload;
 
-      const { route, user, expectedRequestToBeAllowed } = testDataset;
-      const { url, method } = route;
+    const testStateRepresentation = testFailed ? "❌" : "✅";
+    // todo: why does type assertion not work?
+    const testDataset: TestDataset = testPayload.dataset.row;
 
-      const testStateRepresentation = testPayload.hasError ? "❌" : "✅";
-      const requestRepresentation = `[${method.toUpperCase()}] ${url}`;
+    const { route, user, expectedRequestToBeAllowed } = testDataset;
+    const { url, method } = route;
+
+    const requestRepresentation = `[${method.toUpperCase()}] ${url}`;
+
+    if (testFailed) {
       const errorDetails = testPayload.errors?.[0]?.error?.matcherResult;
 
       const actual = errorDetails?.actual ?? "Unknown";
@@ -32,6 +33,13 @@ Expection:          ${expectedRequestToBeAllowed ? "Should have been allowed" : 
 -------------------------------------------
 Actual status:      ${actual}
 Expected status:    ${expected}
+===========================================
+`);
+    } else {
+      // todo: only print this when successful for every user in this route
+      console.log(`
+===========================================
+ ${testStateRepresentation} ${requestRepresentation}
 ===========================================
 `);
     }
