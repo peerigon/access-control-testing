@@ -12,9 +12,9 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@japa/api-client": "^2.0.4",
-    "@japa/expect": "^3.0.2",
-    "@japa/runner": "^3.1.4",
+    "@japa/api-client": "^3.0.3",
+    "@japa/expect": "^3.0.3",
+    "@japa/runner": "^4.1.0",
     "@types/node": "^22.10.1",
     "eslint": "^8.57.1",
     "eslint-config-peerigon": "^40.0.0",
