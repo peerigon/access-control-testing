@@ -74,4 +74,9 @@ export abstract class SessionManager<SessionType extends Session> {
       response,
     };
   }
+
+  public clearSession(credentials: AuthenticationCredentials): void {
+    console.debug("clearing session");
+    this.sessionStore.delete(credentials.identifier);
+  }
 }

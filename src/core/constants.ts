@@ -45,6 +45,7 @@ export function getOpenApiField(
 }
 
 export const HTTP_FORBIDDEN_STATUS_CODE = 403;
+export const HTTP_UNAUTHORIZED_STATUS_CODE = 401;
 
 export const RelationshipPrivileges: Record<RelationshipType, Privilege[]> = {
   [RelationshipType.OWNERSHIP]: [
