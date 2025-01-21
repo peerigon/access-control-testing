@@ -1,15 +1,20 @@
 import { Resource } from "./resource";
+import { RelationshipType } from "./types";
 
 export class User {
   // todo: this needs to include specific resource metadata to identify a specific resource
   private readonly _relatedResources: Map<Resource, RelationshipType> =
     new Map();
   constructor(
-    private readonly _identifier: string,
+    public readonly _identifier: string,
     private readonly _password: string,
   ) {}
 
   public get identifier() {
+    return this._identifier;
+  }
+
+  public toString(): String {
     return this._identifier;
   }
 

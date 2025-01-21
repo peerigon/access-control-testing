@@ -48,7 +48,10 @@ function getAuthenticatorByRoute(
 
 test.group("Access Control Testing", (group) => {
   // using Japa Datasets: https://japa.dev/docs/datasets
-  test("validate access control")
+  // todo: create Route class with toString method for route
+  test(
+    "validate access control for route {route.method} {route.url} with user {user}",
+  )
     .with(new TestcaseGenerator(openAPIParser).generateTestDataset)
     .run(
       async (
