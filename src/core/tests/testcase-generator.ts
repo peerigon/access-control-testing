@@ -4,6 +4,12 @@ import { User } from "../entities/user";
 import { OpenAPIParser } from "../parsers/openapi-parser";
 import { Route } from "../types";
 
+export type TestDataset = Array<{
+  user: User;
+  route: Route;
+  expectedRequestToBeAllowed: boolean;
+}>;
+
 export class TestcaseGenerator {
   constructor(private readonly openApiParser: OpenAPIParser) {}
 
@@ -35,11 +41,29 @@ export class TestcaseGenerator {
     return [user1];
   }
 
-  public generateTestDataset(): Array<{
-    user: User;
-    route: Route;
-    expectedRequestToBeAllowed: boolean;
-  }> {
+  public generateTestDataset(): TestDataset {
+    const user1 = new User("niklas.haug@tha.de", "niklas.haug@tha.de");
+    return [
+      {
+        user: user1,
+        route: {
+          url: "http://localhost:3333/admin/users",
+          method: "get",
+          // maybe include securitySchemeIdentifier here?
+        },
+        expectedRequestToBeAllowed: false, // todo: these objects will get mapped (.map) and the state here will be calculated by a dedicated function
+      },
+      // same object just to verify whether existing session gets properly reused
+      {
+        user: user1,
+        route: {
+          url: "http://localhost:3333/admin/users",
+          method: "get",
+        },
+        expectedRequestToBeAllowed: false, // todo: these objects will get mapped (.map) and the state here will be calculated by a dedicated function
+      },
+    ];
+
     // todo: fix TS error (doesn't find these methods)
     const users = this.getAllUsers();
     const routes = this.getAllRoutes();
