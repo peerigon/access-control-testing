@@ -42,6 +42,11 @@ export class BearerAuthenticator
     credentials: AuthenticationCredentials,
   ) {
     const session = await this.findOrInitializeSession(credentials);
+
+    if (!session?.bearerToken) {
+      throw new Error("Could not initialize session with bearer token");
+    }
+
     request.bearerToken(session.bearerToken);
   }
 }

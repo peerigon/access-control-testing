@@ -68,6 +68,10 @@ export class CookieAuthenticator
   ) {
     const session = await this.findOrInitializeSession(credentials);
 
+    if (!session?.cookies) {
+      throw new Error("Could not initialize session with cookies");
+    }
+
     const sessionCookies = session.cookies.reduce(
       (a, { name, value }) => ({ ...a, [name]: value }),
       {},
