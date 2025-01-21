@@ -1,3 +1,4 @@
+import { AuthenticationCredentials } from "../authentication/http/types";
 import { Resource } from "./resource";
 import { RelationshipType } from "./types";
 
@@ -20,6 +21,13 @@ export class User {
 
   public get password() {
     return this._password;
+  }
+
+  public getCredentials(): AuthenticationCredentials {
+    return {
+      identifier: this._identifier,
+      password: this._password,
+    };
   }
 
   // methode relateTo(resource: Resource, relationshipType: RelationshipType): void {
