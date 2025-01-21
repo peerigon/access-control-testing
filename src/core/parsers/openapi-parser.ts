@@ -221,7 +221,7 @@ export class OpenAPIParser {
           getOpenApiField(property, OpenApiFieldNames.AUTH_FIELD)?.type ===
           "token"
         ) {
-          console.log("token", propertyKey);
+          console.debug("token", propertyKey);
           // todo: what about nested parameter locations?
           return {
             parameterName: propertyKey,
@@ -252,7 +252,7 @@ export class OpenAPIParser {
     //const securityScheme = operation.getSecurity();
     const securitySchemeCombinations = operation.getSecurityWithTypes();
 
-    console.log("securitySchemeCombinations", securitySchemeCombinations);
+    console.debug("securitySchemeCombinations", securitySchemeCombinations);
 
     // todo: figure out if there should be another logic to choose the appropriate security scheme
     // for now, just use the first combination of security schemes available

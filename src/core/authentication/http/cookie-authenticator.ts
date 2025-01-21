@@ -8,7 +8,7 @@ export class CookieAuthenticator
   implements RequestAuthenticator
 {
   protected async initializeSession(credentials: AuthenticationCredentials) {
-    console.log("init new cookie session");
+    console.debug("init new cookie session");
     const { response, authResponseParameterDescription } =
       await this.obtainSession(credentials);
 

@@ -23,15 +23,16 @@ export abstract class SessionManager<SessionType extends Session> {
   protected async findOrInitializeSession(
     credentials: AuthenticationCredentials,
   ): Promise<SessionType> {
-    // todo: only use existing session when not alreay expired
+    // todo: only use existing session when not already expired
     // todo: remove expired entries before accessing
     const existingSession = this.sessionStore.get(credentials.identifier);
 
     if (existingSession === undefined) {
+      console.debug("SessionManager: INIT NEW SESSION");
       return this.initializeSession(credentials);
     }
 
-    console.log("Reusing existing session");
+    console.debug("Reusing existing session");
 
     return existingSession;
   }
@@ -41,7 +42,7 @@ export abstract class SessionManager<SessionType extends Session> {
   ): Promise<SessionType>;
 
   protected async obtainSession(credentials: AuthenticationCredentials) {
-    console.log("obtaining new session");
+    console.debug("obtaining new session");
     // todo: get this from config
     const apiClient = new ApiClient("http://localhost:3333");
 

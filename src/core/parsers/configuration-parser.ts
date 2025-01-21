@@ -7,7 +7,7 @@ const explorer = cosmiconfig(TOOL_NAME);
 
 export class ConfigurationParser {
   public async parse(): Promise<Configuration> {
-    console.log("Parsing configuration...");
+    console.debug("Parsing configuration...");
     try {
       const configSearchResult = await explorer.search();
 

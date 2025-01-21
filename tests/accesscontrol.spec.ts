@@ -28,8 +28,8 @@ function getAuthenticatorByRoute(
   const securityScheme = openAPIParser.getSecurityScheme(url, httpMethod);
   const securitySchemeKey = securityScheme._key;
 
-  console.log(securityScheme);
-  console.log("GOT SECURITY SCHEME: " + securitySchemeKey);
+  console.debug(securityScheme);
+  console.debug("GOT SECURITY SCHEME: " + securitySchemeKey);
 
   const authenticatorType =
     openAPIParser.getAuthenticatorTypeBySecurityScheme(securityScheme);
