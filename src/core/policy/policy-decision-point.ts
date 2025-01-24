@@ -1,9 +1,7 @@
 import { Resource } from "./entities/resource";
-import { ResourceIdentifier, User } from "./entities/user";
+import { User } from "./entities/user";
 import { Privilege } from "./privilege";
-
-// todo: make enum out of union type?
-type Action = "create" | "read" | "update" | "delete";
+import { Action, ResourceIdentifier } from "./types";
 
 export class PolicyDecisionPoint {
   // todo: rename resource with ResourceType, since its not a concrete instance of a Resource?

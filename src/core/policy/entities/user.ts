@@ -2,12 +2,8 @@ import { AuthenticationCredentials } from "../../authentication/http/types";
 import { Privilege } from "../privilege";
 import { Relationship } from "../relationship";
 import { RelationshipPrivileges } from "../relationship-privileges";
+import { ResourceDescription, ResourceIdentifier } from "../types";
 import { Resource } from "./resource";
-
-// in the format <namespace>:<object_id>
-// not in class format, since in map equality wouldn't be given when trying to find a resource instance
-export type ResourceDescription = string;
-export type ResourceIdentifier = string | number;
 
 export class User {
   // todo: this needs to include specific resource metadata to identify a specific resource
