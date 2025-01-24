@@ -20,6 +20,5 @@ test.group("PolicyDecisionPoint.isAllowed", () => {
     );
 
     expect(actualAllowed).toBe(expectedAllowed);
-    expect(true).toBe(false); // this is just for testing if CI fails
   });
 });
