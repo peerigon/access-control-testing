@@ -1,5 +1,3 @@
-import { Privilege, RelationshipType } from "./entities/types";
-
 export const TOOL_NAME = "act";
 const OPENAPI_FIELD_PREFIX = `x-${TOOL_NAME}`;
 export const OpenApiFieldNames: Record<string, string> = {
@@ -46,15 +44,3 @@ export function getOpenApiField(
 
 export const HTTP_FORBIDDEN_STATUS_CODE = 403;
 export const HTTP_UNAUTHORIZED_STATUS_CODE = 401;
-
-export const RelationshipPrivileges: Record<RelationshipType, Privilege[]> = {
-  [RelationshipType.OWNERSHIP]: [
-    Privilege.CREATE,
-    Privilege.READ,
-    Privilege.UPDATE,
-    Privilege.DELETE,
-  ],
-  [RelationshipType.EDITOR]: [Privilege.READ, Privilege.UPDATE],
-  [RelationshipType.VIEWER]: [Privilege.READ],
-  [RelationshipType.CREATOR]: [Privilege.CREATE],
-};
