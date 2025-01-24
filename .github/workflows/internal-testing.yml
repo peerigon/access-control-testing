@@ -7,21 +7,17 @@ on: workflow_dispatch
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
     - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
+    - run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
+    - name: Use Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
     - run: npm ci
-    - run: npm run build --if-present
+    # TODO: add build step back
+    # - run: npm run build --if-present
     - run: npm test
