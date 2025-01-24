@@ -1,7 +1,7 @@
 // todo: implement this & move function outside
 // for now just dummy implementation
-import { User } from "../entities/user";
 import { OpenAPIParser } from "../parsers/openapi-parser";
+import { User } from "../policy/entities/user";
 import { Route } from "../types";
 
 export type TestDataset = Array<{

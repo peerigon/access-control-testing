@@ -1,8 +1,8 @@
 import { apiClient } from "@japa/api-client";
 import { expect } from "@japa/expect";
 import { configure, run } from "@japa/runner";
-import { Resource } from "../core/entities/resource";
-import { User } from "../core/entities/user";
+import { Resource } from "../core/policy/entities/resource";
+import { User } from "../core/policy/entities/user";
 import { TestReporter } from "../core/tests/test-reporter";
 
 class Act {
