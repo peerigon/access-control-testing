@@ -1,37 +1,65 @@
 import { AuthenticationCredentials } from "../../authentication/http/types";
+import { Privilege } from "../privilege";
 import { Relationship } from "../relationship";
 import { RelationshipPrivileges } from "../relationship-privileges";
 import { Resource } from "./resource";
 
+// in the format <namespace>:<object_id>
+// not in class format, since in map equality wouldn't be given when trying to find a resource instance
+export type ResourceDescription = string;
+export type ResourceIdentifier = string | number;
+
 export class User {
   // todo: this needs to include specific resource metadata to identify a specific resource
-  private readonly _relatedResources: Map<Resource, Relationship> = new Map();
+  private readonly relatedResources: Map<ResourceDescription, Relationship[]> =
+    new Map();
+  // from this, privileges for a resourceDescription can be derived
+
+  /**
+   * Derives the privileges for a given resourceDescription from the relationships
+   */
+  public getResourcePrivileges(
+    resourceDescription: ResourceDescription,
+  ): Privilege[] | null {
+    const relationships = this.relatedResources.get(resourceDescription);
+
+    if (!relationships) {
+      return null;
+    }
+
+    const privileges = relationships.flatMap(
+      (relationship) => RelationshipPrivileges[relationship],
+    );
+
+    // todo: maybe wrap around set? -> remove duplicates
+    // -> Set could also be returned instead of converting back to array?
+
+    console.log(privileges);
+
+    return privileges;
+  }
+
   constructor(
-    private readonly _identifier: string,
-    private readonly _password: string,
+    private readonly identifier: string,
+    private readonly password: string,
   ) {}
 
-  public get identifier() {
-    return this._identifier;
-  }
-
   public toString(): String {
-    return this._identifier;
-  }
-
-  public get password() {
-    return this._password;
+    return this.identifier;
   }
 
   public getCredentials(): AuthenticationCredentials {
     return {
-      identifier: this._identifier,
-      password: this._password,
+      identifier: this.identifier,
+      password: this.password,
     };
   }
 
-  // methode relateTo(resource: Resource, relationshipType: RelationshipType): void {
-  public relateTo(resource: Resource, relationship: Relationship) {
+  public relateTo(
+    resource: Resource,
+    relationship: Relationship,
+    resourceIdentifier?: ResourceIdentifier,
+  ) {
     // todo: clarify what should happen when a resource is related multiple times
     // combine all the relationshipTypes to a privilege map
     // or throw an error in this case?
@@ -42,30 +70,54 @@ export class User {
     // example: canCreate(), owns() -> all privileges
     // example: canEdit(), canView() -> view, edit (canView() does not remove edit perm from first call)
 
-    const privilegesToAdd = RelationshipPrivileges[relationship];
+    const resourceDescription = User.getResourceDescription(
+      resource,
+      resourceIdentifier,
+    );
 
-    this._relatedResources.set(resource, relationship);
+    const existingRelationships =
+      this.relatedResources.get(resourceDescription);
+
+    if (existingRelationships) {
+      existingRelationships.push(relationship);
+      this.relatedResources.set(resourceDescription, existingRelationships);
+    } else {
+      this.relatedResources.set(resourceDescription, [relationship]);
+    }
+  }
+
+  // todo: move out of here
+  public static getResourceDescription(
+    resource: Resource,
+    resourceIdentifier?: ResourceIdentifier,
+  ) {
+    const resourceName = resource.getName();
+    if (resourceIdentifier === undefined || resourceIdentifier === null) {
+      return resourceName; // todo: is there another convention on how to specify a resource without a concrete instance?
+    }
+
+    return `${resourceName}:${resourceIdentifier}`;
   }
 
   // todo: add specific typing for resourceIdentifier based on user preference
   // OR: always use string, convert number or other identifiers to string automatically?
-  public owns(resource: Resource, resourceIdentifier: unknown) {
-    this.relateTo(resource, Relationship.OWNERSHIP);
+  public owns(resource: Resource, resourceIdentifier: ResourceIdentifier) {
+    this.relateTo(resource, Relationship.OWNERSHIP, resourceIdentifier);
   }
 
   public canCreate(resource: Resource) {
     this.relateTo(resource, Relationship.CREATOR);
   }
 
-  public canView(resource: Resource, resourceIdentifier: unknown) {
-    this.relateTo(resource, Relationship.VIEWER);
+  public canView(resource: Resource, resourceIdentifier: ResourceIdentifier) {
+    this.relateTo(resource, Relationship.VIEWER, resourceIdentifier);
   }
 
-  public canEdit(resource: Resource, resourceIdentifier: unknown) {
-    this.relateTo(resource, Relationship.EDITOR);
+  public canEdit(resource: Resource, resourceIdentifier: ResourceIdentifier) {
+    this.relateTo(resource, Relationship.EDITOR, resourceIdentifier);
   }
 
-  public canDelete(resource: Resource, resourceIdentifier: unknown) {
-    this.relateTo(resource, Relationship.DELETER);
+  public canDelete(resource: Resource, resourceIdentifier: ResourceIdentifier) {
+    this.relateTo(resource, Relationship.DELETER, resourceIdentifier);
   }
 }
