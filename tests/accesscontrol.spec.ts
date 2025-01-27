@@ -52,7 +52,7 @@ function getAuthenticatorByRoute(
 
 const testController = new TestcaseGenerator(openAPIParser);
 
-test.group("Access Control Testing", (group) => {
+test.group("Access Control Testing", () => {
   // todo: create Route class with toString method for route
   test(
     "validate access control for route {route.method} {route.url} with user {user}",
