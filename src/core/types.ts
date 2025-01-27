@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ConfigurationSchema, OpenApiPathsSchema } from "./schemas";
+import { ConfigurationSchema, OpenApiPathsSchema } from "./schemas.ts";
 
 export type Configuration = z.infer<typeof ConfigurationSchema>;
 export type OpenApiPaths = z.infer<typeof OpenApiPathsSchema>;
