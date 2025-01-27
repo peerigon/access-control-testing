@@ -1,5 +1,5 @@
-import { Privilege } from "./privilege";
-import { Relationship } from "./relationship";
+import { Privilege } from "./privilege.ts";
+import { Relationship } from "./relationship.ts";
 
 export const RelationshipPrivileges: Record<Relationship, Privilege[]> = {
   [Relationship.OWNERSHIP]: [

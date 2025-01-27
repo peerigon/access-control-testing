@@ -1,8 +1,8 @@
 // todo: implement this & move function outside
 // for now just dummy implementation
-import { OpenAPIParser } from "../parsers/openapi-parser";
-import { User } from "../policy/entities/user";
-import { Route } from "../types";
+import { OpenAPIParser } from "../parsers/openapi-parser.ts";
+import { User } from "../policy/entities/user.ts";
+import { Route } from "../types.ts";
 
 export type TestDataset = Array<{
   user: User;

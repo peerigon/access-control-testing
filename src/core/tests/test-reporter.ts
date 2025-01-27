@@ -1,5 +1,5 @@
 import { BaseReporter } from "@japa/runner/core";
-import type { TestDataset } from "./testcase-generator";
+import type { TestDataset } from "./testcase-generator.ts";
 
 export class TestReporter extends BaseReporter {
   static name = "custom";

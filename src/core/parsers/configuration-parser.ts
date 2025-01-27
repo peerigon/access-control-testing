@@ -1,7 +1,7 @@
 import { cosmiconfig } from "cosmiconfig";
-import { TOOL_NAME } from "../constants";
-import { ConfigurationSchema } from "../schemas";
-import { Configuration } from "../types";
+import { TOOL_NAME } from "../constants.ts";
+import { ConfigurationSchema } from "../schemas.ts";
+import { Configuration } from "../types.ts";
 
 const explorer = cosmiconfig(TOOL_NAME);
 

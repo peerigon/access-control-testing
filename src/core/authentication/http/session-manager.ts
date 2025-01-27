@@ -1,6 +1,6 @@
 import { ApiClient, ApiResponse } from "@japa/api-client";
-import { OpenAPIParser } from "../../parsers/openapi-parser";
-import { AuthenticationCredentials, Session } from "./types";
+import { OpenAPIParser } from "../../parsers/openapi-parser.ts";
+import { AuthenticationCredentials, Session } from "./types.ts";
 
 export abstract class SessionManager<SessionType extends Session> {
   protected sessionStore: Map<

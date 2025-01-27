@@ -1,8 +1,8 @@
-import { RequestAuthenticator } from "./http/authenticator";
-import { BasicAuthenticator } from "./http/basic-authenticator";
-import { BearerAuthenticator } from "./http/bearer-authenticator";
-import { CookieAuthenticator } from "./http/cookie-authenticator";
-import { AuthenticatorType } from "./http/types";
+import { RequestAuthenticator } from "./http/authenticator.ts";
+import { BasicAuthenticator } from "./http/basic-authenticator.ts";
+import { BearerAuthenticator } from "./http/bearer-authenticator.ts";
+import { CookieAuthenticator } from "./http/cookie-authenticator.ts";
+import { AuthenticatorType } from "./http/types.ts";
 
 export class AuthenticationStore {
   static authenticatorStore: Record<

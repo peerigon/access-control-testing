@@ -1,7 +1,7 @@
-import { Resource } from "./entities/resource";
-import { User } from "./entities/user";
-import { Privilege } from "./privilege";
-import { Action, ResourceIdentifier } from "./types";
+import { Resource } from "./entities/resource.ts";
+import { User } from "./entities/user.ts";
+import { Privilege } from "./privilege.ts";
+import { Action, ResourceIdentifier } from "./types.ts";
 
 export class PolicyDecisionPoint {
   // todo: rename resource with ResourceType, since its not a concrete instance of a Resource?

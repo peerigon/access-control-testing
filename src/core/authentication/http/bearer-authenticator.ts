@@ -1,7 +1,7 @@
-import { ApiRequest } from "@japa/api-client/build/src/request";
-import { RequestAuthenticator } from "./authenticator";
-import { SessionManager } from "./session-manager";
-import { AuthenticationCredentials, BearerAuthSession } from "./types";
+import type { ApiRequest } from "@japa/api-client";
+import { RequestAuthenticator } from "./authenticator.ts";
+import { SessionManager } from "./session-manager.ts";
+import { AuthenticationCredentials, BearerAuthSession } from "./types.ts";
 
 export class BearerAuthenticator
   extends SessionManager<BearerAuthSession>

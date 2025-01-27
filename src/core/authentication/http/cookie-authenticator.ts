@@ -1,7 +1,7 @@
-import { ApiRequest } from "@japa/api-client/build/src/request";
-import { RequestAuthenticator } from "./authenticator";
-import { SessionManager } from "./session-manager";
-import { AuthenticationCredentials, CookieAuthSession } from "./types";
+import type { ApiRequest } from "@japa/api-client";
+import { RequestAuthenticator } from "./authenticator.ts";
+import { SessionManager } from "./session-manager.ts";
+import { AuthenticationCredentials, CookieAuthSession } from "./types.ts";
 
 export class CookieAuthenticator
   extends SessionManager<CookieAuthSession>

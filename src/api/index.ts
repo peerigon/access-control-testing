@@ -1,9 +1,9 @@
 import { apiClient } from "@japa/api-client";
 import { expect } from "@japa/expect";
 import { configure, run } from "@japa/runner";
-import { Resource } from "../core/policy/entities/resource";
-import { User } from "../core/policy/entities/user";
-import { TestReporter } from "../core/tests/test-reporter";
+import { Resource } from "../core/policy/entities/resource.ts";
+import { User } from "../core/policy/entities/user.ts";
+import { TestReporter } from "../core/tests/test-reporter.ts";
 
 class Act {
   get baseUrl(): URL {

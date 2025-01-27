@@ -1,7 +1,7 @@
 import { test } from "@japa/runner";
-import { Resource } from "../../src/core/policy/entities/resource";
-import { User } from "../../src/core/policy/entities/user";
-import { PolicyDecisionPoint } from "../../src/core/policy/policy-decision-point";
+import { Resource } from "../../src/core/policy/entities/resource.ts";
+import { User } from "../../src/core/policy/entities/user.ts";
+import { PolicyDecisionPoint } from "../../src/core/policy/policy-decision-point.ts";
 
 test.group("PolicyDecisionPoint.isAllowed", () => {
   test("allowed access is allowed", ({ expect }) => {

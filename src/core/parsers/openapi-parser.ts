@@ -1,11 +1,11 @@
 import Oas from "oas";
 import OASNormalize from "oas-normalize";
-import { HttpMethods, OASDocument } from "oas/dist/types";
+import type { HttpMethods, OASDocument } from "oas/types";
 import {
   AuthenticatorType,
   AuthParameterLocationDescription,
-} from "../authentication/http/types";
-import { getOpenApiField, OpenApiFieldNames } from "../constants";
+} from "../authentication/http/types.ts";
+import { getOpenApiField, OpenApiFieldNames } from "../constants.ts";
 
 type SpecificationPath = ConstructorParameters<typeof OASNormalize>[0];
 

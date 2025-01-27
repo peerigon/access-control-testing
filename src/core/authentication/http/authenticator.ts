@@ -1,5 +1,5 @@
-import { ApiRequest } from "@japa/api-client/build/src/request";
-import { AuthenticationCredentials } from "./types";
+import type { ApiRequest } from "@japa/api-client";
+import { AuthenticationCredentials } from "./types.ts";
 
 export interface RequestAuthenticator {
   /**

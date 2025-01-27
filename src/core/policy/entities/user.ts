@@ -1,9 +1,9 @@
-import { AuthenticationCredentials } from "../../authentication/http/types";
-import { Privilege } from "../privilege";
-import { Relationship } from "../relationship";
-import { RelationshipPrivileges } from "../relationship-privileges";
-import { ResourceDescription, ResourceIdentifier } from "../types";
-import { Resource } from "./resource";
+import { AuthenticationCredentials } from "../../authentication/http/types.ts";
+import { Privilege } from "../privilege.ts";
+import { RelationshipPrivileges } from "../relationship-privileges.ts";
+import { Relationship } from "../relationship.ts";
+import { ResourceDescription, ResourceIdentifier } from "../types.ts";
+import { Resource } from "./resource.ts";
 
 export class User {
   // todo: this needs to include specific resource metadata to identify a specific resource
@@ -83,6 +83,12 @@ export class User {
   }
 
   // todo: move out of here
+  /**
+   * Derives a resource description from a resource and an optional resource identifier
+   * Example: "todo:123" or "todo"
+   * @param resource
+   * @param resourceIdentifier
+   */
   public static getResourceDescription(
     resource: Resource,
     resourceIdentifier?: ResourceIdentifier,
