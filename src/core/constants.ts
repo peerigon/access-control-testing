@@ -44,3 +44,5 @@ export function getOpenApiField(
 
 export const HTTP_FORBIDDEN_STATUS_CODE = 403;
 export const HTTP_UNAUTHORIZED_STATUS_CODE = 401;
+
+export const API_CLIENT_MAX_REQUEST_RETRIES = 3;
