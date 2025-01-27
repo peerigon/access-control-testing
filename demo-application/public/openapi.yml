@@ -41,6 +41,23 @@ paths:
                     type: string
                     example: world
       security: [ ] # No security
+  /basicauth:
+    get:
+      summary: Basic Auth Endpoint
+      description: Dieser Endpoint ist nur für Benutzer mit Basic Auth erreichbar
+      responses:
+        '200':
+          description: Erfolgreiche Antwort
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hello:
+                    type: string
+                    example: world
+      security:
+        - basicHttpAuthentication: [ ]
   /admin/users:
     get:
       summary: Liste aller Benutzer
