@@ -3,6 +3,7 @@ import { test } from "@japa/runner";
 import { AuthenticationStore } from "../src/core/authentication/authentication-store";
 import { RequestAuthenticator } from "../src/core/authentication/http/authenticator";
 import { SessionManager } from "../src/core/authentication/http/session-manager";
+import { AuthenticatorType } from "../src/core/authentication/http/types";
 import {
   HTTP_FORBIDDEN_STATUS_CODE,
   HTTP_UNAUTHORIZED_STATUS_CODE,
@@ -36,6 +37,17 @@ function getAuthenticatorByRoute(
 
   // todo: can this result be cached or stored inside the state of the OpenApiParser?
   // so that mapping etc. only has to take place when specific auth strategy hasn't been queried yet
+
+  if (
+    /*[AuthenticatorType.HTTP_BASIC, AuthenticatorType.NONE].includes(
+      authenticatorType,
+    )*/
+    authenticatorType === AuthenticatorType.HTTP_BASIC ||
+    authenticatorType === AuthenticatorType.NONE
+  ) {
+    return null;
+  }
+
   const authEndpoint = openAPIParser.getAuthEndpoint(
     securitySchemeKey,
     authenticatorType,
@@ -50,7 +62,6 @@ function getAuthenticatorByRoute(
 }
 
 test.group("Access Control Testing", (group) => {
-  // using Japa Datasets: https://japa.dev/docs/datasets
   // todo: create Route class with toString method for route
   test(
     "validate access control for route {route.method} {route.url} with user {user}",

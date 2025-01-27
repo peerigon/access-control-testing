@@ -95,9 +95,16 @@ export class OpenAPIParser {
   }
 
   // todo: move return type to another file
+  /**
+   * Returns the auth endpoint for the given security scheme identifier.
+   * @param securitySchemeIdentifier
+   * @param authenticatorType The type of authenticator to be used, can either be HTTP_BEARER or API_KEY_COOKIE
+   */
   public getAuthEndpoint(
     securitySchemeIdentifier: string,
-    authenticatorType: AuthenticatorType,
+    authenticatorType:
+      | AuthenticatorType.HTTP_BEARER
+      | AuthenticatorType.API_KEY_COOKIE,
   ): {
     authEndpoint: ReturnType<OpenAPIParser["getPaths"]>[0];
     authRequestParameterDescription: {
