@@ -3,7 +3,6 @@ import { test } from "@japa/runner";
 import { AuthenticationStore } from "../src/core/authentication/authentication-store";
 import { RequestAuthenticator } from "../src/core/authentication/http/authenticator";
 import { SessionManager } from "../src/core/authentication/http/session-manager";
-import { AuthenticatorType } from "../src/core/authentication/http/types";
 import {
   HTTP_FORBIDDEN_STATUS_CODE,
   HTTP_UNAUTHORIZED_STATUS_CODE,
@@ -37,16 +36,6 @@ function getAuthenticatorByRoute(
 
   // todo: can this result be cached or stored inside the state of the OpenApiParser?
   // so that mapping etc. only has to take place when specific auth strategy hasn't been queried yet
-
-  if (
-    /*[AuthenticatorType.HTTP_BASIC, AuthenticatorType.NONE].includes(
-      authenticatorType,
-    )*/
-    authenticatorType === AuthenticatorType.HTTP_BASIC ||
-    authenticatorType === AuthenticatorType.NONE
-  ) {
-    return null;
-  }
 
   const authEndpoint = openAPIParser.getAuthEndpoint(
     securitySchemeKey,
@@ -109,11 +98,12 @@ test.group("Access Control Testing", (group) => {
         const statusCode = response.status();
         console.debug("STATUSCODE " + statusCode);
 
+        // todo: what to do when 401 has been received? -> we can't really say whether the request was forbidden or not
+        // maybe print out a warning?
         if (expectedRequestToBeAllowed) {
           // can be one of 2XX codes but could also be an error that occurred due to wrong syntax of request
           expect(statusCode).not.toBe(HTTP_FORBIDDEN_STATUS_CODE);
         } else {
-          // todo: what to do when 401 has been received?
           expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
         }
       },

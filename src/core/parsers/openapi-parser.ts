@@ -96,15 +96,13 @@ export class OpenAPIParser {
 
   // todo: move return type to another file
   /**
-   * Returns the auth endpoint for the given security scheme identifier.
+   * Returns the auth endpoint for the given security scheme identifier or null if the authenticator type does not have an auth endpoint
    * @param securitySchemeIdentifier
-   * @param authenticatorType The type of authenticator to be used, can either be HTTP_BEARER or API_KEY_COOKIE
+   * @param authenticatorType
    */
   public getAuthEndpoint(
     securitySchemeIdentifier: string,
-    authenticatorType:
-      | AuthenticatorType.HTTP_BEARER
-      | AuthenticatorType.API_KEY_COOKIE,
+    authenticatorType: AuthenticatorType,
   ): {
     authEndpoint: ReturnType<OpenAPIParser["getPaths"]>[0];
     authRequestParameterDescription: {
@@ -112,9 +110,16 @@ export class OpenAPIParser {
       password: AuthParameterLocationDescription;
     };
     authResponseParameterDescription: AuthParameterLocationDescription;
-  } {
+  } | null {
     // todo: validate that securityScheme is only one of the supported ones
     // if not, throw an error or skip
+
+    if (
+      authenticatorType !== AuthenticatorType.HTTP_BEARER &&
+      authenticatorType !== AuthenticatorType.API_KEY_COOKIE
+    ) {
+      return null;
+    }
 
     const paths = this.getPaths();
 

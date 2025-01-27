@@ -15,6 +15,7 @@ export class AuthenticationStore {
     [AuthenticatorType.NONE]: null, // todo: remove this
   };
 
+  // todo: authEndpoint required for bearer/cookie
   static getOrCreateAuthenticator(
     authenticatorType: AuthenticatorType,
     authEndpoint?: any, // todo: add correct type
