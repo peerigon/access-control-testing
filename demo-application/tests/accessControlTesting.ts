@@ -1,5 +1,5 @@
 // todo: replace this with from 'access-control-testing' later
-import { Act, User } from '../../src/api'
+import { Act, Resource, User } from '../../src/api'
 
 const test = async () => {
   // todo: seed the database with testing data
@@ -8,23 +8,14 @@ const test = async () => {
   const user2 = new User('user2', 'password')
   const adminUser1 = new User('admin', 'admin')
 
-  // second parameter is the authorization matrix, maps access types to required privileges
-  /*  const todoResource = new Resource('Todo', {
-    create: Privilege.CREATOR || Privilege.OWNER,
-    read: Privilege.VIEWER || Privilege.OWNER,
-    update: Privilege.EDITOR || Privilege.OWNER,
-    delete: Privilege.OWNER, // OWNER is default for each access type
-  })*/
+  const todoResource = new Resource('Todo')
 
-  // pseudocode for defining relationships
-  // openapi definition has defined for each route: type of ressource & type of access (create/read/update/delete)
-  /* user1.owns(todoResource, 123)
-  user2.canView(todoResource, 123)*/
+  // oder: Resource ist abstract
+  // class TodoResource extends Resource {}
+  // new TodoResource('Todo')
 
-  // relationships define the privileges a specific user has for a specific resource
-
-  /*const users = [user1, adminUser1]
-  const resources = [todoResource]*/
+  // todo: type of identifier should be supplied by user
+  user1.canView(todoResource, 123)
 
   console.log('======')
   // that way, tool users can use .env variables which would not be possible with the config file
