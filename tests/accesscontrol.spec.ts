@@ -50,12 +50,14 @@ function getAuthenticatorByRoute(
   return authenticator;
 }
 
+const testController = new TestcaseGenerator(openAPIParser);
+
 test.group("Access Control Testing", (group) => {
   // todo: create Route class with toString method for route
   test(
     "validate access control for route {route.method} {route.url} with user {user}",
   )
-    .with(new TestcaseGenerator(openAPIParser).generateTestDataset)
+    .with(testController.generateTestDataset.bind(testController))
     .run(
       async (
         { client, expect },

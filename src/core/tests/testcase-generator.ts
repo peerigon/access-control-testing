@@ -30,6 +30,10 @@ export class TestcaseGenerator {
         url: "http://localhost:3333/admin/users/123",
         method: "get",
       },
+      {
+        url: "http://localhost:3333/basicauth",
+        method: "get",
+      },
       // todo: test with an url with query parameters
     ];
   }
@@ -42,31 +46,11 @@ export class TestcaseGenerator {
   }
 
   public generateTestDataset(): TestDataset {
-    const user1 = new User("niklas.haug@tha.de", "niklas.haug@tha.de");
-    return [
-      {
-        user: user1,
-        route: {
-          url: "http://localhost:3333/admin/users",
-          method: "get",
-          // maybe include securitySchemeIdentifier here?
-        },
-        expectedRequestToBeAllowed: false, // todo: these objects will get mapped (.map) and the state here will be calculated by a dedicated function
-      },
-      // same object just to verify whether existing session gets properly reused
-      {
-        user: user1,
-        route: {
-          url: "http://localhost:3333/admin/users",
-          method: "get",
-        },
-        expectedRequestToBeAllowed: false, // todo: these objects will get mapped (.map) and the state here will be calculated by a dedicated function
-      },
-    ];
-
-    // todo: fix TS error (doesn't find these methods)
     const users = this.getAllUsers();
     const routes = this.getAllRoutes();
+
+    // todo: for every route, extract involved resources and their relationships
+    // then: PolicyDecisionPoint.isAllowed(user, action, resource, resourceIdentifier)
 
     return routes.flatMap((route) =>
       users.map((user) => ({
