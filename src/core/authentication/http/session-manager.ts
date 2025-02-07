@@ -1,5 +1,7 @@
-import { ApiClient, ApiResponse } from "@japa/api-client";
-import { OpenAPIParser } from "../../parsers/openapi-parser.ts";
+import { URL } from "node:url";
+import got from "got";
+import { CookieJar } from "tough-cookie";
+import { AuthEndpointInformation } from "../../types.js";
 import { AuthenticationCredentials, Session } from "./types.ts";
 
 export abstract class SessionManager<SessionType extends Session> {
@@ -8,11 +10,7 @@ export abstract class SessionManager<SessionType extends Session> {
     SessionType
   > = new Map();
 
-  constructor(
-    private authEndpointInformation: ReturnType<
-      OpenAPIParser["getAuthEndpoint"]
-    >,
-  ) {}
+  constructor(private authEndpointInformation: AuthEndpointInformation) {}
 
   /**
    *
@@ -43,8 +41,6 @@ export abstract class SessionManager<SessionType extends Session> {
 
   protected async obtainSession(credentials: AuthenticationCredentials) {
     console.debug("obtaining new session");
-    // todo: get this from config
-    const apiClient = new ApiClient("http://localhost:3333");
 
     const {
       authEndpoint,
@@ -63,16 +59,25 @@ export abstract class SessionManager<SessionType extends Session> {
       throw new Error("Username and password parameter names are required");
     }
 
-    const response: ApiResponse = await apiClient
-      .request(authEndpoint.path, authEndpoint.method)
-      .json({
+    const cookieJar = new CookieJar();
+
+    const baseUrl = "http://localhost:3333/"; // todo: get this from config
+    const url = new URL(authEndpoint.path, baseUrl);
+    // todo: add try/catch block?
+
+    const response = await got(url, {
+      method: authEndpoint.method,
+      json: {
         [usernameParameterName]: credentials.identifier,
         [passwordParameterName]: credentials.password,
-      });
+      },
+      cookieJar,
+    });
 
     return {
       authResponseParameterDescription,
       response,
+      cookieJar,
     };
   }
 

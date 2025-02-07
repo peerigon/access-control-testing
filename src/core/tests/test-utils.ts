@@ -1,40 +1,39 @@
-import type { ApiClient, ApiRequest } from "@japa/api-client";
+import got from "got";
 import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
-import { SessionManager } from "../authentication/http/session-manager.ts";
 import { AuthenticationCredentials } from "../authentication/http/types.js";
-import {
-  API_CLIENT_MAX_REQUEST_RETRIES,
-  HTTP_UNAUTHORIZED_STATUS_CODE,
-} from "../constants.ts";
+import { HTTP_UNAUTHORIZED_STATUS_CODE } from "../constants.js";
 import type { Route } from "../types.ts";
 
 export async function performRequest(
-  client: ApiClient,
   route: Route,
   authenticator: RequestAuthenticator | null,
   credentials: AuthenticationCredentials,
 ) {
-  return client
-    .request(route.url, route.method)
-    .setup(async (request: ApiRequest) => {
-      console.debug("SETUP REQUEST");
-      if (authenticator) {
-        await authenticator.authenticateRequest(request, credentials);
-      }
-    })
-    .retry(API_CLIENT_MAX_REQUEST_RETRIES, (_error, response) => {
-      const shouldRetry = response.status() === HTTP_UNAUTHORIZED_STATUS_CODE;
-      console.debug(`retry request (${response.status()}): ` + shouldRetry);
+  return got(route.url, {
+    method: route.method,
+    retry: {
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // todo: what about the rest?
+      statusCodes: [HTTP_UNAUTHORIZED_STATUS_CODE],
+    },
+    throwHttpErrors: false,
+    hooks: {
+      beforeRequest: [
+        async (options) => {
+          if (authenticator) {
+            await authenticator.authenticateRequest(options, credentials);
+          }
 
-      if (shouldRetry && authenticator instanceof SessionManager) {
-        authenticator.clearSession(credentials);
-
-        // pending issue: setup won't be called again after retry
-        // see: https://github.com/japa/runner/issues/57
-
-        //await authenticator.initializeSession(credentials);
-      }
-
-      return shouldRetry;
-    });
+          // todo: this is a temporary workaround to ensure that cookies get set
+          // it seems to be not possible to set cookieJar on beforeRequest
+          // todo: type signature of getCookieString seems to be wrong
+          const cookieString = await options.cookieJar?.getCookieString(
+            route.url,
+          );
+          if (typeof cookieString === "string" && cookieString.length > 0) {
+            options.headers.Cookie = cookieString;
+          }
+        },
+      ],
+    },
+  });
 }

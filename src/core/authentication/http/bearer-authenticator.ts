@@ -1,7 +1,10 @@
-import type { ApiRequest } from "@japa/api-client";
 import { RequestAuthenticator } from "./authenticator.ts";
 import { SessionManager } from "./session-manager.ts";
-import { AuthenticationCredentials, BearerAuthSession } from "./types.ts";
+import {
+  AuthenticationCredentials,
+  BearerAuthSession,
+  RequestOptions,
+} from "./types.ts";
 
 export class BearerAuthenticator
   extends SessionManager<BearerAuthSession>
@@ -38,7 +41,7 @@ export class BearerAuthenticator
   }
 
   public async authenticateRequest(
-    request: ApiRequest,
+    requestOptions: RequestOptions,
     credentials: AuthenticationCredentials,
   ) {
     const session = await this.findOrInitializeSession(credentials);
@@ -47,6 +50,6 @@ export class BearerAuthenticator
       throw new Error("Could not initialize session with bearer token");
     }
 
-    request.bearerToken(session.bearerToken);
+    requestOptions.headers["Authorization"] = `Bearer ${session.bearerToken}`;
   }
 }

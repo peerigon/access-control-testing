@@ -34,7 +34,7 @@ function getAuthenticatorByRoute(
   // so that mapping etc. only has to take place when specific auth strategy hasn't been queried yet
 
   const authEndpoint = openAPIParser.getAuthEndpoint(
-    securitySchemeKey,
+    securityScheme,
     authenticatorType,
   );
 
@@ -62,7 +62,6 @@ test.group("Access Control Testing", () => {
         const authenticator = getAuthenticatorByRoute(route.url, route.method);
 
         const response = await performRequest(
-          client,
           route,
           authenticator,
           credentials,
@@ -70,7 +69,7 @@ test.group("Access Control Testing", () => {
 
         // todo: make it configurable what is considered as forbidden
         // for now, forbidden is when the corresponding status code has been sent
-        const statusCode = response.status();
+        const { statusCode } = response;
         console.debug("STATUSCODE " + statusCode);
 
         // todo: what to do when 401 has been received? -> we can't really say whether the request was forbidden or not

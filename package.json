@@ -12,7 +12,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@japa/api-client": "^3.0.3",
     "@japa/expect": "^3.0.3",
     "@japa/runner": "^4.1.0",
     "@types/node": "^22.10.1",
@@ -27,8 +26,10 @@
   },
   "dependencies": {
     "cosmiconfig": "^9.0.0",
+    "got": "^14.4.5",
     "oas": "^25.1.0",
     "oas-normalize": "^11.1.4",
+    "tough-cookie": "^5.1.0",
     "zod": "^3.24.1"
   },
   "type": "module"

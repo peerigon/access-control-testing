@@ -1,4 +1,6 @@
+import type { Method } from "got";
 import { z } from "zod";
+import { AuthParameterLocationDescription } from "./authentication/http/types.js";
 import { ConfigurationSchema, OpenApiPathsSchema } from "./schemas.ts";
 
 export type Configuration = z.infer<typeof ConfigurationSchema>;
@@ -13,5 +15,14 @@ export type AuthenticationScheme = "bearer" | "basic";
 // todo: support url params
 export type Route = {
   url: string;
-  method: string;
+  method: Method;
+};
+
+export type AuthEndpointInformation = {
+  authEndpoint: ReturnType<OpenAPIParser["getPaths"]>[0];
+  authRequestParameterDescription: {
+    username: AuthParameterLocationDescription;
+    password: AuthParameterLocationDescription;
+  };
+  authResponseParameterDescription: AuthParameterLocationDescription;
 };

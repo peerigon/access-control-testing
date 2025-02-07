@@ -1,3 +1,6 @@
+import type { Options } from "got";
+import { CookieJar } from "tough-cookie";
+
 export type AuthenticationCredentials = {
   identifier: string;
   password: string;
@@ -11,10 +14,7 @@ export type BearerAuthSession = {
 };
 
 export type CookieAuthSession = {
-  cookies: Array<{
-    name: string;
-    value: string;
-  }>;
+  cookies: CookieJar;
   expiresAt?: Date;
 };
 
@@ -30,3 +30,5 @@ export enum AuthenticatorType {
   API_KEY_COOKIE = "apiKeyCookie",
   NONE = "none",
 }
+
+export type RequestOptions = Options;

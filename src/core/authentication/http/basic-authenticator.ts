@@ -1,12 +1,12 @@
-import type { ApiRequest } from "@japa/api-client";
 import { RequestAuthenticator } from "./authenticator.ts";
-import { AuthenticationCredentials } from "./types.ts";
+import { AuthenticationCredentials, RequestOptions } from "./types.ts";
 
 export class BasicAuthenticator implements RequestAuthenticator {
   public async authenticateRequest(
-    request: ApiRequest,
+    requestOptions: RequestOptions,
     credentials: AuthenticationCredentials,
   ) {
-    request.basicAuth(credentials.identifier, credentials.password);
+    requestOptions.username = credentials.identifier;
+    requestOptions.password = credentials.password;
   }
 }

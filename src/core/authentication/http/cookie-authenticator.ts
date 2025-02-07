@@ -1,7 +1,10 @@
-import type { ApiRequest } from "@japa/api-client";
 import { RequestAuthenticator } from "./authenticator.ts";
 import { SessionManager } from "./session-manager.ts";
-import { AuthenticationCredentials, CookieAuthSession } from "./types.ts";
+import {
+  AuthenticationCredentials,
+  CookieAuthSession,
+  RequestOptions,
+} from "./types.ts";
 
 export class CookieAuthenticator
   extends SessionManager<CookieAuthSession>
@@ -9,7 +12,7 @@ export class CookieAuthenticator
 {
   protected async initializeSession(credentials: AuthenticationCredentials) {
     console.debug("init new cookie session");
-    const { response, authResponseParameterDescription } =
+    const { response, cookieJar, authResponseParameterDescription } =
       await this.obtainSession(credentials);
 
     const { parameterName: cookieParameterName } =
@@ -26,15 +29,12 @@ export class CookieAuthenticator
     if (STORE_ALL_COOKIES) {
       // todo: maybe store cookies as an object map instead of an array
       session = {
-        cookies: Object.values(response.cookies()).map((cookie) => ({
-          name: cookie.name,
-          value: cookie.value,
-        })),
-        // todo: maybe include expiration and other provided information too?
-        // expiresAt: cookie.expires, // store expiry of auth cookie
+        cookies: cookieJar,
+        // maybe also include information about session-relevant cookie name
       };
       this.sessionStore.set(credentials.identifier, session);
     } else {
+      // todo: this is not supported currently
       const cookie = response.cookie(cookieParameterName);
       if (!cookie) {
         // todo: add error handling
@@ -48,7 +48,7 @@ export class CookieAuthenticator
       // todo: if token expiry is not defined in response (in our case token.expiresAt), read out token to store this extra piece of information
 
       // todo: get expiry from maxAge?
-      session = {
+      /* session = {
         cookies: [
           {
             name: cookieParameterName,
@@ -56,14 +56,14 @@ export class CookieAuthenticator
           },
         ],
         expiresAt: cookie.expires,
-      };
+      };*/
     }
 
     return session;
   }
 
   public async authenticateRequest(
-    request: ApiRequest,
+    requestOptions: RequestOptions,
     credentials: AuthenticationCredentials,
   ) {
     const session = await this.findOrInitializeSession(credentials);
@@ -72,11 +72,6 @@ export class CookieAuthenticator
       throw new Error("Could not initialize session with cookies");
     }
 
-    const sessionCookies = session.cookies.reduce(
-      (a, { name, value }) => ({ ...a, [name]: value }),
-      {},
-    );
-
-    request.cookies(sessionCookies);
+    requestOptions.cookieJar = session.cookies;
   }
 }

@@ -20,6 +20,7 @@ export class AuthenticationStore {
     authenticatorType: AuthenticatorType,
     authEndpoint?: any, // todo: add correct type
   ) {
+    // todo: authendpoint could be null -> throw?!
     if (authenticatorType === AuthenticatorType.NONE) {
       return null;
     }

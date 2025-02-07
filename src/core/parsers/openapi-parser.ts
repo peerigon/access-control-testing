@@ -1,11 +1,16 @@
 import Oas from "oas";
 import OASNormalize from "oas-normalize";
-import type { HttpMethods, OASDocument } from "oas/types";
+import type {
+  HttpMethods,
+  KeyedSecuritySchemeObject,
+  OASDocument,
+} from "oas/types";
 import {
   AuthenticatorType,
   AuthParameterLocationDescription,
 } from "../authentication/http/types.ts";
 import { getOpenApiField, OpenApiFieldNames } from "../constants.ts";
+import { AuthEndpointInformation } from "../types.js";
 
 type SpecificationPath = ConstructorParameters<typeof OASNormalize>[0];
 
@@ -97,22 +102,17 @@ export class OpenAPIParser {
   // todo: move return type to another file
   /**
    * Returns the auth endpoint for the given security scheme identifier or null if the authenticator type does not have an auth endpoint
-   * @param securitySchemeIdentifier
+   * @param securityScheme
    * @param authenticatorType
    */
   public getAuthEndpoint(
-    securitySchemeIdentifier: string,
+    securityScheme: KeyedSecuritySchemeObject,
     authenticatorType: AuthenticatorType,
-  ): {
-    authEndpoint: ReturnType<OpenAPIParser["getPaths"]>[0];
-    authRequestParameterDescription: {
-      username: AuthParameterLocationDescription;
-      password: AuthParameterLocationDescription;
-    };
-    authResponseParameterDescription: AuthParameterLocationDescription;
-  } | null {
+  ): AuthEndpointInformation | null {
     // todo: validate that securityScheme is only one of the supported ones
     // if not, throw an error or skip
+
+    const securitySchemeIdentifier = securityScheme._key;
 
     if (
       authenticatorType !== AuthenticatorType.HTTP_BEARER &&
@@ -196,13 +196,25 @@ export class OpenAPIParser {
       }
 
       if (authenticatorType === AuthenticatorType.API_KEY_COOKIE) {
+        const authResponseParameterDescription = {
+          parameterName: securityScheme.name,
+          parameterLocation: securityScheme.in,
+        };
+
+        // todo: check if parameterLocation is of type ParameterLocation
+        if (
+          !authResponseParameterDescription.parameterName ||
+          !authResponseParameterDescription.parameterLocation
+        ) {
+          throw new Error(
+            "Could not find parameter name (name) or parameter location (in) for Cookie Authentication",
+          );
+        }
+
         return {
           authEndpoint,
           authRequestParameterDescription,
-          authResponseParameterDescription: {
-            parameterName: "adonis-session", // todo: get this from the OpenAPI spec
-            parameterLocation: "cookie",
-          },
+          authResponseParameterDescription,
         };
       }
 

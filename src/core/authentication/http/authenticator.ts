@@ -1,5 +1,4 @@
-import type { ApiRequest } from "@japa/api-client";
-import { AuthenticationCredentials } from "./types.ts";
+import type { AuthenticationCredentials, RequestOptions } from "./types.ts";
 
 export interface RequestAuthenticator {
   /**
@@ -7,7 +6,7 @@ export interface RequestAuthenticator {
    * @protected
    */
   authenticateRequest(
-    request: ApiRequest,
+    requestOptions: RequestOptions,
     credentials: AuthenticationCredentials,
   ): Promise<void>;
 }
