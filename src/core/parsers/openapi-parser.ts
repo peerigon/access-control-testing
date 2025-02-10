@@ -67,13 +67,22 @@ export class OpenAPIParser {
   /**
    * Returns all available paths enriched with resource information for each parameter representing a resource identifier
    */
-  // todo: either add skip flag to individual paths or just leave out all the login endpoints
   public getPathResourceMappings(filterAuthEndpointsOut: boolean = true) {
     // todo: ensure that validation happens before
     // parameterName, parameterLocation, resourceAccess resourceName need to be valid
     const paths = this.getPaths();
 
-    return paths.map((path) => {
+    const filteredPaths = filterAuthEndpointsOut
+      ? paths.filter((path) => {
+          const isAuthEndpoint = Boolean(
+            getOpenApiField(path.schema, OpenApiFieldNames.AUTH_ENDPOINT),
+          );
+
+          return !isAuthEndpoint;
+        })
+      : paths;
+
+    return filteredPaths.map((path) => {
       const { parameters } = path.schema;
 
       const resources = parameters?.map((parameter) => ({
@@ -92,9 +101,6 @@ export class OpenAPIParser {
       return {
         path: path.path,
         method: path.method,
-        isAuthEndpoint: Boolean(
-          getOpenApiField(path.schema, OpenApiFieldNames.AUTH_ENDPOINT),
-        ),
         resources,
       };
     });
@@ -351,5 +357,9 @@ export class OpenAPIParser {
     baseUrl: string = "http://localhost:3333/",
   ) {
     return new URL(url, baseUrl);
+  }
+
+  public static pathContainsParameter(path: string, parameterName: string) {
+    return path.includes(`{${parameterName}}`);
   }
 }
