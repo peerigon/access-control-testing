@@ -1,7 +1,10 @@
 import { test } from "@japa/runner";
 import { AuthenticationStore } from "../src/core/authentication/authentication-store.ts";
 import { RequestAuthenticator } from "../src/core/authentication/http/authenticator.ts";
-import { HTTP_FORBIDDEN_STATUS_CODE } from "../src/core/constants.ts";
+import {
+  HTTP_FORBIDDEN_STATUS_CODE,
+  HTTP_UNAUTHORIZED_STATUS_CODE,
+} from "../src/core/constants.ts";
 import { ConfigurationParser } from "../src/core/parsers/configuration-parser.ts";
 import { OpenAPIParser } from "../src/core/parsers/openapi-parser.ts";
 import { performRequest } from "../src/core/tests/test-utils.js";
@@ -71,7 +74,8 @@ test.group("Access Control Testing", () => {
   )
     .with(dataset)
     .run(async ({ expect }, { user, route, expectedRequestToBeAllowed }) => {
-      const credentials = user?.getCredentials() ?? null;
+      const isAnonymousUser = user === null;
+      const credentials = isAnonymousUser ? null : user.getCredentials();
 
       const authenticator = getAuthenticatorByRoute(
         route.url.toString(),
@@ -89,9 +93,19 @@ test.group("Access Control Testing", () => {
       // maybe print out a warning?
       if (expectedRequestToBeAllowed) {
         // can be one of 2XX codes but could also be an error that occurred due to wrong syntax of request
+
+        // todo: what about anonymous users? for them it should not be forbidden and also not unauthorized
         expect(statusCode).not.toBe(HTTP_FORBIDDEN_STATUS_CODE);
       } else {
-        expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
+        // as anonymous user, unauthorized or forbidden is okay
+        if (isAnonymousUser) {
+          expect([
+            HTTP_FORBIDDEN_STATUS_CODE, // todo: is forbidden really expected for users without authentication details or should it only be Unauthorized?
+            HTTP_UNAUTHORIZED_STATUS_CODE,
+          ]).toContain(statusCode);
+        } else {
+          expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
+        }
       }
     });
 });
