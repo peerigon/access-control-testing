@@ -19,7 +19,10 @@ export class BearerAuthenticator
       authResponseParameterDescription;
 
     // todo: fix response body retrieval
-    const token: string | undefined = response.body[tokenParameterName];
+    // todo: what if it's not json?
+    const token: string | undefined = JSON.parse(response.body)[
+      tokenParameterName
+    ];
 
     if (!token) {
       // todo: add error handling
