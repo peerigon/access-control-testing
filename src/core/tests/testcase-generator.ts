@@ -42,40 +42,7 @@ export class TestcaseGenerator {
     const pathResourceMappings = this.openApiParser.getPathResourceMappings();
 
     // each url resource mapping has "<Access> <Resource>" pairs with info where to find resource param
-
-    // todo: make this dynamic
-    // todo: get this from another function
-    // to test: resourceUserCombinations of users and resource ids on specific resource
-    const resourceUserCombinations: Array<{
-      user: User;
-      resource: Resource;
-      resourceAction: Action;
-      resourceId?: ResourceIdentifier; // todo: stricter
-    }> = [
-      {
-        user: user1,
-        resource: userResource,
-        resourceAction: "read", // einzige zu mappende Request -> GET /admin/users
-      },
-      {
-        user: user1,
-        resource: userResource,
-        resourceAction: "read",
-        resourceId: 1,
-      },
-      {
-        user: user1,
-        resource: userResource,
-        resourceAction: "update",
-        resourceId: 1,
-      },
-      {
-        user: user1,
-        resource: anotherResource,
-        resourceAction: "update",
-        resourceId: 1,
-      },
-    ];
+    const resourceUserCombinations = this.generateResourceUserCombinations();
 
     // instead of for each -> map
     return pathResourceMappings.flatMap((pathResourceMapping) => {
@@ -171,6 +138,42 @@ export class TestcaseGenerator {
         };
       });
     });
+  }
+
+  private generateResourceUserCombinations() {
+    // todo: make this dynamic
+    const resourceUserCombinations: Array<{
+      user: User;
+      resource: Resource;
+      resourceAction: Action;
+      resourceId?: ResourceIdentifier;
+    }> = [
+      {
+        user: user1,
+        resource: userResource,
+        resourceAction: "read", // einzige zu mappende Request -> GET /admin/users
+      },
+      {
+        user: user1,
+        resource: userResource,
+        resourceAction: "read",
+        resourceId: 1,
+      },
+      {
+        user: user1,
+        resource: userResource,
+        resourceAction: "update",
+        resourceId: 1,
+      },
+      {
+        user: user1,
+        resource: anotherResource,
+        resourceAction: "update",
+        resourceId: 1,
+      },
+    ];
+
+    return resourceUserCombinations;
   }
 
   private getAllUsers(): Array<User> {
