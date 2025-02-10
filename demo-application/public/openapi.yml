@@ -81,6 +81,10 @@ paths:
                     email:
                       type: string
                       example: max@beispiel.de
+      # todo: can a route like this without parameters have multiple resources?
+      x-act:
+        resource-name: User
+        resource-access: read
       security:
         - bearerHttpAuthentication: [ ]
         - cookieAuthentication: [ ]
