@@ -85,23 +85,53 @@ export class OpenAPIParser {
     return filteredPaths.map((path) => {
       const { parameters } = path.schema;
 
-      const resources = parameters?.map((parameter) => ({
-        parameterName: parameter.name,
-        parameterLocation: parameter.in,
-        resourceName: getOpenApiField(
-          parameter,
-          OpenApiFieldNames.RESOURCE_NAME,
-        ),
-        resourceAccess: getOpenApiField(
-          parameter,
-          OpenApiFieldNames.RESOURCE_ACCESS,
-        ),
-      }));
+      const parametrizedResources =
+        parameters?.map((parameter) => ({
+          parameterName: parameter.name,
+          parameterLocation: parameter.in,
+          resourceName: getOpenApiField(
+            parameter,
+            OpenApiFieldNames.RESOURCE_NAME,
+          ),
+          resourceAccess: getOpenApiField(
+            parameter,
+            OpenApiFieldNames.RESOURCE_ACCESS,
+          ),
+        })) ?? [];
+
+      // todo: at the moment it is considered that there can be at most one non-parametrized resource per path (e.g. /users)
+      const nonParametrizedResourceName = getOpenApiField(
+        path.schema,
+        OpenApiFieldNames.RESOURCE_NAME,
+      );
+      const nonParametrizedResourceAccess = getOpenApiField(
+        path.schema,
+        OpenApiFieldNames.RESOURCE_ACCESS,
+      );
+      const nonParametrizedResources =
+        nonParametrizedResourceName && nonParametrizedResourceAccess
+          ? [
+              {
+                resourceName: getOpenApiField(
+                  path.schema,
+                  OpenApiFieldNames.RESOURCE_NAME,
+                ),
+                resourceAccess: getOpenApiField(
+                  path.schema,
+                  OpenApiFieldNames.RESOURCE_ACCESS,
+                ),
+              },
+            ]
+          : [];
+
+      const securityRequirements = path.getSecurity();
+      const isPublicPath = securityRequirements.length === 0;
 
       return {
         path: path.path,
         method: path.method,
-        resources,
+        isPublicPath,
+        resources: [...parametrizedResources, ...nonParametrizedResources],
       };
     });
   }
@@ -275,6 +305,12 @@ export class OpenAPIParser {
 
   // todo: stricter types
   // todo: what if there are 0 security schemes?
+  /**
+   * Gets a security scheme for the given URL and HTTP method.
+   * @param url The fully-formed URL
+   * @param httpMethod The HTTP method
+   * @returns The security scheme or null if no security scheme is found in which case the route is considered public.
+   */
   public getSecurityScheme(
     url: string,
     httpMethod: string,
