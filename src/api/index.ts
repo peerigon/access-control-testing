@@ -40,7 +40,7 @@ class Act {
       ],
       // todo: make base url configurable as param
       // read the value from a config prop or the OpenAPI spec
-      plugins: [expect(), apiClient(this._baseUrl.toString())],
+      plugins: [expect()],
     });
 
     await run();
