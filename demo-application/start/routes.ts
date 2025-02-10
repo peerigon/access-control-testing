@@ -37,10 +37,7 @@ router
      * should only be accessible by admin users
      * This check is currently missing on purpose
      */
-    router.get('/users', async ({ response }) => {
-      const is401 = Math.random() >= 0.5
-      response.safeStatus(is401 ? 401 : 200)
-
+    router.get('/users', async ({}) => {
       return User.query()
     })
 
