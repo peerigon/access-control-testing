@@ -50,8 +50,13 @@ export class TestcaseGenerator {
       user: User;
       resource: Resource;
       resourceAction: Action;
-      resourceId: ResourceIdentifier | undefined; // todo: stricter
+      resourceId?: ResourceIdentifier; // todo: stricter
     }> = [
+      {
+        user: user1,
+        resource: userResource,
+        resourceAction: "read", // einzige zu mappende Request -> GET /admin/users
+      },
       {
         user: user1,
         resource: userResource,
@@ -119,7 +124,7 @@ export class TestcaseGenerator {
           combination.resource.getName() === currentResource.resourceName &&
           combination.resourceAction === currentResource.resourceAccess, // todo: unify naming of resourceAccess and resourceAction
       );
-      return matchingResourceUserCombinations.map((combination) => {
+      return matchingResourceUserCombinations.flatMap((combination) => {
         const { user, resource, resourceAction, resourceId } = combination;
         const expectedRequestToBeAllowed = PolicyDecisionPoint.isAllowed(
           user,
@@ -128,17 +133,28 @@ export class TestcaseGenerator {
           resourceId,
         );
 
+        // if resource id is needed in url but not provided in combination.resourceId, skip current combination
+        if (
+          OpenAPIParser.pathContainsParameter(
+            path,
+            currentResource.parameterName,
+          ) &&
+          resourceId == undefined
+        ) {
+          return [];
+        }
+
         // todo: currently only parameterLocation path supported
         // function should support parameterLocation, parameterName and parameterValue
 
         // resourceId can be undefined when resource access is create for instance
         // or when access for all resources of a type is described
         const expandedPath =
-          resourceId === undefined
+          resourceId == undefined
             ? path
             : OpenAPIParser.expandUrlTemplate(path, {
                 [currentResource.parameterName]: resourceId,
-              }); // todo: for multiple parameters, multiple keys in object
+              }); // todo: for multiple resources and therefore parameters, multiple keys in object -> dynamic mapping required
 
         const url = OpenAPIParser.constructFullUrl(expandedPath);
 
