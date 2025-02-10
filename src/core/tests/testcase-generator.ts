@@ -80,7 +80,7 @@ export class TestcaseGenerator {
     // instead of for each -> map
     return pathResourceMappings.flatMap((pathResourceMapping) => {
       // todo: create Route object for url & method to use instead
-      const { path, method, resources } = pathResourceMapping;
+      const { path, method, isPublicPath, resources } = pathResourceMapping;
 
       const routeHasResources =
         Array.isArray(resources) && resources.length > 0;
@@ -90,8 +90,12 @@ export class TestcaseGenerator {
       // routes that are public for anonymous users are expected to be allowed for logged-in users too
 
       if (!routeHasResources) {
-        // todo: determine whether route is public anyway (security: [] in openapi)
-        // if that's the case, no need to test, right?
+        if (isPublicPath) {
+          // todo: if that's the case, no need to test, right?
+          // the only thing that COULD be tested is if legitimate users are not blocked
+          // since it's public anyway, there can be no escalation of privileges, skip for now
+          return [];
+        }
 
         // in case it's non-public/only available for any authenticated user:
         // test from anonymous user perspective
@@ -102,7 +106,6 @@ export class TestcaseGenerator {
             method,
           },
           expectedRequestToBeAllowed: false,
-          // publicRoute: false,
         };
       }
 
