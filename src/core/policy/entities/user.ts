@@ -7,6 +7,7 @@ import { Resource } from "./resource.ts";
 
 export class User {
   // todo: this needs to include specific resource metadata to identify a specific resource
+  // todo: move to a separate class that can be extended
   private readonly relatedResources: Map<ResourceDescription, Relationship[]> =
     new Map();
   // from this, privileges for a resourceDescription can be derived
@@ -103,23 +104,50 @@ export class User {
 
   // todo: add specific typing for resourceIdentifier based on user preference
   // OR: always use string, convert number or other identifiers to string automatically?
+  /**
+   * Specifies that the user owns a specific instance of the given resource
+   * @param resource
+   * @param resourceIdentifier
+   */
   public owns(resource: Resource, resourceIdentifier: ResourceIdentifier) {
     this.relateTo(resource, Relationship.OWNERSHIP, resourceIdentifier);
   }
 
+  /**
+   * Specifies that the user can create resources of the given type
+   * @param resource
+   */
   public canCreate(resource: Resource) {
     this.relateTo(resource, Relationship.CREATOR);
   }
 
-  public canView(resource: Resource, resourceIdentifier: ResourceIdentifier) {
+  /**
+   * Specifies that the user can view resources of the given type or, if a resourceIdentifier is provided, a specific instance of the given resource
+   * @param resource
+   * @param resourceIdentifier Optional resource identifier
+   */
+  public canView(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
     this.relateTo(resource, Relationship.VIEWER, resourceIdentifier);
   }
 
-  public canEdit(resource: Resource, resourceIdentifier: ResourceIdentifier) {
+  /**
+   * Specifies that the user can edit resources of the given type or, if a resourceIdentifier is provided, a specific instance of the given resource
+   * @param resource
+   * @param resourceIdentifier Optional resource identifier
+   */
+  public canEdit(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
     this.relateTo(resource, Relationship.EDITOR, resourceIdentifier);
   }
 
-  public canDelete(resource: Resource, resourceIdentifier: ResourceIdentifier) {
+  /**
+   * Specifies that the user can delete resources of the given type or, if a resourceIdentifier is provided, a specific instance of the given resource
+   * @param resource
+   * @param resourceIdentifier Optional resource identifier
+   */
+  public canDelete(
+    resource: Resource,
+    resourceIdentifier?: ResourceIdentifier,
+  ) {
     this.relateTo(resource, Relationship.DELETER, resourceIdentifier);
   }
 }
