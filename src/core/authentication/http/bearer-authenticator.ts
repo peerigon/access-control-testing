@@ -1,6 +1,6 @@
 import { RequestAuthenticator } from "./authenticator.ts";
 import { SessionManager } from "./session-manager.ts";
-import {
+import type {
   AuthenticationCredentials,
   BearerAuthSession,
   RequestOptions,
@@ -18,7 +18,8 @@ export class BearerAuthenticator
     const { parameterName: tokenParameterName } =
       authResponseParameterDescription;
 
-    const token: string | undefined = response.body()[tokenParameterName];
+    // todo: fix response body retrieval
+    const token: string | undefined = response.body[tokenParameterName];
 
     if (!token) {
       // todo: add error handling

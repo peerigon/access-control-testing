@@ -1,8 +1,8 @@
 import { URL } from "node:url";
 import got from "got";
 import { CookieJar } from "tough-cookie";
-import { AuthEndpointInformation } from "../../types.js";
-import { AuthenticationCredentials, Session } from "./types.ts";
+import type { AuthEndpointInformation } from "../../types.js";
+import type { AuthenticationCredentials, Session } from "./types.ts";
 
 export abstract class SessionManager<SessionType extends Session> {
   protected sessionStore: Map<
