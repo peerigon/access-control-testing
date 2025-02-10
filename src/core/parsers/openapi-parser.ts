@@ -5,11 +5,13 @@ import type {
   KeyedSecuritySchemeObject,
   OASDocument,
 } from "oas/types";
+import { parseTemplate } from "url-template";
 import {
   AuthenticatorType,
   AuthParameterLocationDescription,
 } from "../authentication/http/types.ts";
 import { getOpenApiField, OpenApiFieldNames } from "../constants.ts";
+import { ResourceIdentifier } from "../policy/types.js";
 import { AuthEndpointInformation } from "../types.js";
 
 type SpecificationPath = ConstructorParameters<typeof OASNormalize>[0];
@@ -66,7 +68,9 @@ export class OpenAPIParser {
    * Returns all available paths enriched with resource information for each parameter representing a resource identifier
    */
   // todo: either add skip flag to individual paths or just leave out all the login endpoints
-  public getUrlsWithParameterInfo() {
+  public getPathResourceMappings(filterAuthEndpointsOut: boolean = true) {
+    // todo: ensure that validation happens before
+    // parameterName, parameterLocation, resourceAccess resourceName need to be valid
     const paths = this.getPaths();
 
     return paths.map((path) => {
@@ -86,7 +90,11 @@ export class OpenAPIParser {
       }));
 
       return {
-        url: path.path, // todo: prepend base url for full-formed URL -> maybe return URL object instead of string?
+        path: path.path,
+        method: path.method,
+        isAuthEndpoint: Boolean(
+          getOpenApiField(path.schema, OpenApiFieldNames.AUTH_ENDPOINT),
+        ),
         resources,
       };
     });
@@ -261,7 +269,10 @@ export class OpenAPIParser {
 
   // todo: stricter types
   // todo: what if there are 0 security schemes?
-  public getSecurityScheme(url: string, httpMethod: string) {
+  public getSecurityScheme(
+    url: string,
+    httpMethod: string,
+  ): KeyedSecuritySchemeObject | null {
     // todo: figure out what happens to parametrized routes
     const operation = this.openApiSource.getOperation(
       url,
@@ -274,6 +285,7 @@ export class OpenAPIParser {
     }
 
     //const securityScheme = operation.getSecurity();
+    // todo: maybe set true for filterInvalid?
     const securitySchemeCombinations = operation.getSecurityWithTypes();
 
     console.debug("securitySchemeCombinations", securitySchemeCombinations);
@@ -286,7 +298,12 @@ export class OpenAPIParser {
     // there is an AND condition for all security schemes in the array securityScheme
     // for now, this is not supported and should throw an error / should be skipped
     if (!firstSecuritySchemeCombination || !firstSecuritySchemeCombination[0]) {
-      throw new Error("Security scheme not found");
+      // no security scheme found, this is expected for public routes
+      // no distinction possible between explicit security: [] and no security definition
+      // todo: warning when no global security: [] is defined and no distinction is possible
+
+      // todo: login routes should not be interpreted as non-public (and therefore require authentication)
+      return null;
     }
 
     return firstSecuritySchemeCombination[0].security;
@@ -312,5 +329,27 @@ export class OpenAPIParser {
     }
 
     return AuthenticatorType.NONE;
+  }
+
+  /**
+   * Expands a URL template with the given parameters
+   * @param urlTemplateString The URL template as string to expand
+   * @param parameters The parameters to expand the URL template with
+   * @returns The expanded path or URL as string
+   */
+  public static expandUrlTemplate(
+    urlTemplateString: string,
+    parameters: Record<string | number | symbol, ResourceIdentifier | unknown>,
+  ): string {
+    const urlTemplate = parseTemplate(urlTemplateString);
+
+    return urlTemplate.expand(parameters);
+  }
+
+  public static constructFullUrl(
+    url: string,
+    baseUrl: string = "http://localhost:3333/",
+  ) {
+    return new URL(url, baseUrl);
   }
 }

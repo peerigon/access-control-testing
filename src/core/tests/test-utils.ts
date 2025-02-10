@@ -7,7 +7,7 @@ import type { Route } from "../types.ts";
 export async function performRequest(
   route: Route,
   authenticator: RequestAuthenticator | null,
-  credentials: AuthenticationCredentials,
+  credentials: AuthenticationCredentials | null,
 ) {
   return got(route.url, {
     method: route.method,
@@ -19,7 +19,7 @@ export async function performRequest(
     hooks: {
       beforeRequest: [
         async (options) => {
-          if (authenticator) {
+          if (authenticator && credentials) {
             await authenticator.authenticateRequest(options, credentials);
           }
 

@@ -1,63 +1,162 @@
 // todo: implement this & move function outside
 // for now just dummy implementation
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
+import { Resource } from "../policy/entities/resource.js";
 import { User } from "../policy/entities/user.ts";
+import { PolicyDecisionPoint } from "../policy/policy-decision-point.js";
+import { Action, ResourceIdentifier } from "../policy/types.js";
 import { Route } from "../types.ts";
 
 export type TestDataset = Array<{
-  user: User;
+  user: User | null; // alternatively: AnonymousUser (extends User)
   route: Route;
   expectedRequestToBeAllowed: boolean;
 }>;
+
+// mock users and resources for now
+// todo: this should come from Act instance which the tool user configured
+const user1 = new User("niklas.haug@tha.de", "niklas.haug@tha.de");
+
+const userResource = new Resource("User"); // must be resourcename from openapi
+user1.canView(userResource); // can view all Users -> /admin/users & /admin/users/:id
+console.log(
+  "user1canview",
+  PolicyDecisionPoint.isAllowed(user1, "read", userResource, 1), // todo: read vs. view?
+);
+// todo: unit test for scenarios:
+// canView(userResource):
+//    isAllowed(user1, "read", userResource, 1) -> true && isAllowed(user1, "read", userResource) -> true
+// canView(userResource, 1):
+//    isAllowed(user1, "read", userResource, 1) -> true && isAllowed(user1, "read", userResource) -> false
+
+const anotherResource = new Resource("Test"); // must be resourcename from openapi
 
 export class TestcaseGenerator {
   constructor(private readonly openApiParser: OpenAPIParser) {}
 
   // todo: this shouldn't be async, solve async in source (OpenAPI parser)
-  private getAllRoutes(): Array<Route> {
+  public generateTestDataset(): TestDataset {
     // todo: generate full-formed URLs with parameters
     // todo: for now only query parameters and path parameters are supported, maybe add support for other types of parameters
-    const urlsWithParameterInfo = this.openApiParser.getUrlsWithParameterInfo();
+    // resource params mapping
+    const pathResourceMappings = this.openApiParser.getPathResourceMappings();
 
-    // todo: combine this info with info about the resources and the relationship between them
-    return [
+    // each url resource mapping has "<Access> <Resource>" pairs with info where to find resource param
+
+    // todo: make this dynamic
+    // todo: get this from another function
+    // to test: resourceUserCombinations of users and resource ids on specific resource
+    const resourceUserCombinations: Array<{
+      user: User;
+      resource: Resource;
+      resourceAction: Action;
+      resourceId: ResourceIdentifier | undefined; // todo: stricter
+    }> = [
       {
-        url: "http://localhost:3333/admin/users",
-        method: "get",
-        // maybe include securitySchemeIdentifier here?
+        user: user1,
+        resource: userResource,
+        resourceAction: "read",
+        resourceId: 1,
       },
       {
-        url: "http://localhost:3333/admin/users/123",
-        method: "get",
+        user: user1,
+        resource: userResource,
+        resourceAction: "update",
+        resourceId: 1,
       },
       {
-        url: "http://localhost:3333/basicauth",
-        method: "get",
+        user: user1,
+        resource: anotherResource,
+        resourceAction: "update",
+        resourceId: 1,
       },
-      // todo: test with an url with query parameters
     ];
+
+    // instead of for each -> map
+    return pathResourceMappings.flatMap((pathResourceMapping) => {
+      // todo: create Route object for url & method to use instead
+      const { path, method, resources } = pathResourceMapping;
+
+      const routeHasResources =
+        Array.isArray(resources) && resources.length > 0;
+
+      // no resources available -> default: deny (except for "public" routes)
+      // todo: mark routes as public (for anonymous users) or available for all logged-in users
+      // routes that are public for anonymous users are expected to be allowed for logged-in users too
+
+      if (!routeHasResources) {
+        // todo: determine whether route is public anyway (security: [] in openapi)
+        // if that's the case, no need to test, right?
+
+        // in case it's non-public/only available for any authenticated user:
+        // test from anonymous user perspective
+        return {
+          user: null,
+          route: {
+            url: OpenAPIParser.constructFullUrl(path),
+            method,
+          },
+          expectedRequestToBeAllowed: false,
+          // publicRoute: false,
+        };
+      }
+
+      // todo: handle multiple resources: foreach resource in resources
+      const currentResource = resources[0];
+
+      // only use resourceUserCombinations that match with the given resource and access type
+
+      // resource (from resources inside of pathResourceMapping) is a Resource object mapped to the iterated url
+
+      // each resource has a resourceName as string to map to a Resource instance
+      // it also has a resourceAccess type as string to map to an Action
+      // also, a parameterName as string and a parameterLocation as string to be able to expand the url
+
+      // only consume resourceUserCombinations that match the current resource and access type
+      // todo: should the consumed resourceUserCombinations be removed from the list?
+      const matchingResourceUserCombinations = resourceUserCombinations.filter(
+        (combination) =>
+          combination.resource.getName() === currentResource.resourceName &&
+          combination.resourceAction === currentResource.resourceAccess, // todo: unify naming of resourceAccess and resourceAction
+      );
+      return matchingResourceUserCombinations.map((combination) => {
+        const { user, resource, resourceAction, resourceId } = combination;
+        const expectedRequestToBeAllowed = PolicyDecisionPoint.isAllowed(
+          user,
+          resourceAction,
+          resource,
+          resourceId,
+        );
+
+        // todo: currently only parameterLocation path supported
+        // function should support parameterLocation, parameterName and parameterValue
+
+        // resourceId can be undefined when resource access is create for instance
+        // or when access for all resources of a type is described
+        const expandedPath =
+          resourceId === undefined
+            ? path
+            : OpenAPIParser.expandUrlTemplate(path, {
+                [currentResource.parameterName]: resourceId,
+              }); // todo: for multiple parameters, multiple keys in object
+
+        const url = OpenAPIParser.constructFullUrl(expandedPath);
+
+        return {
+          user,
+          route: {
+            url,
+            method,
+          },
+          expectedRequestToBeAllowed,
+        };
+      });
+    });
   }
 
   private getAllUsers(): Array<User> {
     // todo: gather all users from act.scan() setup
-    const user1 = new User("niklas.haug@tha.de", "niklas.haug@tha.de");
 
     return [user1];
-  }
-
-  public generateTestDataset(): TestDataset {
-    const users = this.getAllUsers();
-    const routes = this.getAllRoutes();
-
-    // todo: for every route, extract involved resources and their relationships
-    // then: PolicyDecisionPoint.isAllowed(user, action, resource, resourceIdentifier)
-
-    return routes.flatMap((route) =>
-      users.map((user) => ({
-        user,
-        route,
-        expectedRequestToBeAllowed: false,
-      })),
-    );
   }
 }

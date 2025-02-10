@@ -1,7 +1,8 @@
+import type { URL } from "node:url";
 import type { Method } from "got";
 import { z } from "zod";
-import { AuthParameterLocationDescription } from "./authentication/http/types.js";
-import { ConfigurationSchema, OpenApiPathsSchema } from "./schemas.ts";
+import type { AuthParameterLocationDescription } from "./authentication/http/types.js";
+import type { ConfigurationSchema, OpenApiPathsSchema } from "./schemas.ts";
 
 export type Configuration = z.infer<typeof ConfigurationSchema>;
 export type OpenApiPaths = z.infer<typeof OpenApiPathsSchema>;
@@ -14,7 +15,7 @@ export type AuthenticationScheme = "bearer" | "basic";
 // what defines a Route? combination of url, method (and url params)
 // todo: support url params
 export type Route = {
-  url: string;
+  url: URL;
   method: Method;
 };
 
