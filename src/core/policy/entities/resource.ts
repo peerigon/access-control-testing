@@ -2,6 +2,7 @@ import { ResourceIdentifier } from "../types.js";
 
 export class Resource {
   // todo: make sure name is unique?
+  // todo: also validate that it can't contain a : character since it is used as a separator
   constructor(private readonly name: string) {}
 
   public getName() {

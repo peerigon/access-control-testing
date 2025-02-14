@@ -39,6 +39,7 @@ export class PolicyDecisionPoint {
     return Boolean(userHasPrivilegeExplicitly || userInheritedPrivilege);
   }
 
+  // todo: rename action to accessType?
   private static convertActionToPrivilege(action: Action): Privilege {
     switch (action) {
       case "create":
@@ -49,6 +50,20 @@ export class PolicyDecisionPoint {
         return Privilege.UPDATE;
       case "delete":
         return Privilege.DELETE;
+    }
+  }
+
+  // todo: move somewhere else
+  public static convertPrivilegeToAction(privilege: Privilege): Action {
+    switch (privilege) {
+      case Privilege.CREATE:
+        return "create";
+      case Privilege.READ:
+        return "read";
+      case Privilege.UPDATE:
+        return "update";
+      case Privilege.DELETE:
+        return "delete";
     }
   }
 }

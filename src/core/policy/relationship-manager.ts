@@ -1,8 +1,14 @@
 import { Resource } from "./entities/resource.ts";
+import { PolicyDecisionPoint } from "./policy-decision-point.js";
 import { Privilege } from "./privilege.ts";
 import { RelationshipPrivileges } from "./relationship-privileges.ts";
 import { Relationship } from "./relationship.ts";
-import { ResourceDescription, ResourceIdentifier } from "./types.ts";
+import {
+  Action,
+  ResourceDescription,
+  ResourceIdentifier,
+  ResourceName,
+} from "./types.ts";
 
 export class RelationshipManager {
   private readonly relatedResources: Map<ResourceDescription, Relationship[]> =
@@ -21,13 +27,45 @@ export class RelationshipManager {
       return null;
     }
 
-    const privileges = relationships.flatMap(
-      (relationship) => RelationshipPrivileges[relationship],
-    );
+    const privileges = this.getPrivilegesFromRelationships(relationships);
 
     // todo: maybe wrap around set? -> remove duplicates
     // -> Set could also be returned instead of converting back to array?
 
+    return privileges;
+  }
+
+  /**
+   * Lists all resources including the way the user can access them. For concrete resources, the resourceIdentifier is also included.
+   */
+  public listResourceAccesses(): Array<{
+    resourceName: ResourceName;
+    resourceIdentifier?: ResourceIdentifier;
+    resourceAccess: Action; // todo: unify naming access/action
+  }> {
+    return Array.from(this.relatedResources).flatMap(
+      ([resourceDescription, relationships]) => {
+        const [resourceName, resourceIdentifier] =
+          resourceDescription.split(":");
+
+        // each privilege corresponds to an access type
+        const privileges = this.getPrivilegesFromRelationships(relationships);
+
+        return privileges.map((privilege) => ({
+          resourceName,
+          resourceIdentifier,
+          resourceAccess:
+            PolicyDecisionPoint.convertPrivilegeToAction(privilege),
+        }));
+      },
+    );
+  }
+
+  private getPrivilegesFromRelationships(relationships: Relationship[]) {
+    // todo: clarify if there can be duplicates in privileges caused by duplicate relationships?
+    const privileges = relationships.flatMap(
+      (relationship) => RelationshipPrivileges[relationship],
+    );
     return privileges;
   }
 
@@ -69,7 +107,7 @@ export class RelationshipManager {
    * @param resource
    * @param resourceIdentifier
    */
-  public owns(resource: Resource, resourceIdentifier: ResourceIdentifier) {
+  public owns(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
     this.relateTo(resource, Relationship.OWNERSHIP, resourceIdentifier);
   }
 

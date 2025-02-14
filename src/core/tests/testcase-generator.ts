@@ -4,7 +4,7 @@ import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.ts";
 import { PolicyDecisionPoint } from "../policy/policy-decision-point.ts";
-import { Action, ResourceIdentifier } from "../policy/types.ts";
+import { Action, ResourceIdentifier, ResourceName } from "../policy/types.ts";
 import { Route } from "../types.ts";
 
 export type TestDataset = Array<{
@@ -13,16 +13,12 @@ export type TestDataset = Array<{
   expectedRequestToBeAllowed: boolean;
 }>;
 
-// mock users and resources for now
-// todo: this should come from Act instance which the tool user configured
-const user1 = new User("niklas.haug@tha.de", "niklas.haug@tha.de");
-
-const userResource = new Resource("User"); // must be resourcename from openapi
+/*
 user1.canView(userResource); // can view all Users -> /admin/users & /admin/users/:id
 console.log(
   "user1canview",
   PolicyDecisionPoint.isAllowed(user1, "read", userResource, 1), // todo: read vs. view?
-);
+);*/
 // todo: unit test for scenarios:
 // canView(userResource):
 //    isAllowed(user1, "read", userResource, 1) -> true && isAllowed(user1, "read", userResource) -> true
@@ -95,25 +91,29 @@ export class TestcaseGenerator {
       // todo: should the consumed resourceUserCombinations be removed from the list?
       const matchingResourceUserCombinations = resourceUserCombinations.filter(
         (combination) =>
-          combination.resource.getName() === currentResource.resourceName &&
+          combination.resourceName === currentResource.resourceName &&
           combination.resourceAction === currentResource.resourceAccess, // todo: unify naming of resourceAccess and resourceAction
       );
       return matchingResourceUserCombinations.flatMap((combination) => {
-        const { user, resource, resourceAction, resourceId } = combination;
+        const { user, resourceName, resourceAction, resourceIdentifier } =
+          combination;
+
+        const resource = new Resource(resourceName);
+
         const expectedRequestToBeAllowed = PolicyDecisionPoint.isAllowed(
           user,
           resourceAction,
           resource,
-          resourceId,
+          resourceIdentifier,
         );
 
-        // if resource id is needed in url but not provided in combination.resourceId, skip current combination
+        // if resource id is needed in url but not provided in combination.resourceIdentifier, skip current combination
         if (
           OpenAPIParser.pathContainsParameter(
             path,
             currentResource.parameterName,
           ) &&
-          resourceId == undefined
+          resourceIdentifier == undefined
         ) {
           return [];
         }
@@ -121,13 +121,13 @@ export class TestcaseGenerator {
         // todo: currently only parameterLocation path supported
         // function should support parameterLocation, parameterName and parameterValue
 
-        // resourceId can be undefined when resource access is create for instance
+        // resourceIdentifier can be undefined when resource access is create for instance
         // or when access for all resources of a type is described
         const expandedPath =
-          resourceId == undefined
+          resourceIdentifier == undefined
             ? path
             : OpenAPIParser.expandUrlTemplate(path, {
-                [currentResource.parameterName]: resourceId,
+                [currentResource.parameterName]: resourceIdentifier,
               }); // todo: for multiple resources and therefore parameters, multiple keys in object -> dynamic mapping required
 
         const url = this.openApiParser.constructFullApiUrl(expandedPath);
@@ -148,10 +148,10 @@ export class TestcaseGenerator {
     // todo: make this dynamic
     const resourceUserCombinations: Array<{
       user: User;
-      resource: Resource;
+      resourceName: ResourceName;
       resourceAction: Action;
-      resourceId?: ResourceIdentifier;
-    }> = [
+      resourceIdentifier?: ResourceIdentifier;
+    }> = []; /*[
       {
         user: user1,
         resource: userResource,
@@ -161,26 +161,54 @@ export class TestcaseGenerator {
         user: user1,
         resource: userResource,
         resourceAction: "read",
-        resourceId: 1,
+        resourceIdentifier: 1,
       },
       {
         user: user1,
         resource: userResource,
         resourceAction: "update",
-        resourceId: 1,
+        resourceIdentifier: 1,
       },
       {
         user: user1,
         resource: anotherResource,
         resourceAction: "update",
-        resourceId: 1,
+        resourceIdentifier: 1,
       },
-    ];
+    ];*/
 
     // todo: generate combinations
     // between users, actions, resources and resource ids
     // for that, go through relations of each user with a resource,
     // create a test case with expected result of true (for current user) and false (for other users)
+    for (const user of this.users) {
+      // knowledge of defined relationships
+      const resourceAccesses = user.listResourceAccesses();
+
+      for (const resourceAccess of resourceAccesses) {
+        const {
+          resourceName,
+          resourceIdentifier,
+          resourceAccess: resourceAction,
+        } = resourceAccess;
+
+        // positive test case (current user) including potentially negative test cases from the perspective of other users
+        // todo: strategy for choosing only some users, not all to reduce test cases
+        for (const user of this.users) {
+          resourceUserCombinations.push({
+            user,
+            resourceName,
+            resourceAction,
+            resourceIdentifier,
+          });
+        }
+      }
+
+      // todo: knowledge of resources based on openapi definitions
+      // this is only applicable for non-parameterized resources (e.g. GET /users) because no valid resourceIdentifiers are available
+      // there will be no guessing of valid resourceIdentifiers in that case
+      // adds additional test cases only when resource/access combination is not already covered by someone who is allowed to access it
+    }
 
     return resourceUserCombinations;
   }
