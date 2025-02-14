@@ -1,5 +1,9 @@
 import { Resource } from "../core/policy/entities/resource.ts";
 import { User } from "../core/policy/entities/user.ts";
+import {
+  TestRunnerFactory,
+  type TestRunnerIdentifier,
+} from "../core/tests/runner/test-runner.ts";
 import { TestExecutor } from "../core/tests/test-executor.ts";
 
 type ActOptions = {
@@ -7,6 +11,7 @@ type ActOptions = {
   openApiUrl: string;
   users: Array<User>;
   resources: Array<Resource>;
+  testRunner?: TestRunnerIdentifier;
 };
 class Act {
   constructor(private readonly options: ActOptions) {
@@ -16,8 +21,13 @@ class Act {
   public async scan() {
     console.log("Scanning...");
 
+    const testRunner = this.options.testRunner
+      ? TestRunnerFactory.createTestRunner(this.options.testRunner)
+      : TestRunnerFactory.createTestRunner();
+
     const testExecutor = new TestExecutor();
     await testExecutor.runTests(
+      testRunner,
       this.options.openApiUrl,
       this.options.apiBaseUrl,
       this.options.users,

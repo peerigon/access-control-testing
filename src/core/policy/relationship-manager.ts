@@ -1,10 +1,10 @@
-import { Resource } from "./entities/resource.js";
-import { Privilege } from "./privilege.js";
-import { RelationshipPrivileges } from "./relationship-privileges.js";
-import { Relationship } from "./relationship.js";
-import { ResourceDescription, ResourceIdentifier } from "./types.js";
+import { Resource } from "./entities/resource.ts";
+import { Privilege } from "./privilege.ts";
+import { RelationshipPrivileges } from "./relationship-privileges.ts";
+import { Relationship } from "./relationship.ts";
+import { ResourceDescription, ResourceIdentifier } from "./types.ts";
 
-export class RelationshipManager<RelatedEntityType> {
+export class RelationshipManager {
   private readonly relatedResources: Map<ResourceDescription, Relationship[]> =
     new Map();
 

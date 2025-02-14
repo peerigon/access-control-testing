@@ -1,8 +1,7 @@
 import { AuthenticationCredentials } from "../../authentication/http/types.ts";
-import { RelationshipManager } from "../relationship-manager.js";
-import { Resource } from "./resource.js";
+import { RelationshipManager } from "../relationship-manager.ts";
 
-export class User extends RelationshipManager<Resource> {
+export class User extends RelationshipManager {
   constructor(
     private readonly identifier: string,
     private readonly password: string,

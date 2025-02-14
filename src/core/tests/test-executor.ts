@@ -3,9 +3,9 @@ import {
   HTTP_UNAUTHORIZED_STATUS_CODE,
 } from "../constants.ts";
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
-import { Resource } from "../policy/entities/resource.js";
+import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.js";
-import { TestRunnerFactory } from "./runner/test-runner.ts";
+import { TestRunner } from "./runner/test-runner.ts";
 import { performRequest } from "./test-utils.ts";
 import { TestcaseGenerator } from "./testcase-generator.ts";
 
@@ -23,15 +23,12 @@ export class TestExecutor {
   }*/
 
   public async runTests(
+    testRunner: TestRunner,
     openApiUrl: string,
     apiBaseUrl: string,
     users: Array<User>,
     resources: Array<Resource>,
   ) {
-    /* const configurationParser = new ConfigurationParser();
-    // todo: no more Configuration -> constructor options? but how to get params into this file?
-    const { openApiUrl } = await configurationParser.parse();*/
-
     const openAPIParser = await OpenAPIParser.create(openApiUrl, apiBaseUrl);
 
     const testController = new TestcaseGenerator(
@@ -53,8 +50,6 @@ export class TestExecutor {
       };
     });
     console.table(debugTable);
-
-    const testRunner = TestRunnerFactory.createTestRunner();
 
     testRunner.group("🛡 Access Control Testing", () => {
       dataset.forEach((testCase) => {
