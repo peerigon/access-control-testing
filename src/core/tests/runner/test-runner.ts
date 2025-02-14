@@ -1,4 +1,4 @@
-import { NodeTestRunner } from "./node-test-runner.js";
+import { NodeTestRunner } from "./node-test-runner.ts";
 
 export interface Expectation {
   toBe(expected: any): void;

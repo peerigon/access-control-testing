@@ -2,7 +2,6 @@ import {
   HTTP_FORBIDDEN_STATUS_CODE,
   HTTP_UNAUTHORIZED_STATUS_CODE,
 } from "../constants.ts";
-import { ConfigurationParser } from "../parsers/configuration-parser.ts";
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { TestRunnerFactory } from "./runner/test-runner.ts";
 import { performRequest } from "./test-utils.ts";
@@ -21,15 +20,12 @@ export class TestExecutor {
     return dataset;
   }*/
 
-  public async runTests() {
-    const configurationParser = new ConfigurationParser();
+  public async runTests(openApiUrl: string, apiBaseUrl: string) {
+    /* const configurationParser = new ConfigurationParser();
     // todo: no more Configuration -> constructor options? but how to get params into this file?
-    const { openApiUrl } = await configurationParser.parse();
+    const { openApiUrl } = await configurationParser.parse();*/
 
-    const openAPIParser = await OpenAPIParser.create(
-      openApiUrl,
-      "http://localhost:3333",
-    );
+    const openAPIParser = await OpenAPIParser.create(openApiUrl, apiBaseUrl);
 
     const testController = new TestcaseGenerator(openAPIParser);
     const dataset: TestDataset = testController.generateTestDataset(); //.bind(testController);
