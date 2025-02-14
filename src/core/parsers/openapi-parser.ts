@@ -19,17 +19,24 @@ import { AuthEndpointInformation } from "../types.js";
 type SpecificationPath = ConstructorParameters<typeof OASNormalize>[0];
 
 export class OpenAPIParser {
-  private constructor(private readonly openApiSource: Oas) {} // private specificationPath: ConstructorParameters<typeof OASNormalize>[0],
+  private constructor(
+    private readonly openApiSource: Oas,
+    private readonly apiBaseUrl: string,
+  ) {} // private specificationPath: ConstructorParameters<typeof OASNormalize>[0],
 
   /**
    * Parses the OpenAPI specification and returns a new instance of the OpenAPIParser.
    * Implemented as a factory method to allow for async initialization.
    * @param specificationPath The path to the OpenAPI specification
+   * @param apiBaseUrl The base URL of the API to be used for making requests
    */
-  public static async create(specificationPath: string) {
+  public static async create(specificationPath: string, apiBaseUrl: string) {
     const openApiSource = await OpenAPIParser.getOasSource(specificationPath);
 
-    return new OpenAPIParser(openApiSource);
+    // todo: validate that apiBaseUrl is a valid URL
+    // & validate that it is contained in openapi specification
+    // & validate custom fields
+    return new OpenAPIParser(openApiSource, apiBaseUrl);
   }
 
   /**
@@ -390,11 +397,8 @@ export class OpenAPIParser {
     return urlTemplate.expand(parameters);
   }
 
-  public static constructFullUrl(
-    url: string,
-    baseUrl: string = "http://localhost:3333/", // todo: make it dynamic
-  ) {
-    return new URL(url, baseUrl);
+  public constructFullApiUrl(url: string) {
+    return new URL(url, this.apiBaseUrl);
   }
 
   public static pathContainsParameter(path: string, parameterName: string) {

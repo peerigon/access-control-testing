@@ -26,7 +26,10 @@ export class TestExecutor {
     // todo: no more Configuration -> constructor options? but how to get params into this file?
     const { openApiUrl } = await configurationParser.parse();
 
-    const openAPIParser = await OpenAPIParser.create(openApiUrl);
+    const openAPIParser = await OpenAPIParser.create(
+      openApiUrl,
+      "http://localhost:3333",
+    );
 
     const testController = new TestcaseGenerator(openAPIParser);
     const dataset: TestDataset = testController.generateTestDataset(); //.bind(testController);

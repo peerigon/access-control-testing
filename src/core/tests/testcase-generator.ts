@@ -69,7 +69,7 @@ export class TestcaseGenerator {
         return {
           user: null,
           route: {
-            url: OpenAPIParser.constructFullUrl(path),
+            url: this.openApiParser.constructFullApiUrl(path),
             method,
           },
           expectedRequestToBeAllowed: false,
@@ -126,7 +126,7 @@ export class TestcaseGenerator {
                 [currentResource.parameterName]: resourceId,
               }); // todo: for multiple resources and therefore parameters, multiple keys in object -> dynamic mapping required
 
-        const url = OpenAPIParser.constructFullUrl(expandedPath);
+        const url = this.openApiParser.constructFullApiUrl(expandedPath);
 
         return {
           user,
