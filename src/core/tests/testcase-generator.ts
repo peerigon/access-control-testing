@@ -32,7 +32,11 @@ console.log(
 const anotherResource = new Resource("Test"); // must be resourcename from openapi
 
 export class TestcaseGenerator {
-  constructor(private readonly openApiParser: OpenAPIParser) {}
+  constructor(
+    private readonly openApiParser: OpenAPIParser,
+    private readonly users: Array<User>,
+    private readonly resources: Array<Resource>,
+  ) {}
 
   // todo: this shouldn't be async, solve async in source (OpenAPI parser)
   public generateTestDataset(): TestDataset {
@@ -173,12 +177,11 @@ export class TestcaseGenerator {
       },
     ];
 
+    // todo: generate combinations
+    // between users, actions, resources and resource ids
+    // for that, go through relations of each user with a resource,
+    // create a test case with expected result of true (for current user) and false (for other users)
+
     return resourceUserCombinations;
-  }
-
-  private getAllUsers(): Array<User> {
-    // todo: gather all users from act.scan() setup
-
-    return [user1];
   }
 }

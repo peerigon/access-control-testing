@@ -2,9 +2,13 @@ import { Resource } from "../core/policy/entities/resource.ts";
 import { User } from "../core/policy/entities/user.ts";
 import { TestExecutor } from "../core/tests/test-executor.ts";
 
-type ActOptions = { apiBaseUrl: string; openApiUrl: string };
+type ActOptions = {
+  apiBaseUrl: string;
+  openApiUrl: string;
+  users: Array<User>;
+  resources: Array<Resource>;
+};
 class Act {
-  // todo: maybe move all the configuration stuff from the file to the constructor?
   constructor(private readonly options: ActOptions) {
     // todo: check if both are valid urls
   }

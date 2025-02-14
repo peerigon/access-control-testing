@@ -3,9 +3,11 @@ import {
   HTTP_UNAUTHORIZED_STATUS_CODE,
 } from "../constants.ts";
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
+import { Resource } from "../policy/entities/resource.js";
+import { User } from "../policy/entities/user.js";
 import { TestRunnerFactory } from "./runner/test-runner.ts";
 import { performRequest } from "./test-utils.ts";
-import { TestcaseGenerator, TestDataset } from "./testcase-generator.ts";
+import { TestcaseGenerator } from "./testcase-generator.ts";
 
 export class TestExecutor {
   /*  private async prepareTestDataset() {
@@ -20,15 +22,24 @@ export class TestExecutor {
     return dataset;
   }*/
 
-  public async runTests(openApiUrl: string, apiBaseUrl: string) {
+  public async runTests(
+    openApiUrl: string,
+    apiBaseUrl: string,
+    users: Array<User>,
+    resources: Array<Resource>,
+  ) {
     /* const configurationParser = new ConfigurationParser();
     // todo: no more Configuration -> constructor options? but how to get params into this file?
     const { openApiUrl } = await configurationParser.parse();*/
 
     const openAPIParser = await OpenAPIParser.create(openApiUrl, apiBaseUrl);
 
-    const testController = new TestcaseGenerator(openAPIParser);
-    const dataset: TestDataset = testController.generateTestDataset(); //.bind(testController);
+    const testController = new TestcaseGenerator(
+      openAPIParser,
+      users,
+      resources,
+    );
+    const dataset = testController.generateTestDataset(); //.bind(testController);
 
     console.log("DATASET");
     const debugTable = dataset.map((ds) => {

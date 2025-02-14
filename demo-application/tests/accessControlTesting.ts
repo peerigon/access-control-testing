@@ -17,11 +17,15 @@ const test = async () => {
   // todo: type of identifier should be supplied by user
   user1.canView(todoResource, 123)
 
+  const resources = [todoResource]
+  const users = [user1, user2, adminUser1]
+
   console.log('======')
-  // that way, tool users can use .env variables which would not be possible with the config file
   const act = new Act({
     apiBaseUrl: 'http://localhost:3333/',
     openApiUrl: 'http://localhost:3333/openapi.yml',
+    users,
+    resources,
   })
   await act.scan()
 }
