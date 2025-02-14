@@ -23,7 +23,7 @@ export class PolicyDecisionPoint {
     const requiredPrivilege = this.convertActionToPrivilege(action);
 
     // todo: refactor
-    const resourceDescription = User.getResourceDescription(
+    const resourceDescription = Resource.getResourceDescription(
       resource,
       resourceIdentifier,
     );
@@ -33,7 +33,7 @@ export class PolicyDecisionPoint {
       ?.some((privilege) => privilege === requiredPrivilege);
 
     const userInheritedPrivilege = user
-      .getResourcePrivileges(User.getResourceDescription(resource))
+      .getResourcePrivileges(Resource.getResourceDescription(resource))
       ?.some((privilege) => privilege === requiredPrivilege);
 
     return Boolean(userHasPrivilegeExplicitly || userInheritedPrivilege);
