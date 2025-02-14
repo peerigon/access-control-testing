@@ -11,7 +11,8 @@
     "test": "node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:jest": "jest"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
@@ -41,12 +42,15 @@
     "@japa/plugin-adonisjs": "^3.0.1",
     "@japa/runner": "^3.1.4",
     "@swc/core": "1.7.26",
+    "@types/jest": "^29.5.14",
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.7.5",
     "eslint": "^9.12.0",
     "hot-hook": "^0.3.1",
+    "jest": "^29.7.0",
     "pino-pretty": "^11.2.2",
     "prettier": "^3.3.3",
+    "ts-jest": "^29.2.5",
     "ts-node-maintained": "^10.9.4",
     "typescript": "~5.6"
   },
