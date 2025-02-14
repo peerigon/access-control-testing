@@ -31,8 +31,6 @@ export class User {
     // todo: maybe wrap around set? -> remove duplicates
     // -> Set could also be returned instead of converting back to array?
 
-    console.log(privileges);
-
     return privileges;
   }
 

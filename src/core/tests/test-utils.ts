@@ -1,7 +1,7 @@
 import got from "got";
 import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
-import { AuthenticationCredentials } from "../authentication/http/types.js";
-import { HTTP_UNAUTHORIZED_STATUS_CODE } from "../constants.js";
+import { AuthenticationCredentials } from "../authentication/http/types.ts";
+import { HTTP_UNAUTHORIZED_STATUS_CODE } from "../constants.ts";
 import type { Route } from "../types.ts";
 
 export async function performRequest(

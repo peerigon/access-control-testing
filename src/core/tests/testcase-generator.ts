@@ -1,10 +1,10 @@
 // todo: implement this & move function outside
 // for now just dummy implementation
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
-import { Resource } from "../policy/entities/resource.js";
+import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.ts";
-import { PolicyDecisionPoint } from "../policy/policy-decision-point.js";
-import { Action, ResourceIdentifier } from "../policy/types.js";
+import { PolicyDecisionPoint } from "../policy/policy-decision-point.ts";
+import { Action, ResourceIdentifier } from "../policy/types.ts";
 import { Route } from "../types.ts";
 
 export type TestDataset = Array<{

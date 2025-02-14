@@ -1,3 +1,4 @@
+// todo: deprecate config (if there are no "global" settings that should be applied to all environments)
 module.exports = {
   openApiUrl: "http://localhost:3333/openapi.yml",
   authentication: {
