@@ -1,55 +1,24 @@
-import { apiClient } from "@japa/api-client";
-import { expect } from "@japa/expect";
-import { configure, run } from "@japa/runner";
 import { Resource } from "../core/policy/entities/resource.ts";
 import { User } from "../core/policy/entities/user.ts";
-import { TestReporter } from "../core/tests/test-reporter.ts";
+import { TestExecutor } from "../core/tests/test-executor.ts";
 
 class Act {
-  get baseUrl(): URL {
-    return this._baseUrl;
-  }
-  private readonly _baseUrl: URL;
+  private readonly baseUrl: URL;
 
   // todo: maybe move all the configuration stuff from the file to the constructor?
   constructor(baseUrlString: string) {
     try {
-      this._baseUrl = new URL(baseUrlString);
+      this.baseUrl = new URL(baseUrlString);
     } catch (error) {
       throw new Error("Invalid base URL");
     }
   }
 
-  private async runTests() {
-    configure({
-      reporters: {
-        activated: [TestReporter.name],
-        list: [
-          {
-            name: TestReporter.name,
-            handler: (...args: unknown[]) => new TestReporter().boot(...args),
-          },
-        ],
-      },
-      suites: [
-        {
-          name: "accesscontrol",
-          timeout: 30 * 1000,
-          files: ["tests/accesscontrol.spec.ts"],
-        },
-      ],
-      // todo: make base url configurable as param
-      // read the value from a config prop or the OpenAPI spec
-      plugins: [expect()],
-    });
-
-    await run();
-  }
-
   public async scan() {
     console.log("Scanning...");
 
-    await this.runTests();
+    const testExecutor = new TestExecutor();
+    await testExecutor.runTests();
   }
 }
 
