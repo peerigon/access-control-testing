@@ -20,6 +20,8 @@ class Act {
     await testExecutor.runTests(
       this.options.openApiUrl,
       this.options.apiBaseUrl,
+      this.options.users,
+      this.options.resources,
     );
   }
 }
