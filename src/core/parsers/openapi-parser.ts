@@ -6,6 +6,8 @@ import type {
   OASDocument,
 } from "oas/types";
 import { parseTemplate } from "url-template";
+import { AuthenticationStore } from "../authentication/authentication-store.ts";
+import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
 import {
   AuthenticatorType,
   AuthParameterLocationDescription,
@@ -390,12 +392,47 @@ export class OpenAPIParser {
 
   public static constructFullUrl(
     url: string,
-    baseUrl: string = "http://localhost:3333/",
+    baseUrl: string = "http://localhost:3333/", // todo: make it dynamic
   ) {
     return new URL(url, baseUrl);
   }
 
   public static pathContainsParameter(path: string, parameterName: string) {
     return path.includes(`{${parameterName}}`);
+  }
+
+  /**
+   * Get a Singleton instance of the authenticator based on the route if the route requires authentication
+   */
+  public getAuthenticatorByRoute(
+    url: string,
+    httpMethod: string,
+  ): RequestAuthenticator | null {
+    const securityScheme = this.getSecurityScheme(url, httpMethod);
+
+    if (!securityScheme) {
+      return null;
+    }
+
+    const securitySchemeKey = securityScheme._key;
+
+    console.debug(securityScheme);
+    console.debug("GOT SECURITY SCHEME: " + securitySchemeKey);
+
+    const authenticatorType =
+      this.getAuthenticatorTypeBySecurityScheme(securityScheme);
+
+    // todo: can this result be cached or stored inside the state of the OpenApiParser?
+    // so that mapping etc. only has to take place when specific auth strategy hasn't been queried yet
+
+    const authEndpoint = this.getAuthEndpoint(
+      securityScheme,
+      authenticatorType,
+    );
+
+    return AuthenticationStore.getOrCreateAuthenticator(
+      authenticatorType,
+      authEndpoint,
+    );
   }
 }
