@@ -29,6 +29,7 @@
     "got": "^14.4.5",
     "oas": "^25.1.0",
     "oas-normalize": "^11.1.4",
+    "object-set-type": "^2.2.2",
     "tough-cookie": "^5.1.0",
     "url-template": "^3.1.1",
     "zod": "^3.24.1"

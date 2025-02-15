@@ -1,5 +1,6 @@
 // todo: implement this & move function outside
 // for now just dummy implementation
+import ObjectSet from "object-set-type";
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.ts";
@@ -31,7 +32,7 @@ export class TestcaseGenerator {
   constructor(
     private readonly openApiParser: OpenAPIParser,
     private readonly users: Array<User>,
-    private readonly resources: Array<Resource>,
+    private readonly resources: Array<Resource>, // todo: is this optional?
   ) {}
 
   // todo: this shouldn't be async, solve async in source (OpenAPI parser)
@@ -145,40 +146,14 @@ export class TestcaseGenerator {
   }
 
   private generateResourceUserCombinations() {
-    // todo: make this dynamic
-    const resourceUserCombinations: Array<{
+    const resourceUserCombinations: ObjectSet<{
       user: User;
       resourceName: ResourceName;
       resourceAction: Action;
       resourceIdentifier?: ResourceIdentifier;
-    }> = []; /*[
-      {
-        user: user1,
-        resource: userResource,
-        resourceAction: "read", // einzige zu mappende Request -> GET /admin/users
-      },
-      {
-        user: user1,
-        resource: userResource,
-        resourceAction: "read",
-        resourceIdentifier: 1,
-      },
-      {
-        user: user1,
-        resource: userResource,
-        resourceAction: "update",
-        resourceIdentifier: 1,
-      },
-      {
-        user: user1,
-        resource: anotherResource,
-        resourceAction: "update",
-        resourceIdentifier: 1,
-      },
-    ];*/
+    }> = new ObjectSet();
 
-    // todo: generate combinations
-    // between users, actions, resources and resource ids
+    // generate combinations between users, actions, resources and resource ids
     // for that, go through relations of each user with a resource,
     // create a test case with expected result of true (for current user) and false (for other users)
     for (const user of this.users) {
@@ -192,10 +167,13 @@ export class TestcaseGenerator {
           resourceAccess: resourceAction,
         } = resourceAccess;
 
+        // todo: muss hier überhaupt die Vorauswahl der Ressourcen/Access-Kombinationen erfolgen?
+        // Mapping von Ressourcen auf passende Routen erfolgt später ja sowieso, nur mappbare Routen werden getestet
+
         // positive test case (current user) including potentially negative test cases from the perspective of other users
         // todo: strategy for choosing only some users, not all to reduce test cases
         for (const user of this.users) {
-          resourceUserCombinations.push({
+          resourceUserCombinations.add({
             user,
             resourceName,
             resourceAction,
@@ -210,6 +188,6 @@ export class TestcaseGenerator {
       // adds additional test cases only when resource/access combination is not already covered by someone who is allowed to access it
     }
 
-    return resourceUserCombinations;
+    return Array.from(resourceUserCombinations);
   }
 }
