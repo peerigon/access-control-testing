@@ -9,7 +9,6 @@ export class User extends RelationshipManager {
   ) {
     const identifierAlreadyAdded = User.userIdentifiers.has(identifier);
 
-    // todo: unit test
     if (identifierAlreadyAdded) {
       throw new Error(
         `User with identifier '${identifier}' can't be defined twice as it has already been defined before.`,
