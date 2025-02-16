@@ -62,14 +62,16 @@ export class OpenAPIParser {
       // should be object and contain required properties
       // & is expected to be in at least one path when auth has been defined
     } catch (e: unknown) {
-      if (e?.cause.code === "ECONNREFUSED") {
+      if (e.cause?.code === "ECONNREFUSED") {
         throw new Error(
-          `Could not retrieve given OpenApi specification at ${specificationPath}`,
+          `Could not retrieve given OpenApi specification at ${specificationPath}, connection to server got refused.`,
         );
       }
 
       // todo: add proper error handling
-      throw new Error("OpenApi validation error");
+      throw new Error(
+        `The server at ${specificationPath} did not return a valid OpenAPI specification.`,
+      );
     }
   }
 
