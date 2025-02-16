@@ -1,0 +1,496 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Example API",
+    "version": "1.0.0",
+    "description": "API zur Verwaltung von Benutzern und allgemeinen Informationen."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3333",
+      "description": "Development server"
+    },
+    {
+      "url": "https://staging.example.com",
+      "description": "Staging server (not live yet)"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "basicHttpAuthentication": {
+        "description": "Basic HTTP Authentication",
+        "type": "http",
+        "scheme": "Basic"
+      },
+      "bearerHttpAuthentication": {
+        "description": "Bearer token using a JWT",
+        "type": "http",
+        "scheme": "Bearer",
+        "bearerFormat": "JWT"
+      },
+      "cookieAuthentication": {
+        "description": "Cookie Authentication",
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "adonis-session"
+      }
+    }
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Hello World Endpoint",
+        "description": "Dieser Endpoint ist für jeden Benutzer aufrufbar",
+        "responses": {
+          "200": {
+            "description": "Erfolgreiche Antwort",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hello": {
+                      "type": "string",
+                      "example": "world"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/basicauth": {
+      "get": {
+        "summary": "Basic Auth Endpoint",
+        "description": "Dieser Endpoint ist nur für Benutzer mit Basic Auth erreichbar",
+        "responses": {
+          "200": {
+            "description": "Erfolgreiche Antwort",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hello": {
+                      "type": "string",
+                      "example": "world"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basicHttpAuthentication": []
+          }
+        ]
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "summary": "Liste aller Benutzer",
+        "description": "Gibt eine Liste aller registrierten Benutzer zurück.",
+        "responses": {
+          "200": {
+            "description": "Erfolgreiche Antwort",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "example": 1
+                      },
+                      "name": {
+                        "type": "string",
+                        "example": "Max Mustermann"
+                      },
+                      "email": {
+                        "type": "string",
+                        "example": "max@beispiel.de"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-act": {
+          "resource-name": "User",
+          "resource-access": "read"
+        },
+        "security": [
+          {
+            "bearerHttpAuthentication": []
+          },
+          {
+            "cookieAuthentication": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Neuen Benutzer anlegen",
+        "description": "Erstellt einen neuen Benutzer mit den angegebenen Daten.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name des Benutzers",
+                    "example": "Max Mustermann"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "E-Mail-Adresse des Benutzers",
+                    "example": "max@beispiel.de"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Passwort des Benutzers",
+                    "example": "secretpassword"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Benutzer erfolgreich erstellt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "name": {
+                      "type": "string",
+                      "example": "Max Mustermann"
+                    },
+                    "email": {
+                      "type": "string",
+                      "example": "max@beispiel.de"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ungültige Eingabe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "example": "Ungültige E-Mail-Adresse"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-act": {
+          "resource-name": "User",
+          "resource-access": "create"
+        },
+        "security": [
+          {
+            "bearerHttpAuthentication": []
+          },
+          {
+            "cookieAuthentication": []
+          }
+        ]
+      }
+    },
+    "/admin/users/{id}": {
+      "get": {
+        "summary": "Einzelner Benutzer",
+        "description": "Gibt einen spezifischen Benutzer anhand der ID zurück.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User-ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            },
+            "x-act": {
+              "resource-name": "User",
+              "resource-access": "read"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Erfolgreiche Antwort",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "name": {
+                      "type": "string",
+                      "example": "Max Mustermann"
+                    },
+                    "email": {
+                      "type": "string",
+                      "example": "max@beispiel.de"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Benutzer nicht gefunden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Benutzer nicht gefunden."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuthentication": []
+          },
+          {
+            "bearerHttpAuthentication": []
+          },
+          {
+            "basicHttpAuthentication": []
+          }
+        ]
+      }
+    },
+    "/login/bearer": {
+      "post": {
+        "summary": "Login mit Bearer Token",
+        "description": "Authentifiziert einen Benutzer und gibt einen JSON Web Token zurück.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "E-Mail-Adresse des Benutzers",
+                    "example": "user@example.com",
+                    "x-act-auth-field": {
+                      "type": "username"
+                    }
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "secretpassword",
+                    "description": "Passwort des Benutzers",
+                    "x-act-auth-field": {
+                      "type": "password"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Erfolgreiche Antwort",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+                      "x-act-auth-field": {
+                        "type": "token"
+                      }
+                    },
+                    "df": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-act-auth-endpoint": "bearerHttpAuthentication"
+      }
+    },
+    "/login/cookie": {
+      "post": {
+        "summary": "Login mit Cookie",
+        "description": "Authentifiziert einen Benutzer mit E-Mail und Passwort und setzt ein Cookie.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "E-Mail-Adresse des Benutzers",
+                    "example": "user@example.com",
+                    "x-act-auth-field": {
+                      "type": "username"
+                    }
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "secretpassword",
+                    "description": "Passwort des Benutzers",
+                    "x-act-auth-field": {
+                      "type": "password"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login erfolgreich",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Login erfolgreich"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ungültige Anmeldedaten",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "example": "Invalid user credentials"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-act-auth-endpoint": "cookieAuthentication"
+      }
+    },
+    "/logout/cookie": {
+      "post": {
+        "summary": "Logout mit Cookie",
+        "description": "Loggt den aktuell authentifizierten Benutzer aus und löscht das Cookie.",
+        "responses": {
+          "200": {
+            "description": "Logout erfolgreich",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "example": ""
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nicht authentifiziert",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "example": "Unauthorized access"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
