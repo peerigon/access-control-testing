@@ -57,7 +57,13 @@ test.group("OpenAPIParser", (group) => {
     expect,
   }) => {
     await OpenAPIParser.create(specUrl, "peerigon");
-  }).throws(/not a valid url/);
+  }).throws(/Invalid/);
+
+  test("should throw when provided specification url is not a valid url", async ({
+    expect,
+  }) => {
+    await OpenAPIParser.create("peerigon", apiBaseUrl);
+  }).throws(/Invalid/);
 
   test("should throw when provided api base url is not existing in openapi specification", async ({
     expect,

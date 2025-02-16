@@ -15,8 +15,9 @@ import {
 import { getOpenApiField, OpenApiFieldNames } from "../constants.ts";
 import { ResourceIdentifier } from "../policy/types.js";
 import { AuthEndpointInformation } from "../types.js";
+import { isValidUrl } from "../utils.js";
 
-type SpecificationPath = ConstructorParameters<typeof OASNormalize>[0];
+type SpecificationUrl = ConstructorParameters<typeof OASNormalize>[0];
 
 export class OpenAPIParser {
   private constructor(
@@ -27,11 +28,21 @@ export class OpenAPIParser {
   /**
    * Parses the OpenAPI specification and returns a new instance of the OpenAPIParser.
    * Implemented as a factory method to allow for async initialization.
-   * @param specificationPath The path to the OpenAPI specification
+   * @param specificationUrl The url to the OpenAPI specification
    * @param apiBaseUrl The base URL of the API to be used for making requests
    */
-  public static async create(specificationPath: string, apiBaseUrl: string) {
-    const openApiSource = await OpenAPIParser.getOasSource(specificationPath);
+  public static async create(specificationUrl: string, apiBaseUrl: string) {
+    if (!isValidUrl(specificationUrl)) {
+      throw new Error(
+        "Invalid specification URL provided: " + specificationUrl,
+      );
+    }
+
+    if (!isValidUrl(apiBaseUrl)) {
+      throw new Error("Invalid API base URL provided: " + apiBaseUrl);
+    }
+
+    const openApiSource = await OpenAPIParser.getOasSource(specificationUrl);
 
     // todo: validate that apiBaseUrl is a valid URL
     // & validate that it is contained in openapi specification
@@ -44,16 +55,16 @@ export class OpenAPIParser {
    * @private
    */
   private static async getOasSource(
-    specificationPath: SpecificationPath,
+    specificationUrl: SpecificationUrl,
   ): Promise<Oas> {
     const jsonSpecification =
-      await OpenAPIParser.parseOpenAPI(specificationPath);
+      await OpenAPIParser.parseOpenAPI(specificationUrl);
 
     return new Oas(jsonSpecification as OASDocument); // todo: fix type
   }
 
-  private static async parseOpenAPI(specificationPath: SpecificationPath) {
-    const oas = new OASNormalize(specificationPath);
+  private static async parseOpenAPI(specificationUrl: SpecificationUrl) {
+    const oas = new OASNormalize(specificationUrl);
 
     try {
       return await oas.validate();
@@ -64,13 +75,13 @@ export class OpenAPIParser {
     } catch (e: unknown) {
       if (e.cause?.code === "ECONNREFUSED") {
         throw new Error(
-          `Could not retrieve given OpenApi specification at ${specificationPath}, connection to server got refused.`,
+          `Could not retrieve given OpenApi specification at ${specificationUrl}, connection to server got refused.`,
         );
       }
 
       // todo: add proper error handling
       throw new Error(
-        `The server at ${specificationPath} did not return a valid OpenAPI specification.`,
+        `The server at ${specificationUrl} did not return a valid OpenAPI specification.`,
       );
     }
   }
