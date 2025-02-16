@@ -8,6 +8,7 @@ test.group("OpenAPIParser", (group) => {
   const PORT = 4000;
   const HOST = "127.0.0.1";
   const specUrl = `http://${HOST}:${PORT}/openapi.json`;
+  const apiBaseUrl = "https://staging.example.com";
 
   group.setup(async () => {
     const server = createServer((req, res) => {
@@ -40,12 +41,10 @@ test.group("OpenAPIParser", (group) => {
   test("should throw when server serving openapi file is not reachable", async ({
     expect,
   }) => {
-    const apiBaseUrl = "https://staging.example.com";
     await OpenAPIParser.create(`http://${HOST}:1234`, apiBaseUrl);
   }).throws(/Could not retrieve given OpenApi specification/);
 
   test("should throw when wrong file got requested", async ({ expect }) => {
-    const apiBaseUrl = "https://staging.example.com";
     await OpenAPIParser.create(
       `http://${HOST}:${PORT}/wrongFile.json`,
       apiBaseUrl,
@@ -53,4 +52,16 @@ test.group("OpenAPIParser", (group) => {
   }).throws(
     `The server at http://${HOST}:${PORT}/wrongFile.json did not return a valid OpenAPI specification.`,
   );
+
+  test("should throw when provided api base url is not a valid url", async ({
+    expect,
+  }) => {
+    await OpenAPIParser.create(specUrl, "peerigon");
+  }).throws(/not a valid url/);
+
+  test("should throw when provided api base url is not existing in openapi specification", async ({
+    expect,
+  }) => {
+    await OpenAPIParser.create(specUrl, "https://peerigon.com");
+  }).throws(/not existing in the specification/);
 });
