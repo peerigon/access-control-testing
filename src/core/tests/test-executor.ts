@@ -30,6 +30,7 @@ export class TestExecutor {
     resources: Array<Resource>,
   ) {
     const openAPIParser = await OpenAPIParser.create(openApiUrl, apiBaseUrl);
+    openAPIParser.validateCustomFields(resources);
 
     const testController = new TestcaseGenerator(
       openAPIParser,

@@ -14,6 +14,7 @@ export async function performRequest(
     retry: {
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // todo: what about the rest?
       statusCodes: [HTTP_UNAUTHORIZED_STATUS_CODE],
+      // todo: limit
     },
     throwHttpErrors: false,
     hooks: {

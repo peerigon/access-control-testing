@@ -29,9 +29,13 @@ type OpenApiFieldValues = (typeof OpenApiFieldNames)[keyof typeof OpenApiFieldNa
  * @param fieldIdentifier The field identifier of the OpenAPI field to get
  */
 export function getOpenApiField(
-  object: Record<string, any>,
+  object: Record<string, any> | undefined,
   fieldIdentifier: (typeof OpenApiFieldNames)[keyof typeof OpenApiFieldNames],
 ) {
+  if (object === undefined) {
+    return undefined;
+  }
+
   // object[x-act-{fieldIdentifier}]
   const fieldValueInlined =
     object[`${OPENAPI_FIELD_PREFIX}-${fieldIdentifier}`];

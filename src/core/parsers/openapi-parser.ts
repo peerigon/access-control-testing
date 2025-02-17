@@ -13,9 +13,10 @@ import {
   AuthParameterLocationDescription,
 } from "../authentication/http/types.ts";
 import { getOpenApiField, OpenApiFieldNames } from "../constants.ts";
-import { ResourceIdentifier } from "../policy/types.js";
-import { AuthEndpointInformation } from "../types.js";
-import { isValidUrl } from "../utils.js";
+import { ResourceIdentifier } from "../policy/types.ts";
+import { createResourceDescriptorSchema } from "../schemas.ts";
+import { AuthEndpointInformation } from "../types.ts";
+import { isValidUrl } from "../utils.ts";
 
 type SpecificationUrl = ConstructorParameters<typeof OASNormalize>[0];
 
@@ -32,6 +33,7 @@ export class OpenAPIParser {
    * @param apiBaseUrl The base URL of the API to be used for making requests
    */
   public static async create(specificationUrl: string, apiBaseUrl: string) {
+    // todo: create validation function for this
     if (!isValidUrl(specificationUrl)) {
       throw new Error(
         "Invalid specification URL provided: " + specificationUrl,
@@ -44,10 +46,77 @@ export class OpenAPIParser {
 
     const openApiSource = await OpenAPIParser.getOasSource(specificationUrl);
 
+    const isApiBaseUrlContained = openApiSource.api.servers?.some((server) => {
+      try {
+        return new URL(server.url).origin === new URL(apiBaseUrl).origin;
+      } catch (_) {
+        return false;
+      }
+    });
+
+    // todo: what to do with templates?
+    if (!isApiBaseUrlContained) {
+      throw new Error(
+        `The provided API base URL ${apiBaseUrl} is not existing in the specification.`,
+      );
+    }
+
     // todo: validate that apiBaseUrl is a valid URL
     // & validate that it is contained in openapi specification
     // & validate custom fields
-    return new OpenAPIParser(openApiSource, apiBaseUrl);
+    const openApiParser = new OpenAPIParser(openApiSource, apiBaseUrl);
+
+    return openApiParser;
+  }
+
+  // todo: should this be part of the creation process?
+  public validateCustomFields(resources: Array<Resource>) {
+    const resourceNames = resources.map((resource) => resource.getName());
+    const resourceDescriptorSchema =
+      createResourceDescriptorSchema(resourceNames);
+
+    this.getPaths().forEach((path) => {
+      path.getParameters().forEach((parameter) => {
+        const resourceAccess = getOpenApiField(
+          parameter.schema,
+          OpenApiFieldNames.RESOURCE_ACCESS,
+        );
+        const resourceName = getOpenApiField(
+          parameter.schema,
+          OpenApiFieldNames.RESOURCE_NAME,
+        );
+
+        const parameterDefaultProvided = Boolean(parameter.schema?.default);
+        const resourceDescriptionNeeded =
+          Boolean(parameter.required) && !parameterDefaultProvided;
+
+        // validate that required parameters are annotated with resource name and resource access
+        if (resourceDescriptionNeeded && (!resourceAccess || !resourceName)) {
+          throw new Error(
+            "To describe required resources in routes, both 'resourceName' and 'resourceAccess' must be defined at the same time.",
+          );
+        }
+
+        // todo: better custom error message
+        // create a ResourceDescriptorParser
+        // it should accept path.schema/parameter.schema and provide a nicer error message
+        resourceDescriptorSchema.parse({
+          resourceName,
+          resourceAccess,
+        });
+      });
+
+      resourceDescriptorSchema.parse({
+        resourceName: getOpenApiField(
+          path.schema,
+          OpenApiFieldNames.RESOURCE_NAME,
+        ),
+        resourceAccess: getOpenApiField(
+          path.schema,
+          OpenApiFieldNames.RESOURCE_ACCESS,
+        ),
+      });
+    });
   }
 
   /**
