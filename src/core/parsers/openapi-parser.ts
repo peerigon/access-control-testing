@@ -12,11 +12,11 @@ import {
   AuthenticatorType,
   AuthParameterLocationDescription,
 } from "../authentication/http/types.ts";
-import { getOpenApiField, OpenApiFieldNames } from "../constants.ts";
+import { OpenApiFieldNames } from "../constants.ts";
 import { ResourceIdentifier } from "../policy/types.ts";
 import { createResourceDescriptorSchema } from "../schemas.ts";
 import { AuthEndpointInformation } from "../types.ts";
-import { isValidUrl } from "../utils.ts";
+import { getOpenApiField, isValidUrl } from "../utils.ts";
 
 type SpecificationUrl = ConstructorParameters<typeof OASNormalize>[0];
 
