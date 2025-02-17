@@ -9,12 +9,14 @@ test.group("OpenAPIParser", (group) => {
   const HOST = "127.0.0.1";
   const specUrl = `http://${HOST}:${PORT}/openapi.json`;
   const apiBaseUrl = "https://staging.example.com";
+  let currentSpec: unknown;
 
-  group.setup(async () => {
+  group.each.setup(async () => {
+    currentSpec = structuredClone(openApiSpec);
     const server = createServer((req, res) => {
       if (req.url === "/openapi.json") {
         res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify(openApiSpec));
+        res.end(JSON.stringify(currentSpec));
       } else {
         res.writeHead(404);
         res.end();
@@ -70,4 +72,13 @@ test.group("OpenAPIParser", (group) => {
   }) => {
     await OpenAPIParser.create(specUrl, "https://peerigon.com");
   }).throws(/not existing in the specification/);
+
+  // todo: test for using template urls
+
+  test("should throw when required fields are missing in specification", async ({
+    expect,
+  }) => {
+    delete currentSpec?.openapi;
+    await OpenAPIParser.create(specUrl, "https://peerigon.com");
+  }).throws(/did not return a valid OpenAPI specification/);
 });

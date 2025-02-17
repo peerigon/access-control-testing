@@ -2,7 +2,7 @@ import { test } from "@japa/runner";
 import { User } from "../../src/core/policy/entities/user.ts";
 
 test.group("User", () => {
-  test("error is raised when creating two users with the same identifier", ({
+  test("error is thrown when creating two users with the same identifier", ({
     expect,
   }) => {
     const user1 = new User("user1", "password");
