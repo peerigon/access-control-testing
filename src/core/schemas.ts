@@ -45,3 +45,9 @@ export const createResourceDescriptorSchema = (
       },
     );
 };
+
+export const AuthFieldSchema = z
+  .object({
+    type: z.enum(["identifier", "password", "token"]),
+  })
+  .optional();

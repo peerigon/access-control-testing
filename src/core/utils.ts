@@ -1,4 +1,5 @@
 import { OPENAPI_FIELD_PREFIX, OpenApiFieldNames } from "./constants.js";
+import { AuthFieldSchema } from "./schemas.js";
 
 export function isValidUrl(url: string) {
   try {
@@ -35,3 +36,13 @@ export function getOpenApiField(
 
   return fieldValueInlined ?? fieldValueNested;
 }
+
+export function parseOpenApiAuthField(object: Record<string, any> | undefined) {
+  const fieldValue = getOpenApiField(object, OpenApiFieldNames.AUTH_FIELD);
+
+  // todo: better error handling
+  return AuthFieldSchema.parse(object);
+}
+
+// todo: create parser function for resource access & resource name
+// resource name would be a dynamic type calculated at runtime

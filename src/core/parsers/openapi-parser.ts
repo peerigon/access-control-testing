@@ -13,10 +13,15 @@ import {
   AuthParameterLocationDescription,
 } from "../authentication/http/types.ts";
 import { OpenApiFieldNames } from "../constants.ts";
-import { ResourceIdentifier } from "../policy/types.ts";
+import type { Resource } from "../policy/entities/resource.js";
+import type { ResourceIdentifier } from "../policy/types.ts";
 import { createResourceDescriptorSchema } from "../schemas.ts";
-import { AuthEndpointInformation } from "../types.ts";
-import { getOpenApiField, isValidUrl } from "../utils.ts";
+import type { AuthEndpointInformation } from "../types.ts";
+import {
+  getOpenApiField,
+  isValidUrl,
+  parseOpenApiAuthField,
+} from "../utils.ts";
 
 type SpecificationUrl = ConstructorParameters<typeof OASNormalize>[0];
 
@@ -292,12 +297,11 @@ export class OpenAPIParser {
 
           // type can only be username or password
           // this should be validated before, then we can safely assume that the type is either username or password
-          const authFieldType = getOpenApiField(
-            property,
-            OpenApiFieldNames.AUTH_FIELD,
+          const authFieldType = parseOpenApiAuthField(
+            property, // todo: validate that property is an object
           )?.type;
 
-          if (authFieldType === "username") {
+          if (authFieldType === "identifier") {
             usernameDescription = {
               parameterName: propertyKey,
               parameterLocation, // todo: fix type
@@ -372,8 +376,6 @@ export class OpenAPIParser {
   ): AuthParameterLocationDescription {
     const responseStatusCodes = authEndpoint.getResponseStatusCodes();
 
-    // console.log(responseStatusCodes, "responseStatusCodes");
-
     // todo: create a separate method for this
     for (let responseStatusCode of responseStatusCodes) {
       const [response] =
@@ -382,15 +384,12 @@ export class OpenAPIParser {
       for (const propertyKey in response.schema.properties) {
         const property = response.schema.properties[propertyKey];
 
-        if (
-          getOpenApiField(property, OpenApiFieldNames.AUTH_FIELD)?.type ===
-          "token"
-        ) {
+        if (parseOpenApiAuthField(property)?.type === "token") {
           console.debug("token", propertyKey);
           // todo: what about nested parameter locations?
           return {
             parameterName: propertyKey,
-            parameterLocation: "body", // todo: add type
+            parameterLocation: "body",
           };
         }
       }

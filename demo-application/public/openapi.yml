@@ -151,7 +151,7 @@ paths:
                   description: E-Mail-Adresse des Benutzers
                   example: user@example.com
                   x-act-auth-field:
-                    type: username
+                    type: identifier
                 password:
                   type: string
                   format: password
@@ -193,7 +193,7 @@ paths:
                   description: E-Mail-Adresse des Benutzers
                   example: user@example.com
                   x-act-auth-field:
-                    type: username
+                    type: identifier
                 password:
                   type: string
                   format: password

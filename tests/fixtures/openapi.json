@@ -325,7 +325,7 @@
                     "description": "E-Mail-Adresse des Benutzers",
                     "example": "user@example.com",
                     "x-act-auth-field": {
-                      "type": "username"
+                      "type": "identifier"
                     }
                   },
                   "password": {
@@ -387,7 +387,7 @@
                     "description": "E-Mail-Adresse des Benutzers",
                     "example": "user@example.com",
                     "x-act-auth-field": {
-                      "type": "username"
+                      "type": "identifier"
                     }
                   },
                   "password": {

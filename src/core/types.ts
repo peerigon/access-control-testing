@@ -2,6 +2,7 @@ import type { URL } from "node:url";
 import type { Method } from "got";
 import { z } from "zod";
 import type { AuthParameterLocationDescription } from "./authentication/http/types.js";
+import type { OpenAPIParser } from "./parsers/openapi-parser.js";
 import type { ConfigurationSchema, OpenApiPathsSchema } from "./schemas.ts";
 
 export type Configuration = z.infer<typeof ConfigurationSchema>;
