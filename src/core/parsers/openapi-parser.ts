@@ -83,17 +83,18 @@ export class OpenAPIParser {
     this.getPaths().forEach((path) => {
       path.getParameters().forEach((parameter) => {
         const resourceAccess = getOpenApiField(
-          parameter.schema,
+          parameter,
           OpenApiFieldNames.RESOURCE_ACCESS,
         );
         const resourceName = getOpenApiField(
-          parameter.schema,
+          parameter,
           OpenApiFieldNames.RESOURCE_NAME,
         );
 
         const parameterDefaultProvided = Boolean(parameter.schema?.default);
         const resourceDescriptionNeeded =
           Boolean(parameter.required) && !parameterDefaultProvided;
+        // todo: use default parameter values in requests when they are provided for required params
 
         // validate that required parameters are annotated with resource name and resource access
         if (resourceDescriptionNeeded && (!resourceAccess || !resourceName)) {
@@ -185,7 +186,7 @@ export class OpenAPIParser {
       : paths;
 
     return filteredPaths.map((path) => {
-      const { parameters } = path.schema;
+      const parameters = path.getParameters();
 
       const parametrizedResources =
         parameters?.map((parameter) => ({
@@ -214,14 +215,8 @@ export class OpenAPIParser {
         nonParametrizedResourceName && nonParametrizedResourceAccess
           ? [
               {
-                resourceName: getOpenApiField(
-                  path.schema,
-                  OpenApiFieldNames.RESOURCE_NAME,
-                ),
-                resourceAccess: getOpenApiField(
-                  path.schema,
-                  OpenApiFieldNames.RESOURCE_ACCESS,
-                ),
+                resourceName: nonParametrizedResourceName,
+                resourceAccess: nonParametrizedResourceAccess,
               },
             ]
           : [];

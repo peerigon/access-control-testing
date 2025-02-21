@@ -89,7 +89,9 @@ test.group("OpenAPIParser", (group) => {
     expect,
   }) => {
     const resources = [new Resource("User")];
-    currentSpec.paths["/admin/users"].get["x-act"]["resource-name"] = "test";
+    currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
+      "resource-name"
+    ] = "test";
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
@@ -101,21 +103,9 @@ test.group("OpenAPIParser", (group) => {
   }) => {
     const resources = [new Resource("User")];
 
-    currentSpec.paths["/admin/users"].get["x-act"]["resource-access"] = "test";
-
-    const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
-
-    openAPIParser.validateCustomFields(resources);
-  }).throws(
-    /Expected 'create' | 'read' | 'update' | 'delete', received 'test'/,
-  );
-
-  test("should throw when incorrect resource access is specified", async ({
-    expect,
-  }) => {
-    const resources = [new Resource("User")];
-
-    currentSpec.paths["/admin/users"].get["x-act"]["resource-access"] = "test";
+    currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
+      "resource-access"
+    ] = "test";
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
@@ -129,8 +119,9 @@ test.group("OpenAPIParser", (group) => {
   }) => {
     const resources = [new Resource("User")];
 
-    (currentSpec.paths["/admin/users"].get["x-act"]["resource-name"] as any) =
-      undefined;
+    (currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
+      "resource-name"
+    ] as any) = undefined;
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
@@ -142,8 +133,9 @@ test.group("OpenAPIParser", (group) => {
   }) => {
     const resources = [new Resource("User")];
 
-    (currentSpec.paths["/admin/users"].get["x-act"]["resource-access"] as any) =
-      undefined;
+    (currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
+      "resource-access"
+    ] as any) = undefined;
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 

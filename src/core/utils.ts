@@ -41,7 +41,7 @@ export function parseOpenApiAuthField(object: Record<string, any> | undefined) {
   const fieldValue = getOpenApiField(object, OpenApiFieldNames.AUTH_FIELD);
 
   // todo: better error handling
-  return AuthFieldSchema.parse(object);
+  return AuthFieldSchema.parse(fieldValue);
 }
 
 // todo: create parser function for resource access & resource name
