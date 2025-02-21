@@ -155,7 +155,8 @@ test.group("OpenAPIParser", (group) => {
   }) => {
     const resources = [new Resource("User")];
 
-    (currentSpec.paths["/admin/users"].get["x-act"] as any) = undefined;
+    (currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"] as any) =
+      undefined;
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
