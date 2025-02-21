@@ -15,8 +15,15 @@ export class NodeTestRunner implements TestRunner {
     return {
       toBe: (expected) => assert.strictEqual(actual, expected),
       notToBe: (expected) => assert.notStrictEqual(actual, expected),
-      toContain: (expected) =>
-        assert.strictEqual(actual.contains(expected), true),
+      toContain: (expected) => {
+        if (typeof actual === "string" || Array.isArray(actual)) {
+          assert.strictEqual(actual.includes(expected), true);
+        } else {
+          throw new Error(
+            `toContain() expects actual to be a string or an array, got instead: ${typeof actual}`,
+          );
+        }
+      },
     };
   }
 }
