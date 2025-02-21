@@ -1,7 +1,10 @@
 import got from "got";
 import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
 import { AuthenticationCredentials } from "../authentication/http/types.ts";
-import { HTTP_UNAUTHORIZED_STATUS_CODE } from "../constants.ts";
+import {
+  API_CLIENT_MAX_REQUEST_RETRIES,
+  HTTP_UNAUTHORIZED_STATUS_CODE,
+} from "../constants.ts";
 import type { Route } from "../types.ts";
 
 export async function performRequest(
@@ -14,7 +17,7 @@ export async function performRequest(
     retry: {
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // todo: what about the rest?
       statusCodes: [HTTP_UNAUTHORIZED_STATUS_CODE],
-      // todo: limit
+      limit: API_CLIENT_MAX_REQUEST_RETRIES,
     },
     throwHttpErrors: false,
     hooks: {

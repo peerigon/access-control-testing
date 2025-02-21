@@ -17,5 +17,4 @@ export const OpenApiFieldNames: Record<OpenApiFieldKeys, string> = {
 export const HTTP_FORBIDDEN_STATUS_CODE = 403;
 export const HTTP_UNAUTHORIZED_STATUS_CODE = 401;
 
-// todo: use this
 export const API_CLIENT_MAX_REQUEST_RETRIES = 3;
