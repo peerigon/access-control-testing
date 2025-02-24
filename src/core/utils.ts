@@ -1,3 +1,4 @@
+import ObjectSet from "object-set-type";
 import { OPENAPI_FIELD_PREFIX, OpenApiFieldNames } from "./constants.js";
 import { AuthFieldSchema } from "./schemas.js";
 
@@ -46,3 +47,9 @@ export function parseOpenApiAuthField(object: Record<string, any> | undefined) {
 
 // todo: create parser function for resource access & resource name
 // resource name would be a dynamic type calculated at runtime
+
+export function removeObjectDuplicatesFromArray<ArrayItemType>(
+  array: Array<ArrayItemType>,
+) {
+  return Array.from(new ObjectSet(array));
+}
