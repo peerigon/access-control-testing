@@ -18,6 +18,7 @@ export class AuthenticationStore {
   // todo: authEndpoint required for bearer/cookie
   static getOrCreateAuthenticator(
     authenticatorType: AuthenticatorType,
+    apiBaseUrl: string,
     authEndpoint?: any, // todo: add correct type
   ) {
     // todo: authendpoint could be null -> throw?!
@@ -33,6 +34,7 @@ export class AuthenticationStore {
         case AuthenticatorType.HTTP_BEARER:
           this.authenticatorStore[authenticatorType] = new BearerAuthenticator(
             authEndpoint,
+            apiBaseUrl,
           );
           break;
         case AuthenticatorType.HTTP_BASIC:
@@ -41,6 +43,7 @@ export class AuthenticationStore {
         case AuthenticatorType.API_KEY_COOKIE:
           this.authenticatorStore[authenticatorType] = new CookieAuthenticator(
             authEndpoint,
+            apiBaseUrl,
           );
           break;
       }

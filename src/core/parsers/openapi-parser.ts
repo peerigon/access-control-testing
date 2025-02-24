@@ -518,6 +518,7 @@ export class OpenAPIParser {
 
     return AuthenticationStore.getOrCreateAuthenticator(
       authenticatorType,
+      this.apiBaseUrl,
       authEndpoint,
     );
   }
