@@ -18,10 +18,12 @@ export type CookieAuthSession = {
   expiresAt?: Date;
 };
 
+export type ParameterLocation = "query" | "header" | "cookie" | "path" | "body";
+
 export type AuthParameterLocationDescription = {
   parameterName: string;
   // todo: verify if all locations are valid; make enum out of it?
-  parameterLocation: "query" | "header" | "cookie" | "path" | "body";
+  parameterLocation: ParameterLocation;
 };
 
 export enum AuthenticatorType {

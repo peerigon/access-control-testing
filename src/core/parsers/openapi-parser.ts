@@ -11,6 +11,7 @@ import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
 import {
   AuthenticatorType,
   AuthParameterLocationDescription,
+  ParameterLocation,
 } from "../authentication/http/types.ts";
 import { OpenApiFieldNames } from "../constants.ts";
 import type { Resource } from "../policy/entities/resource.js";
@@ -286,7 +287,8 @@ export class OpenAPIParser {
       let passwordDescription: AuthParameterLocationDescription | null = null;
 
       for (const parameter of parameters) {
-        const { type: parameterLocation } = parameter;
+        const parameterLocation = parameter.type as ParameterLocation; // todo: fix type in openapi schema
+
         for (const propertyKey in parameter.schema.properties) {
           const property = parameter.schema.properties[propertyKey];
 
@@ -299,7 +301,7 @@ export class OpenAPIParser {
           if (authFieldType === "identifier") {
             usernameDescription = {
               parameterName: propertyKey,
-              parameterLocation, // todo: fix type
+              parameterLocation,
             };
           }
 
