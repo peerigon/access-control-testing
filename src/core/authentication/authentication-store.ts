@@ -1,3 +1,4 @@
+import type { AuthEndpointInformation } from "../types.js";
 import { RequestAuthenticator } from "./http/authenticator.ts";
 import { BasicAuthenticator } from "./http/basic-authenticator.ts";
 import { BearerAuthenticator } from "./http/bearer-authenticator.ts";
@@ -19,9 +20,8 @@ export class AuthenticationStore {
   static getOrCreateAuthenticator(
     authenticatorType: AuthenticatorType,
     apiBaseUrl: string,
-    authEndpoint?: any, // todo: add correct type
+    authEndpoint?: AuthEndpointInformation,
   ) {
-    // todo: authendpoint could be null -> throw?!
     if (authenticatorType === AuthenticatorType.NONE) {
       return null;
     }
@@ -32,6 +32,11 @@ export class AuthenticationStore {
     if (!authenticatorAlreadyExists) {
       switch (authenticatorType) {
         case AuthenticatorType.HTTP_BEARER:
+          if (!authEndpoint) {
+            throw new Error(
+              "No auth endpoint information available but required for BearerAuthenticator",
+            );
+          }
           this.authenticatorStore[authenticatorType] = new BearerAuthenticator(
             authEndpoint,
             apiBaseUrl,
@@ -41,6 +46,11 @@ export class AuthenticationStore {
           this.authenticatorStore[authenticatorType] = new BasicAuthenticator();
           break;
         case AuthenticatorType.API_KEY_COOKIE:
+          if (!authEndpoint) {
+            throw new Error(
+              "No auth endpoint information available but required for CookieAuthenticator",
+            );
+          }
           this.authenticatorStore[authenticatorType] = new CookieAuthenticator(
             authEndpoint,
             apiBaseUrl,
