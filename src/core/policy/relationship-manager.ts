@@ -1,5 +1,5 @@
 import { Resource } from "./entities/resource.ts";
-import { PolicyDecisionPoint } from "./policy-decision-point.js";
+import { PolicyDecisionPoint } from "./policy-decision-point.ts";
 import { Privilege } from "./privilege.ts";
 import { RelationshipPrivileges } from "./relationship-privileges.ts";
 import { Relationship } from "./relationship.ts";
@@ -49,7 +49,22 @@ export class RelationshipManager {
           resourceDescription.split(":");
 
         // each privilege corresponds to an access type
-        const privileges = this.getPrivilegesFromRelationships(relationships);
+        let privileges = this.getPrivilegesFromRelationships(relationships);
+
+        // todo: don't inherit create specific privilege from owning a specific resource
+        // only create if it is explicitly set
+        /* const createExplicitlySet = relationships.includes(
+          Relationship.CREATOR,
+        );
+        if (
+          resourceIdentifier &&
+          privileges.includes(Privilege.CREATE) &&
+          !createExplicitlySet
+        ) {
+          privileges = privileges.filter(
+            (privilege) => privilege !== Privilege.CREATE,
+          );
+        } */
 
         return privileges.map((privilege) => ({
           resourceName,
