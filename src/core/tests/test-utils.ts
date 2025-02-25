@@ -1,4 +1,4 @@
-import got from "got";
+import got, { PromiseCookieJar } from "got";
 import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
 import { AuthenticationCredentials } from "../authentication/http/types.ts";
 import {
@@ -29,12 +29,17 @@ export async function performRequest(
 
           // todo: this is a temporary workaround to ensure that cookies get set
           // it seems to be not possible to set cookieJar on beforeRequest
-          // todo: type signature of getCookieString seems to be wrong
-          const cookieString = await options.cookieJar?.getCookieString(
-            route.url,
-          );
-          if (typeof cookieString === "string" && cookieString.length > 0) {
-            options.headers.Cookie = cookieString;
+          const cookieJar = options.cookieJar;
+
+          if (cookieJar) {
+            const promiseCookieJar = cookieJar as PromiseCookieJar;
+            const cookieString = await promiseCookieJar.getCookieString(
+              route.url.toString(),
+            );
+
+            if (cookieString.length > 0) {
+              options.headers.Cookie = cookieString;
+            }
           }
         },
       ],

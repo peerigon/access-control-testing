@@ -2,12 +2,12 @@ import ObjectSet from "object-set-type";
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.ts";
-import { PolicyDecisionPoint } from "../policy/policy-decision-point.ts";
+import { PolicyDecisionPoint } from "../policy/policy-decision-point.js";
 import { Action, ResourceIdentifier, ResourceName } from "../policy/types.ts";
 import { Route } from "../types.ts";
 import { removeObjectDuplicatesFromArray } from "../utils.js";
 
-type Testcase = {
+export type Testcase = {
   user: User | null; // alternatively: AnonymousUser (extends User)
   route: Route;
   expectedRequestToBeAllowed: boolean;
@@ -30,7 +30,6 @@ export class TestcaseGenerator {
   constructor(
     private readonly openApiParser: OpenAPIParser,
     private readonly users: Array<User>,
-    private readonly resources: Array<Resource>, // todo: is this optional?
   ) {}
 
   // todo: this shouldn't be async, solve async in source (OpenAPI parser)
@@ -47,6 +46,15 @@ export class TestcaseGenerator {
       (pathResourceMapping) => {
         // todo: create Route object for url & method to use instead
         const { path, method, isPublicPath, resources } = pathResourceMapping;
+
+        // todo: handle multiple resources: foreach resource in resources
+        const currentResource = resources[0];
+
+        if (resources.length > 1) {
+          console.warn(
+            "Multiple resources in a single route are not supported yet. Only the first resource will be used.",
+          );
+        }
 
         const routeHasResources =
           Array.isArray(resources) && resources.length > 0;
@@ -75,15 +83,6 @@ export class TestcaseGenerator {
           };
         }
 
-        // todo: handle multiple resources: foreach resource in resources
-        const currentResource = resources[0];
-
-        if (resources.length > 1) {
-          console.warn(
-            "Multiple resources in a single route are not supported yet. Only the first resource will be used.",
-          );
-        }
-
         // only use resourceUserCombinations that match with the given resource and access type
 
         // resource (from resources inside of pathResourceMapping) is a Resource object mapped to the iterated url
@@ -106,23 +105,20 @@ export class TestcaseGenerator {
         return matchingResourceUserCombinations.flatMap((combination) => {
           const { user, resourceName, resourceAction, resourceIdentifier } =
             combination;
-
           const resource = new Resource(resourceName);
 
-          const expectedRequestToBeAllowed = PolicyDecisionPoint.isAllowed(
-            user,
-            resourceAction,
-            resource,
-            resourceIdentifier,
-          );
-
-          // if resource id is needed in url but not provided in combination.resourceIdentifier, skip current combination
-          if (
+          const resourceIdentifierRequiredButNotProvided =
+            currentResource.parameterName != undefined &&
             OpenAPIParser.pathContainsParameter(
               path,
               currentResource.parameterName,
             ) &&
-            resourceIdentifier == undefined
+            resourceIdentifier == undefined;
+
+          if (
+            resourceIdentifierRequiredButNotProvided ||
+            currentResource.parameterName === undefined ||
+            currentResource.parameterLocation === undefined
           ) {
             return [];
           }
@@ -140,6 +136,13 @@ export class TestcaseGenerator {
                 }); // todo: for multiple resources and therefore parameters, multiple keys in object -> dynamic mapping required
 
           const url = this.openApiParser.constructFullApiUrl(expandedPath);
+
+          const expectedRequestToBeAllowed = PolicyDecisionPoint.isAllowed(
+            user,
+            resourceAction,
+            resource,
+            resourceIdentifier,
+          );
 
           return {
             user,

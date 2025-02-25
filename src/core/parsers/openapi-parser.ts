@@ -4,6 +4,7 @@ import type {
   HttpMethods,
   KeyedSecuritySchemeObject,
   OASDocument,
+  SchemaObject,
 } from "oas/types";
 import { parseTemplate } from "url-template";
 import { AuthenticationStore } from "../authentication/authentication-store.ts";
@@ -15,7 +16,6 @@ import {
 } from "../authentication/http/types.ts";
 import { OpenApiFieldNames } from "../constants.ts";
 import type { Resource } from "../policy/entities/resource.js";
-import type { ResourceIdentifier } from "../policy/types.ts";
 import { createResourceDescriptorSchema } from "../schemas.ts";
 import type { AuthEndpointInformation } from "../types.ts";
 import {
@@ -25,6 +25,7 @@ import {
 } from "../utils.ts";
 
 type SpecificationUrl = ConstructorParameters<typeof OASNormalize>[0];
+type SecurityScheme = KeyedSecuritySchemeObject;
 
 export class OpenAPIParser {
   private constructor(
@@ -70,9 +71,7 @@ export class OpenAPIParser {
     // todo: validate that apiBaseUrl is a valid URL
     // & validate that it is contained in openapi specification
     // & validate custom fields
-    const openApiParser = new OpenAPIParser(openApiSource, apiBaseUrl);
-
-    return openApiParser;
+    return new OpenAPIParser(openApiSource, apiBaseUrl);
   }
 
   // todo: should this be part of the creation process?
@@ -92,7 +91,8 @@ export class OpenAPIParser {
           OpenApiFieldNames.RESOURCE_NAME,
         );
 
-        const parameterDefaultProvided = Boolean(parameter.schema?.default);
+        const parameterSchema = parameter.schema as SchemaObject;
+        const parameterDefaultProvided = Boolean(parameterSchema?.default);
         const resourceDescriptionNeeded =
           Boolean(parameter.required) && !parameterDefaultProvided;
         // todo: use default parameter values in requests when they are provided for required params
@@ -148,8 +148,8 @@ export class OpenAPIParser {
       // todo: validate / parse x-act-auth-endpoint etc.
       // should be object and contain required properties
       // & is expected to be in at least one path when auth has been defined
-    } catch (e: unknown) {
-      if (e.cause?.code === "ECONNREFUSED") {
+    } catch (e: Error | any) {
+      if (e?.cause?.code === "ECONNREFUSED") {
         throw new Error(
           `Could not retrieve given OpenApi specification at ${specificationUrl}, connection to server got refused.`,
         );
@@ -225,11 +225,18 @@ export class OpenAPIParser {
       const securityRequirements = path.getSecurity();
       const isPublicPath = securityRequirements.length === 0;
 
+      const resources: Array<{
+        resourceName: string;
+        resourceAccess: string;
+        parameterName?: string;
+        parameterLocation?: string;
+      }> = [...parametrizedResources, ...nonParametrizedResources];
+
       return {
         path: path.path,
         method: path.method,
         isPublicPath,
-        resources: [...parametrizedResources, ...nonParametrizedResources],
+        resources,
       };
     });
   }
@@ -248,7 +255,7 @@ export class OpenAPIParser {
    * @param authenticatorType
    */
   public getAuthEndpoint(
-    securityScheme: KeyedSecuritySchemeObject,
+    securityScheme: SecurityScheme,
     authenticatorType: AuthenticatorType,
   ): AuthEndpointInformation | null {
     // todo: validate that securityScheme is only one of the supported ones
@@ -294,9 +301,12 @@ export class OpenAPIParser {
 
           // type can only be username or password
           // this should be validated before, then we can safely assume that the type is either username or password
-          const authFieldType = parseOpenApiAuthField(
-            property, // todo: validate that property is an object
-          )?.type;
+
+          if (typeof property !== "object") {
+            continue;
+          }
+
+          const authFieldType = parseOpenApiAuthField(property)?.type;
 
           if (authFieldType === "identifier") {
             usernameDescription = {
@@ -337,10 +347,13 @@ export class OpenAPIParser {
         };
       }
 
-      if (authenticatorType === AuthenticatorType.API_KEY_COOKIE) {
+      if (
+        authenticatorType === AuthenticatorType.API_KEY_COOKIE &&
+        "name" in securityScheme
+      ) {
         const authResponseParameterDescription = {
           parameterName: securityScheme.name,
-          parameterLocation: securityScheme.in,
+          parameterLocation: securityScheme.in as ParameterLocation,
         };
 
         // todo: check if parameterLocation is of type ParameterLocation
@@ -381,6 +394,10 @@ export class OpenAPIParser {
       for (const propertyKey in response.schema.properties) {
         const property = response.schema.properties[propertyKey];
 
+        if (typeof property !== "object") {
+          continue;
+        }
+
         if (parseOpenApiAuthField(property)?.type === "token") {
           console.debug("token", propertyKey);
           // todo: what about nested parameter locations?
@@ -407,7 +424,7 @@ export class OpenAPIParser {
   public getSecurityScheme(
     url: string,
     httpMethod: string,
-  ): KeyedSecuritySchemeObject | null {
+  ): SecurityScheme | null {
     // todo: figure out what happens to parametrized routes
     const operation = this.openApiSource.getOperation(
       url,
@@ -445,13 +462,12 @@ export class OpenAPIParser {
   }
 
   public getAuthenticatorTypeBySecurityScheme(
-    securityScheme: ReturnType<OpenAPIParser["getSecurityScheme"]>,
+    securityScheme: SecurityScheme,
   ): AuthenticatorType {
-    const type = securityScheme.type.toLowerCase();
-    const scheme = securityScheme.scheme?.toLowerCase();
-    const location = securityScheme.in?.toLowerCase();
+    const type = securityScheme.type;
 
-    if (type === "http") {
+    if (type === "http" && "scheme" in securityScheme) {
+      const scheme = securityScheme.scheme;
       if (scheme === "bearer") {
         return AuthenticatorType.HTTP_BEARER;
       } else if (scheme === "basic") {
@@ -459,8 +475,11 @@ export class OpenAPIParser {
       }
     }
 
-    if (type === "apikey" && location === "cookie") {
-      return AuthenticatorType.API_KEY_COOKIE;
+    if (type === "apiKey") {
+      const location = securityScheme.in;
+      if (location === "cookie") {
+        return AuthenticatorType.API_KEY_COOKIE;
+      }
     }
 
     return AuthenticatorType.NONE;
@@ -474,7 +493,7 @@ export class OpenAPIParser {
    */
   public static expandUrlTemplate(
     urlTemplateString: string,
-    parameters: Record<string | number | symbol, ResourceIdentifier | unknown>,
+    parameters: Record<string | number | symbol, string | number>,
   ): string {
     const urlTemplate = parseTemplate(urlTemplateString);
 

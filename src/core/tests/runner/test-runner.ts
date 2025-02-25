@@ -13,9 +13,13 @@ export interface TestRunner {
   expect(actual: any): Expectation;
 }
 
+export type TestRunnerIdentifier = "node" | "jest";
+
 const DEFAULT_TEST_RUNNER = "node";
 export class TestRunnerFactory {
-  static createTestRunner(runner: "node" = DEFAULT_TEST_RUNNER): TestRunner {
+  static createTestRunner(
+    runner: TestRunnerIdentifier = DEFAULT_TEST_RUNNER,
+  ): TestRunner {
     switch (runner) {
       case "node":
         return new NodeTestRunner();

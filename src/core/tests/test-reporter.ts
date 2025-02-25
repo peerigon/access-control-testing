@@ -1,15 +1,15 @@
 import { BaseReporter } from "@japa/runner/core";
-import type { Testcases } from "./testcase-generator.ts";
+import type { Testcase } from "./testcase-generator.ts";
 
+// todo: clarify how test report will work
 export class TestReporter extends BaseReporter {
   static name = "custom";
 
-  onTestEnd(testPayload) {
+  onTestEnd(testPayload: any) {
     const { hasError: testFailed } = testPayload;
 
     const testStateRepresentation = testFailed ? "❌" : "✅";
-    // todo: why does type assertion not work?
-    const testDataset: Testcases = testPayload.dataset.row;
+    const testDataset: Testcase = testPayload.dataset.row;
 
     const { route, user, expectedRequestToBeAllowed } = testDataset;
     const { url, method } = route;

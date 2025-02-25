@@ -32,11 +32,7 @@ export class TestExecutor {
     const openAPIParser = await OpenAPIParser.create(openApiUrl, apiBaseUrl);
     openAPIParser.validateCustomFields(resources);
 
-    const testController = new TestcaseGenerator(
-      openAPIParser,
-      users,
-      resources,
-    );
+    const testController = new TestcaseGenerator(openAPIParser, users);
     const dataset = testController.generateTestcases(); //.bind(testController);
 
     /* console.log("DATASET");
@@ -112,12 +108,10 @@ export class TestExecutor {
           ...testCase,
           expected,
           actual,
-          testSucceeded: expected === actual,
+          testSucceeded: expected === actual ? "✅" : "❌",
         };
       }),
     );
-
-    //await Promise.all(testResults);
 
     console.log("DATASET");
     const debugTable = testResults.map((ds) => {
