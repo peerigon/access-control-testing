@@ -38,18 +38,16 @@ test.group("OpenAPIParser", (group) => {
     };
   });
 
-  test("should retrieve spec from local server", async ({ expect }) => {
+  test("should retrieve spec from local server", async () => {
     const apiBaseUrl = "https://staging.example.com";
-    const parser = await OpenAPIParser.create(specUrl, apiBaseUrl);
+    await OpenAPIParser.create(specUrl, apiBaseUrl);
   });
 
-  test("should throw when server serving openapi file is not reachable", async ({
-    expect,
-  }) => {
+  test("should throw when server serving openapi file is not reachable", async ({}) => {
     await OpenAPIParser.create(`http://${HOST}:1234`, apiBaseUrl);
   }).throws(/Could not retrieve given OpenApi specification/);
 
-  test("should throw when wrong file got requested", async ({ expect }) => {
+  test("should throw when wrong file got requested", async () => {
     await OpenAPIParser.create(
       `http://${HOST}:${PORT}/wrongFile.json`,
       apiBaseUrl,
@@ -58,36 +56,26 @@ test.group("OpenAPIParser", (group) => {
     `The server at http://${HOST}:${PORT}/wrongFile.json did not return a valid OpenAPI specification.`,
   );
 
-  test("should throw when provided api base url is not a valid url", async ({
-    expect,
-  }) => {
+  test("should throw when provided api base url is not a valid url", async ({}) => {
     await OpenAPIParser.create(specUrl, "peerigon");
   }).throws(/Invalid/);
 
-  test("should throw when provided specification url is not a valid url", async ({
-    expect,
-  }) => {
+  test("should throw when provided specification url is not a valid url", async ({}) => {
     await OpenAPIParser.create("peerigon", apiBaseUrl);
   }).throws(/Invalid/);
 
-  test("should throw when provided api base url is not existing in openapi specification", async ({
-    expect,
-  }) => {
+  test("should throw when provided api base url is not existing in openapi specification", async ({}) => {
     await OpenAPIParser.create(specUrl, "https://peerigon.com");
   }).throws(/not existing in the specification/);
 
   // todo: test for using template urls
 
-  test("should throw when required fields are missing in specification", async ({
-    expect,
-  }) => {
+  test("should throw when required fields are missing in specification", async ({}) => {
     delete (currentSpec as any).openapi;
     await OpenAPIParser.create(specUrl, "https://peerigon.com");
   }).throws(/did not return a valid OpenAPI specification/);
 
-  test("should throw when incorrect resource name is specified", async ({
-    expect,
-  }) => {
+  test("should throw when incorrect resource name is specified", async ({}) => {
     const resources = [new Resource("User")];
     currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
       "resource-name"
@@ -98,9 +86,7 @@ test.group("OpenAPIParser", (group) => {
     openAPIParser.validateCustomFields(resources);
   }).throws(/Expected 'User', received 'test'/);
 
-  test("should throw when incorrect resource access is specified", async ({
-    expect,
-  }) => {
+  test("should throw when incorrect resource access is specified", async ({}) => {
     const resources = [new Resource("User")];
 
     currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
@@ -114,9 +100,7 @@ test.group("OpenAPIParser", (group) => {
     /Expected 'create' | 'read' | 'update' | 'delete', received 'test'/,
   );
 
-  test("should throw when resource access but not resource name is specified", async ({
-    expect,
-  }) => {
+  test("should throw when resource access but not resource name is specified", async ({}) => {
     const resources = [new Resource("User")];
 
     (currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
@@ -128,9 +112,7 @@ test.group("OpenAPIParser", (group) => {
     openAPIParser.validateCustomFields(resources);
   }).throws(/both 'resourceName' and 'resourceAccess' must be defined/);
 
-  test("should throw when resource name but not resource access is specified", async ({
-    expect,
-  }) => {
+  test("should throw when resource name but not resource access is specified", async ({}) => {
     const resources = [new Resource("User")];
 
     (currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
@@ -142,9 +124,7 @@ test.group("OpenAPIParser", (group) => {
     openAPIParser.validateCustomFields(resources);
   }).throws(/both 'resourceName' and 'resourceAccess' must be defined/);
 
-  test("should throw when resource description is omitted for required parameters", async ({
-    expect,
-  }) => {
+  test("should throw when resource description is omitted for required parameters", async () => {
     const resources = [new Resource("User")];
 
     (currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"] as any) =
