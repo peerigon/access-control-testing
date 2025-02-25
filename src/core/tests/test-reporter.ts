@@ -1,5 +1,5 @@
 import { BaseReporter } from "@japa/runner/core";
-import type { TestDataset } from "./testcase-generator.ts";
+import type { Testcases } from "./testcase-generator.ts";
 
 export class TestReporter extends BaseReporter {
   static name = "custom";
@@ -9,7 +9,7 @@ export class TestReporter extends BaseReporter {
 
     const testStateRepresentation = testFailed ? "❌" : "✅";
     // todo: why does type assertion not work?
-    const testDataset: TestDataset = testPayload.dataset.row;
+    const testDataset: Testcases = testPayload.dataset.row;
 
     const { route, user, expectedRequestToBeAllowed } = testDataset;
     const { url, method } = route;

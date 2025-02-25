@@ -1,8 +1,8 @@
 import { URL } from "node:url";
 import got from "got";
 import { CookieJar } from "tough-cookie";
-import { AuthEndpointInformation } from "../../types.js";
-import { AuthenticationCredentials, Session } from "./types.ts";
+import type { AuthEndpointInformation } from "../../types.js";
+import type { AuthenticationCredentials, Session } from "./types.ts";
 
 export abstract class SessionManager<SessionType extends Session> {
   protected sessionStore: Map<
@@ -10,7 +10,10 @@ export abstract class SessionManager<SessionType extends Session> {
     SessionType
   > = new Map();
 
-  constructor(private authEndpointInformation: AuthEndpointInformation) {}
+  constructor(
+    private readonly authEndpointInformation: AuthEndpointInformation,
+    private readonly apiBaseUrl: string,
+  ) {}
 
   /**
    *
@@ -61,10 +64,10 @@ export abstract class SessionManager<SessionType extends Session> {
 
     const cookieJar = new CookieJar();
 
-    const baseUrl = "http://localhost:3333/"; // todo: get this from config
-    const url = new URL(authEndpoint.path, baseUrl);
+    const url = new URL(authEndpoint.path, this.apiBaseUrl);
     // todo: add try/catch block?
 
+    // todo: or instead of accepting a base url, accept a got instance?
     const response = await got(url, {
       method: authEndpoint.method,
       json: {

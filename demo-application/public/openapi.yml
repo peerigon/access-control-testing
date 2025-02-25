@@ -81,6 +81,72 @@ paths:
                     email:
                       type: string
                       example: max@beispiel.de
+      # todo: can a route like this without parameters have multiple resources?
+      x-act:
+        resource-name: User
+        resource-access: read
+      security:
+        - bearerHttpAuthentication: [ ]
+        - cookieAuthentication: [ ]
+    post:
+      summary: Neuen Benutzer anlegen
+      description: Erstellt einen neuen Benutzer mit den angegebenen Daten.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name des Benutzers
+                  example: Max Mustermann
+                email:
+                  type: string
+                  format: email
+                  description: E-Mail-Adresse des Benutzers
+                  example: max@beispiel.de
+                password:
+                  type: string
+                  format: password
+                  description: Passwort des Benutzers
+                  example: secretpassword
+      responses:
+        '201':
+          description: Benutzer erfolgreich erstellt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: Max Mustermann
+                  email:
+                    type: string
+                    example: max@beispiel.de
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                          example: "Ungültige E-Mail-Adresse"
+      x-act:
+        resource-name: User
+        resource-access: create
       security:
         - bearerHttpAuthentication: [ ]
         - cookieAuthentication: [ ]
@@ -147,7 +213,7 @@ paths:
                   description: E-Mail-Adresse des Benutzers
                   example: user@example.com
                   x-act-auth-field:
-                    type: username
+                    type: identifier
                 password:
                   type: string
                   format: password
@@ -189,7 +255,7 @@ paths:
                   description: E-Mail-Adresse des Benutzers
                   example: user@example.com
                   x-act-auth-field:
-                    type: username
+                    type: identifier
                 password:
                   type: string
                   format: password

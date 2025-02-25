@@ -5,27 +5,125 @@ import type {
   KeyedSecuritySchemeObject,
   OASDocument,
 } from "oas/types";
+import { parseTemplate } from "url-template";
+import { AuthenticationStore } from "../authentication/authentication-store.ts";
+import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
 import {
   AuthenticatorType,
   AuthParameterLocationDescription,
+  ParameterLocation,
 } from "../authentication/http/types.ts";
-import { getOpenApiField, OpenApiFieldNames } from "../constants.ts";
-import { AuthEndpointInformation } from "../types.js";
+import { OpenApiFieldNames } from "../constants.ts";
+import type { Resource } from "../policy/entities/resource.js";
+import type { ResourceIdentifier } from "../policy/types.ts";
+import { createResourceDescriptorSchema } from "../schemas.ts";
+import type { AuthEndpointInformation } from "../types.ts";
+import {
+  getOpenApiField,
+  isValidUrl,
+  parseOpenApiAuthField,
+} from "../utils.ts";
 
-type SpecificationPath = ConstructorParameters<typeof OASNormalize>[0];
+type SpecificationUrl = ConstructorParameters<typeof OASNormalize>[0];
 
 export class OpenAPIParser {
-  private constructor(private readonly openApiSource: Oas) {} // private specificationPath: ConstructorParameters<typeof OASNormalize>[0],
+  private constructor(
+    private readonly openApiSource: Oas,
+    private readonly apiBaseUrl: string,
+  ) {} // private specificationPath: ConstructorParameters<typeof OASNormalize>[0],
 
   /**
    * Parses the OpenAPI specification and returns a new instance of the OpenAPIParser.
    * Implemented as a factory method to allow for async initialization.
-   * @param specificationPath The path to the OpenAPI specification
+   * @param specificationUrl The url to the OpenAPI specification
+   * @param apiBaseUrl The base URL of the API to be used for making requests
    */
-  public static async create(specificationPath: string) {
-    const openApiSource = await OpenAPIParser.getOasSource(specificationPath);
+  public static async create(specificationUrl: string, apiBaseUrl: string) {
+    // todo: create validation function for this
+    if (!isValidUrl(specificationUrl)) {
+      throw new Error(
+        "Invalid specification URL provided: " + specificationUrl,
+      );
+    }
 
-    return new OpenAPIParser(openApiSource);
+    if (!isValidUrl(apiBaseUrl)) {
+      throw new Error("Invalid API base URL provided: " + apiBaseUrl);
+    }
+
+    const openApiSource = await OpenAPIParser.getOasSource(specificationUrl);
+
+    const isApiBaseUrlContained = openApiSource.api.servers?.some((server) => {
+      try {
+        return new URL(server.url).origin === new URL(apiBaseUrl).origin;
+      } catch (_) {
+        return false;
+      }
+    });
+
+    // todo: what to do with templates?
+    if (!isApiBaseUrlContained) {
+      throw new Error(
+        `The provided API base URL ${apiBaseUrl} is not existing in the specification.`,
+      );
+    }
+
+    // todo: validate that apiBaseUrl is a valid URL
+    // & validate that it is contained in openapi specification
+    // & validate custom fields
+    const openApiParser = new OpenAPIParser(openApiSource, apiBaseUrl);
+
+    return openApiParser;
+  }
+
+  // todo: should this be part of the creation process?
+  public validateCustomFields(resources: Array<Resource>) {
+    const resourceNames = resources.map((resource) => resource.getName());
+    const resourceDescriptorSchema =
+      createResourceDescriptorSchema(resourceNames);
+
+    this.getPaths().forEach((path) => {
+      path.getParameters().forEach((parameter) => {
+        const resourceAccess = getOpenApiField(
+          parameter,
+          OpenApiFieldNames.RESOURCE_ACCESS,
+        );
+        const resourceName = getOpenApiField(
+          parameter,
+          OpenApiFieldNames.RESOURCE_NAME,
+        );
+
+        const parameterDefaultProvided = Boolean(parameter.schema?.default);
+        const resourceDescriptionNeeded =
+          Boolean(parameter.required) && !parameterDefaultProvided;
+        // todo: use default parameter values in requests when they are provided for required params
+
+        // validate that required parameters are annotated with resource name and resource access
+        if (resourceDescriptionNeeded && (!resourceAccess || !resourceName)) {
+          throw new Error(
+            "To describe required resources in routes, both 'resourceName' and 'resourceAccess' must be defined at the same time.",
+          );
+        }
+
+        // todo: better custom error message
+        // create a ResourceDescriptorParser
+        // it should accept path.schema/parameter.schema and provide a nicer error message
+        resourceDescriptorSchema.parse({
+          resourceName,
+          resourceAccess,
+        });
+      });
+
+      resourceDescriptorSchema.parse({
+        resourceName: getOpenApiField(
+          path.schema,
+          OpenApiFieldNames.RESOURCE_NAME,
+        ),
+        resourceAccess: getOpenApiField(
+          path.schema,
+          OpenApiFieldNames.RESOURCE_ACCESS,
+        ),
+      });
+    });
   }
 
   /**
@@ -33,16 +131,16 @@ export class OpenAPIParser {
    * @private
    */
   private static async getOasSource(
-    specificationPath: SpecificationPath,
+    specificationUrl: SpecificationUrl,
   ): Promise<Oas> {
     const jsonSpecification =
-      await OpenAPIParser.parseOpenAPI(specificationPath);
+      await OpenAPIParser.parseOpenAPI(specificationUrl);
 
     return new Oas(jsonSpecification as OASDocument); // todo: fix type
   }
 
-  private static async parseOpenAPI(specificationPath: SpecificationPath) {
-    const oas = new OASNormalize(specificationPath);
+  private static async parseOpenAPI(specificationUrl: SpecificationUrl) {
+    const oas = new OASNormalize(specificationUrl);
 
     try {
       return await oas.validate();
@@ -50,9 +148,17 @@ export class OpenAPIParser {
       // todo: validate / parse x-act-auth-endpoint etc.
       // should be object and contain required properties
       // & is expected to be in at least one path when auth has been defined
-    } catch (e) {
+    } catch (e: unknown) {
+      if (e.cause?.code === "ECONNREFUSED") {
+        throw new Error(
+          `Could not retrieve given OpenApi specification at ${specificationUrl}, connection to server got refused.`,
+        );
+      }
+
       // todo: add proper error handling
-      throw new Error("OpenApi validation error");
+      throw new Error(
+        `The server at ${specificationUrl} did not return a valid OpenAPI specification.`,
+      );
     }
   }
 
@@ -65,29 +171,65 @@ export class OpenAPIParser {
   /**
    * Returns all available paths enriched with resource information for each parameter representing a resource identifier
    */
-  // todo: either add skip flag to individual paths or just leave out all the login endpoints
-  public getUrlsWithParameterInfo() {
+  public getPathResourceMappings(filterAuthEndpointsOut: boolean = true) {
+    // todo: ensure that validation happens before
+    // parameterName, parameterLocation, resourceAccess resourceName need to be valid
     const paths = this.getPaths();
 
-    return paths.map((path) => {
-      const { parameters } = path.schema;
+    const filteredPaths = filterAuthEndpointsOut
+      ? paths.filter((path) => {
+          const isAuthEndpoint = Boolean(
+            getOpenApiField(path.schema, OpenApiFieldNames.AUTH_ENDPOINT),
+          );
 
-      const resources = parameters?.map((parameter) => ({
-        parameterName: parameter.name,
-        parameterLocation: parameter.in,
-        resourceName: getOpenApiField(
-          parameter,
-          OpenApiFieldNames.RESOURCE_NAME,
-        ),
-        resourceAccess: getOpenApiField(
-          parameter,
-          OpenApiFieldNames.RESOURCE_ACCESS,
-        ),
-      }));
+          return !isAuthEndpoint;
+        })
+      : paths;
+
+    return filteredPaths.map((path) => {
+      const parameters = path.getParameters();
+
+      const parametrizedResources =
+        parameters?.map((parameter) => ({
+          parameterName: parameter.name,
+          parameterLocation: parameter.in,
+          resourceName: getOpenApiField(
+            parameter,
+            OpenApiFieldNames.RESOURCE_NAME,
+          ),
+          resourceAccess: getOpenApiField(
+            parameter,
+            OpenApiFieldNames.RESOURCE_ACCESS,
+          ),
+        })) ?? [];
+
+      // todo: at the moment it is considered that there can be at most one non-parametrized resource per path (e.g. /users)
+      const nonParametrizedResourceName = getOpenApiField(
+        path.schema,
+        OpenApiFieldNames.RESOURCE_NAME,
+      );
+      const nonParametrizedResourceAccess = getOpenApiField(
+        path.schema,
+        OpenApiFieldNames.RESOURCE_ACCESS,
+      );
+      const nonParametrizedResources =
+        nonParametrizedResourceName && nonParametrizedResourceAccess
+          ? [
+              {
+                resourceName: nonParametrizedResourceName,
+                resourceAccess: nonParametrizedResourceAccess,
+              },
+            ]
+          : [];
+
+      const securityRequirements = path.getSecurity();
+      const isPublicPath = securityRequirements.length === 0;
 
       return {
-        url: path.path, // todo: prepend base url for full-formed URL -> maybe return URL object instead of string?
-        resources,
+        path: path.path,
+        method: path.method,
+        isPublicPath,
+        resources: [...parametrizedResources, ...nonParametrizedResources],
       };
     });
   }
@@ -145,21 +287,21 @@ export class OpenAPIParser {
       let passwordDescription: AuthParameterLocationDescription | null = null;
 
       for (const parameter of parameters) {
-        const { type: parameterLocation } = parameter;
+        const parameterLocation = parameter.type as ParameterLocation; // todo: fix type in openapi schema
+
         for (const propertyKey in parameter.schema.properties) {
           const property = parameter.schema.properties[propertyKey];
 
           // type can only be username or password
           // this should be validated before, then we can safely assume that the type is either username or password
-          const authFieldType = getOpenApiField(
-            property,
-            OpenApiFieldNames.AUTH_FIELD,
+          const authFieldType = parseOpenApiAuthField(
+            property, // todo: validate that property is an object
           )?.type;
 
-          if (authFieldType === "username") {
+          if (authFieldType === "identifier") {
             usernameDescription = {
               parameterName: propertyKey,
-              parameterLocation, // todo: fix type
+              parameterLocation,
             };
           }
 
@@ -231,8 +373,6 @@ export class OpenAPIParser {
   ): AuthParameterLocationDescription {
     const responseStatusCodes = authEndpoint.getResponseStatusCodes();
 
-    // console.log(responseStatusCodes, "responseStatusCodes");
-
     // todo: create a separate method for this
     for (let responseStatusCode of responseStatusCodes) {
       const [response] =
@@ -241,15 +381,12 @@ export class OpenAPIParser {
       for (const propertyKey in response.schema.properties) {
         const property = response.schema.properties[propertyKey];
 
-        if (
-          getOpenApiField(property, OpenApiFieldNames.AUTH_FIELD)?.type ===
-          "token"
-        ) {
+        if (parseOpenApiAuthField(property)?.type === "token") {
           console.debug("token", propertyKey);
           // todo: what about nested parameter locations?
           return {
             parameterName: propertyKey,
-            parameterLocation: "body", // todo: add type
+            parameterLocation: "body",
           };
         }
       }
@@ -261,7 +398,16 @@ export class OpenAPIParser {
 
   // todo: stricter types
   // todo: what if there are 0 security schemes?
-  public getSecurityScheme(url: string, httpMethod: string) {
+  /**
+   * Gets a security scheme for the given URL and HTTP method.
+   * @param url The fully-formed URL
+   * @param httpMethod The HTTP method
+   * @returns The security scheme or null if no security scheme is found in which case the route is considered public.
+   */
+  public getSecurityScheme(
+    url: string,
+    httpMethod: string,
+  ): KeyedSecuritySchemeObject | null {
     // todo: figure out what happens to parametrized routes
     const operation = this.openApiSource.getOperation(
       url,
@@ -274,6 +420,7 @@ export class OpenAPIParser {
     }
 
     //const securityScheme = operation.getSecurity();
+    // todo: maybe set true for filterInvalid?
     const securitySchemeCombinations = operation.getSecurityWithTypes();
 
     console.debug("securitySchemeCombinations", securitySchemeCombinations);
@@ -286,7 +433,12 @@ export class OpenAPIParser {
     // there is an AND condition for all security schemes in the array securityScheme
     // for now, this is not supported and should throw an error / should be skipped
     if (!firstSecuritySchemeCombination || !firstSecuritySchemeCombination[0]) {
-      throw new Error("Security scheme not found");
+      // no security scheme found, this is expected for public routes
+      // no distinction possible between explicit security: [] and no security definition
+      // todo: warning when no global security: [] is defined and no distinction is possible
+
+      // todo: login routes should not be interpreted as non-public (and therefore require authentication)
+      return null;
     }
 
     return firstSecuritySchemeCombination[0].security;
@@ -312,5 +464,64 @@ export class OpenAPIParser {
     }
 
     return AuthenticatorType.NONE;
+  }
+
+  /**
+   * Expands a URL template with the given parameters
+   * @param urlTemplateString The URL template as string to expand
+   * @param parameters The parameters to expand the URL template with
+   * @returns The expanded path or URL as string
+   */
+  public static expandUrlTemplate(
+    urlTemplateString: string,
+    parameters: Record<string | number | symbol, ResourceIdentifier | unknown>,
+  ): string {
+    const urlTemplate = parseTemplate(urlTemplateString);
+
+    return urlTemplate.expand(parameters);
+  }
+
+  public constructFullApiUrl(url: string) {
+    return new URL(url, this.apiBaseUrl);
+  }
+
+  public static pathContainsParameter(path: string, parameterName: string) {
+    return path.includes(`{${parameterName}}`);
+  }
+
+  /**
+   * Get a Singleton instance of the authenticator based on the route if the route requires authentication
+   */
+  public getAuthenticatorByRoute(
+    url: string,
+    httpMethod: string,
+  ): RequestAuthenticator | null {
+    const securityScheme = this.getSecurityScheme(url, httpMethod);
+
+    if (!securityScheme) {
+      return null;
+    }
+
+    const securitySchemeKey = securityScheme._key;
+
+    console.debug(securityScheme);
+    console.debug("GOT SECURITY SCHEME: " + securitySchemeKey);
+
+    const authenticatorType =
+      this.getAuthenticatorTypeBySecurityScheme(securityScheme);
+
+    // todo: can this result be cached or stored inside the state of the OpenApiParser?
+    // so that mapping etc. only has to take place when specific auth strategy hasn't been queried yet
+
+    const authEndpoint = this.getAuthEndpoint(
+      securityScheme,
+      authenticatorType,
+    );
+
+    return AuthenticationStore.getOrCreateAuthenticator(
+      authenticatorType,
+      this.apiBaseUrl,
+      authEndpoint,
+    );
   }
 }

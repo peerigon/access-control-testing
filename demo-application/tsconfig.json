@@ -1,7 +1,10 @@
 {
   "extends": "@adonisjs/tsconfig/tsconfig.app.json",
   "compilerOptions": {
+    "types": ["jest"],
     "rootDir": "./",
-    "outDir": "./build"
+    "outDir": "./build",
+    "allowImportingTsExtensions": true,
+    "module": "NodeNext"
   }
 }
