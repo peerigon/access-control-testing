@@ -20,7 +20,7 @@ export class AuthenticationStore {
   static getOrCreateAuthenticator(
     authenticatorType: AuthenticatorType,
     apiBaseUrl: string,
-    authEndpoint?: AuthEndpointInformation,
+    authEndpoint?: AuthEndpointInformation | null,
   ) {
     if (authenticatorType === AuthenticatorType.NONE) {
       return null;

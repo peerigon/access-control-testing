@@ -18,7 +18,7 @@ export class TestExecutor {
     const openAPIParser = await OpenAPIParser.create(openApiUrl);
 
     const testController = new TestcaseGenerator(openAPIParser);
-    const dataset: TestDataset = testController.generateTestDataset(); //.bind(testController);
+    const dataset: Testcases = testController.generateTestcases(); //.bind(testController);
     return dataset;
   }*/
 
@@ -37,9 +37,9 @@ export class TestExecutor {
       users,
       resources,
     );
-    const dataset = testController.generateTestDataset(); //.bind(testController);
+    const dataset = testController.generateTestcases(); //.bind(testController);
 
-    console.log("DATASET");
+    /* console.log("DATASET");
     const debugTable = dataset.map((ds) => {
       const { user, route, expectedRequestToBeAllowed, ...rest } = ds;
       return {
@@ -50,57 +50,86 @@ export class TestExecutor {
         ...rest,
       };
     });
-    console.table(debugTable);
+    console.table(debugTable);*/
 
-    testRunner.group("🛡 Access Control Testing", () => {
-      dataset.forEach((testCase) => {
+    const testResults = await Promise.all(
+      dataset.map(async (testCase) => {
         const { user, route, expectedRequestToBeAllowed } = testCase;
 
-        testRunner.test(
-          `Validate access control for ${testCase.route.method} ${testCase.route.url} with user ${testCase.user || "anonymous"}`,
-          async () => {
-            const isAnonymousUser = user === null;
-            const credentials = isAnonymousUser ? null : user.getCredentials();
+        const isAnonymousUser = user === null;
+        const credentials = isAnonymousUser ? null : user.getCredentials();
 
-            const authenticator = openAPIParser.getAuthenticatorByRoute(
-              route.url.toString(),
-              route.method,
-            );
-
-            const response = await performRequest(
-              route,
-              authenticator,
-              credentials,
-            );
-
-            // todo: make it configurable what is considered as forbidden
-            // for now, forbidden is when the corresponding status code has been sent
-            const { statusCode } = response;
-            console.debug("STATUSCODE " + statusCode);
-
-            // todo: what to do when 401 has been received? -> we can't really say whether the request was forbidden or not
-            // maybe print out a warning?
-            if (expectedRequestToBeAllowed) {
-              // can be one of 2XX codes but could also be an error that occurred due to wrong syntax of request
-
-              // todo: what about anonymous users? for them it should not be forbidden and also not unauthorized
-              testRunner.expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE);
-            } else {
-              // as anonymous user, unauthorized or forbidden is okay
-              if (isAnonymousUser) {
-                testRunner
-                  .expect([
-                    HTTP_FORBIDDEN_STATUS_CODE, // todo: is forbidden really expected for users without authentication details or should it only be Unauthorized?
-                    HTTP_UNAUTHORIZED_STATUS_CODE,
-                  ])
-                  .toContain(statusCode);
-              } else {
-                testRunner.expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
-              }
-            }
-          },
+        const authenticator = openAPIParser.getAuthenticatorByRoute(
+          route.url.toString(),
+          route.method,
         );
-      });
+
+        const response = await performRequest(
+          route,
+          authenticator,
+          credentials,
+        );
+
+        // todo: make it configurable what is considered as forbidden
+        // for now, forbidden is when the corresponding status code has been sent
+        const { statusCode } = response;
+        console.debug("STATUSCODE " + statusCode);
+
+        // todo: what to do when 401 has been received? -> we can't really say whether the request was forbidden or not
+        // maybe print out a warning?
+
+        // let actualRequestAllowed: boolean;
+        const expected = expectedRequestToBeAllowed ? "allowed" : "forbidden";
+        let actual =
+          statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "forbidden" : "allowed";
+
+        if (expectedRequestToBeAllowed) {
+          // can be one of 2XX codes but could also be an error that occurred due to wrong syntax of request
+
+          // todo: what about anonymous users? for them it should not be forbidden and also not unauthorized
+          testRunner.expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE);
+        } else {
+          // as anonymous user, unauthorized or forbidden is okay
+          if (isAnonymousUser) {
+            testRunner
+              .expect([
+                HTTP_FORBIDDEN_STATUS_CODE, // todo: is forbidden really expected for users without authentication details or should it only be Unauthorized?
+                HTTP_UNAUTHORIZED_STATUS_CODE,
+              ])
+              .toContain(statusCode);
+
+            actual =
+              statusCode === HTTP_FORBIDDEN_STATUS_CODE ||
+              statusCode === HTTP_UNAUTHORIZED_STATUS_CODE
+                ? "forbidden"
+                : "allowed"; // todo: maybe rename to rejected (is either forbidden/unauthorized)
+          } else {
+            testRunner.expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
+          }
+        }
+
+        return {
+          ...testCase,
+          expected,
+          actual,
+          testSucceeded: expected === actual,
+        };
+      }),
+    );
+
+    //await Promise.all(testResults);
+
+    console.log("DATASET");
+    const debugTable = testResults.map((ds) => {
+      const { user, route, expectedRequestToBeAllowed, ...rest } = ds;
+      return {
+        user: user?.toString() ?? "anonymous",
+        route: route.url.toString(),
+        method: route.method,
+        expectedRequestToBeAllowed,
+        ...rest,
+      };
     });
+    console.table(debugTable);
   }
 }

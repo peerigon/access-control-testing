@@ -7,11 +7,12 @@ import { Action, ResourceIdentifier, ResourceName } from "../policy/types.ts";
 import { Route } from "../types.ts";
 import { removeObjectDuplicatesFromArray } from "../utils.js";
 
-export type TestDataset = Array<{
+type Testcase = {
   user: User | null; // alternatively: AnonymousUser (extends User)
   route: Route;
   expectedRequestToBeAllowed: boolean;
-}>;
+};
+export type Testcases = Array<Testcase>;
 
 /*
 user1.canView(userResource); // can view all Users -> /admin/users & /admin/users/:id
@@ -33,7 +34,7 @@ export class TestcaseGenerator {
   ) {}
 
   // todo: this shouldn't be async, solve async in source (OpenAPI parser)
-  public generateTestDataset(): TestDataset {
+  public generateTestcases(): Testcases {
     // todo: generate full-formed URLs with parameters
     // todo: for now only query parameters and path parameters are supported, maybe add support for other types of parameters
     // resource params mapping
@@ -42,7 +43,7 @@ export class TestcaseGenerator {
     // each url resource mapping has "<Access> <Resource>" pairs with info where to find resource param
     const resourceUserCombinations = this.generateResourceUserCombinations();
 
-    const testDatasets: TestDataset = pathResourceMappings.flatMap(
+    const testcases: Testcases = pathResourceMappings.flatMap<Testcase>(
       (pathResourceMapping) => {
         // todo: create Route object for url & method to use instead
         const { path, method, isPublicPath, resources } = pathResourceMapping;
@@ -77,6 +78,12 @@ export class TestcaseGenerator {
         // todo: handle multiple resources: foreach resource in resources
         const currentResource = resources[0];
 
+        if (resources.length > 1) {
+          console.warn(
+            "Multiple resources in a single route are not supported yet. Only the first resource will be used.",
+          );
+        }
+
         // only use resourceUserCombinations that match with the given resource and access type
 
         // resource (from resources inside of pathResourceMapping) is a Resource object mapped to the iterated url
@@ -93,7 +100,7 @@ export class TestcaseGenerator {
               combination.resourceName === currentResource.resourceName &&
               combination.resourceAction === currentResource.resourceAccess &&
               combination.resourceIdentifier !== undefined, // only consume combinations with a concrete resourceIdentifier
-              // todo: validate that this restriction is wanted
+            // todo: validate that this restriction is wanted
           );
 
         return matchingResourceUserCombinations.flatMap((combination) => {
@@ -146,7 +153,7 @@ export class TestcaseGenerator {
       },
     );
 
-    return removeObjectDuplicatesFromArray(testDatasets);
+    return removeObjectDuplicatesFromArray(testcases);
   }
 
   private generateResourceUserCombinations() {

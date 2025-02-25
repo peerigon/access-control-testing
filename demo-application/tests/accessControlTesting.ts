@@ -5,20 +5,17 @@ const test = async () => {
   // todo: seed the database with testing data
 
   const user1 = new User('niklas.haug@tha.de', 'niklas.haug@tha.de')
-  const user2 = new User('user2', 'password')
   const adminUser1 = new User('admin', 'admin')
-
-  const todoResource = new Resource('Todo')
-
-  // oder: Resource ist abstract
-  // class TodoResource extends Resource {}
-  // new TodoResource('Todo')
+  const userResource = new Resource('User')
 
   // todo: type of identifier should be supplied by user
-  user1.canView(todoResource, 123)
+  adminUser1.owns(userResource)
+  user1.owns(userResource)
+  user1.canView(userResource) // should already be granted by owns
+  user1.owns(userResource, 1)
 
-  const resources = [todoResource]
-  const users = [user1, user2, adminUser1]
+  const resources = [userResource]
+  const users = [user1, adminUser1]
 
   console.log('======')
   const act = new Act({
