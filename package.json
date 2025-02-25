@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test:unit": "tsx bin/test.ts"
+    "test:unit": "tsx tests/test.ts"
   },
   "license": "MIT",
   "devDependencies": {
