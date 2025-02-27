@@ -107,18 +107,18 @@ export class TestcaseGenerator {
             combination;
           const resource = new Resource(resourceName);
 
+          // todo: fix
           const resourceIdentifierRequiredButNotProvided =
-            currentResource.parameterName != undefined &&
+            // currentResource.parameterName != undefined &&
             OpenAPIParser.pathContainsParameter(
               path,
               currentResource.parameterName,
-            ) &&
-            resourceIdentifier == undefined;
+            ) && resourceIdentifier == undefined;
 
           if (
-            resourceIdentifierRequiredButNotProvided ||
-            currentResource.parameterName === undefined ||
-            currentResource.parameterLocation === undefined
+            resourceIdentifierRequiredButNotProvided //||
+            //currentResource.parameterName === undefined ||
+            //currentResource.parameterLocation === undefined
           ) {
             return [];
           }
@@ -128,8 +128,14 @@ export class TestcaseGenerator {
 
           // resourceIdentifier can be undefined when resource access is create for instance
           // or when access for all resources of a type is described
+
+          const resourceParameterDescriptionNotProvided =
+            currentResource.parameterName === undefined &&
+            currentResource.parameterLocation === undefined;
+
           const expandedPath =
-            resourceIdentifier == undefined
+            resourceIdentifier == undefined ||
+            resourceParameterDescriptionNotProvided
               ? path
               : OpenAPIParser.expandUrlTemplate(path, {
                   [currentResource.parameterName]: resourceIdentifier,
