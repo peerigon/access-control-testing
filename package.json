@@ -25,7 +25,6 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "cosmiconfig": "^9.0.0",
     "got": "^14.4.5",
     "oas": "^25.1.0",
     "oas-normalize": "^11.1.4",
