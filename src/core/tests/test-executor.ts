@@ -1,4 +1,5 @@
 import {
+  API_CLIENT_MAX_REQUEST_RETRIES,
   HTTP_FORBIDDEN_STATUS_CODE,
   HTTP_UNAUTHORIZED_STATUS_CODE,
 } from "../constants.ts";
@@ -66,13 +67,29 @@ export class TestExecutor {
           credentials,
         );
 
+        const isUnauthorized =
+          response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE;
+
+        // todo: what to do when 401 has been received? -> we can't really say whether the request was forbidden or not
+        if (isUnauthorized) {
+          // todo: make route toString()
+          console.warn(
+            `Could not impersonate user ${user} for route ${route.method} ${route.url}.
+            The server kept responding with status code ${HTTP_UNAUTHORIZED_STATUS_CODE} after ${API_CLIENT_MAX_REQUEST_RETRIES} retries have been made.
+            No further tests will be executed for this user.
+            Please check whether the credentials are correct and the authentication setup is properly configured.`,
+          );
+
+          // todo: explicitly skip test here
+          return;
+
+          // todo: add user to blocklist, skip further tests
+        }
+
         // todo: make it configurable what is considered as forbidden
         // for now, forbidden is when the corresponding status code has been sent
         const { statusCode } = response;
         console.debug("STATUSCODE " + statusCode);
-
-        // todo: what to do when 401 has been received? -> we can't really say whether the request was forbidden or not
-        // maybe print out a warning?
 
         // let actualRequestAllowed: boolean;
         const expected = expectedRequestToBeAllowed ? "allowed" : "forbidden";
