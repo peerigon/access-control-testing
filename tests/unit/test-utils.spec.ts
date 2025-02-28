@@ -26,7 +26,7 @@ test.group("TestUtils", (group) => {
       method: "GET",
     };
 
-    await performRequest(route, createCookieAuthenticator(), {
+    const response = await performRequest(route, createCookieAuthenticator(), {
       identifier: validUsername,
       password: validPassword,
     });
