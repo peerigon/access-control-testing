@@ -1,4 +1,4 @@
-import got, { PromiseCookieJar } from "got";
+import got, { type PromiseCookieJar } from "got";
 import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
 import { AuthenticationCredentials } from "../authentication/http/types.ts";
 import {
@@ -7,6 +7,15 @@ import {
 } from "../constants.ts";
 import type { Route } from "../types.ts";
 
+/**
+ * Perform a request to the given route with the given authenticator and credentials.
+ * Retries the request if it fails and throws an error if the request continues to fail with a non 2xx/3xx status code.
+ * @param route
+ * @param authenticator
+ * @param credentials
+ * @throws
+ * See {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
+ */
 export async function performRequest(
   route: Route,
   authenticator: RequestAuthenticator | null,
@@ -21,6 +30,11 @@ export async function performRequest(
     },
     throwHttpErrors: false,
     hooks: {
+      beforeRetry: [
+        (error, retryCount) => {
+          console.debug(`Retrying [${retryCount}]: ${error.code}`);
+        },
+      ],
       beforeRequest: [
         async (options) => {
           if (authenticator && credentials) {
