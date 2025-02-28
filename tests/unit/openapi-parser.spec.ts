@@ -1,9 +1,9 @@
 // tests/openapi-parser.spec.ts
-import {createServer} from "node:http";
-import {test} from "@japa/runner";
-import {OpenAPIParser} from "../../src/core/parsers/openapi-parser.ts";
-import {Resource} from "../../src/core/policy/entities/resource.js";
-import openApiSpec from "../fixtures/openapi.json" with {type: "json"};
+import { createServer } from "node:http";
+import { test } from "@japa/runner";
+import { OpenAPIParser } from "../../src/core/parsers/openapi-parser.ts";
+import { Resource } from "../../src/core/policy/entities/resource.js";
+import openApiSpec from "../fixtures/openapi.json" with { type: "json" };
 
 test.group("OpenAPIParser", (group) => {
   const PORT = 4000;

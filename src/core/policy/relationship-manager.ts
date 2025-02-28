@@ -11,11 +11,14 @@ import {
 } from "./types.ts";
 
 export class RelationshipManager {
-  private readonly relatedResources =
-    new Map<ResourceDescription, Array<Relationship>>();
+  private readonly relatedResources = new Map<
+    ResourceDescription,
+    Array<Relationship>
+  >();
 
   /**
-   * Derives the privileges for a given resourceDescription from the relationships
+   * Derives the privileges for a given resourceDescription from the
+   * relationships
    */
   // todo: change naming from resource to entity?
   getResourcePrivileges(
@@ -36,7 +39,8 @@ export class RelationshipManager {
   }
 
   /**
-   * Lists all resources including the way the user can access them. For concrete resources, the resourceIdentifier is also included.
+   * Lists all resources including the way the user can access them. For
+   * concrete resources, the resourceIdentifier is also included.
    */
   listResourceAccesses(): Array<{
     resourceName: ResourceName;
@@ -119,6 +123,7 @@ export class RelationshipManager {
   // OR: always use string, convert number or other identifiers to string automatically?
   /**
    * Specifies that the user owns a specific instance of the given resource
+   *
    * @param resource
    * @param resourceIdentifier
    */
@@ -128,6 +133,7 @@ export class RelationshipManager {
 
   /**
    * Specifies that the user can create resources of the given type
+   *
    * @param resource
    */
   canCreate(resource: Resource) {
@@ -135,7 +141,9 @@ export class RelationshipManager {
   }
 
   /**
-   * Specifies that the user can view resources of the given type or, if a resourceIdentifier is provided, a specific instance of the given resource
+   * Specifies that the user can view resources of the given type or, if a
+   * resourceIdentifier is provided, a specific instance of the given resource
+   *
    * @param resource
    * @param resourceIdentifier Optional resource identifier
    */
@@ -144,7 +152,9 @@ export class RelationshipManager {
   }
 
   /**
-   * Specifies that the user can edit resources of the given type or, if a resourceIdentifier is provided, a specific instance of the given resource
+   * Specifies that the user can edit resources of the given type or, if a
+   * resourceIdentifier is provided, a specific instance of the given resource
+   *
    * @param resource
    * @param resourceIdentifier Optional resource identifier
    */
@@ -153,14 +163,13 @@ export class RelationshipManager {
   }
 
   /**
-   * Specifies that the user can delete resources of the given type or, if a resourceIdentifier is provided, a specific instance of the given resource
+   * Specifies that the user can delete resources of the given type or, if a
+   * resourceIdentifier is provided, a specific instance of the given resource
+   *
    * @param resource
    * @param resourceIdentifier Optional resource identifier
    */
-  canDelete(
-    resource: Resource,
-    resourceIdentifier?: ResourceIdentifier,
-  ) {
+  canDelete(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
     this.relateTo(resource, Relationship.DELETER, resourceIdentifier);
   }
 }

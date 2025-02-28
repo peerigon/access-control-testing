@@ -1,7 +1,7 @@
-import {test} from "@japa/runner";
+import { test } from "@japa/runner";
 // todo: Japa types only available in NodeNext
 // but then type issues with library types come up when not set to ESNext
-import {performRequest} from "../../src/core/tests/test-utils.ts";
+import { performRequest } from "../../src/core/tests/test-utils.ts";
 import {
   BASE_URL,
   createCookieAuthenticator,

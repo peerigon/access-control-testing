@@ -36,7 +36,7 @@ class Act {
   }
 }
 
-export { Act,   };
+export { Act };
 
-export {User} from "../core/policy/entities/user.ts";
-export {Resource} from "../core/policy/entities/resource.ts";
+export { User } from "../core/policy/entities/user.ts";
+export { Resource } from "../core/policy/entities/resource.ts";

@@ -1,5 +1,3 @@
-import {test} from "@japa/runner";
+import { test } from "@japa/runner";
 
-test.group("TestcaseGenerator", () => {
-
-})
+test.group("TestcaseGenerator", () => {});

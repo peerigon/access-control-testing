@@ -34,8 +34,10 @@ export class OpenAPIParser {
   ) {} // private specificationPath: ConstructorParameters<typeof OASNormalize>[0],
 
   /**
-   * Parses the OpenAPI specification and returns a new instance of the OpenAPIParser.
-   * Implemented as a factory method to allow for async initialization.
+   * Parses the OpenAPI specification and returns a new instance of the
+   * OpenAPIParser. Implemented as a factory method to allow for async
+   * initialization.
+   *
    * @param specificationUrl The url to the OpenAPI specification
    * @param apiBaseUrl The base URL of the API to be used for making requests
    */
@@ -127,7 +129,9 @@ export class OpenAPIParser {
   }
 
   /**
-   * Parses the OpenAPI specification and returns the Oas object to work with later
+   * Parses the OpenAPI specification and returns the Oas object to work with
+   * later
+   *
    * @private
    */
   private static async getOasSource(
@@ -169,7 +173,8 @@ export class OpenAPIParser {
   }
 
   /**
-   * Returns all available paths enriched with resource information for each parameter representing a resource identifier
+   * Returns all available paths enriched with resource information for each
+   * parameter representing a resource identifier
    */
   getPathResourceMappings(filterAuthEndpointsOut = true) {
     // todo: ensure that validation happens before
@@ -242,7 +247,8 @@ export class OpenAPIParser {
   }
 
   /**
-   * Transforms the paths schema from Oas to a minimal schema containing only the necessary information
+   * Transforms the paths schema from Oas to a minimal schema containing only
+   * the necessary information
    */
   private transformPathsSchema(oasPaths: ReturnType<Oas["getPaths"]>) {
     return Object.values(oasPaths).flatMap((oasPath) => Object.values(oasPath));
@@ -250,7 +256,9 @@ export class OpenAPIParser {
 
   // todo: move return type to another file
   /**
-   * Returns the auth endpoint for the given security scheme identifier or null if the authenticator type does not have an auth endpoint
+   * Returns the auth endpoint for the given security scheme identifier or null
+   * if the authenticator type does not have an auth endpoint
+   *
    * @param securityScheme
    * @param authenticatorType
    */
@@ -417,14 +425,13 @@ export class OpenAPIParser {
   // todo: what if there are 0 security schemes?
   /**
    * Gets a security scheme for the given URL and HTTP method.
+   *
    * @param url The fully-formed URL
    * @param httpMethod The HTTP method
-   * @returns The security scheme or null if no security scheme is found in which case the route is considered public.
+   * @returns The security scheme or null if no security scheme is found in
+   *   which case the route is considered public.
    */
-  getSecurityScheme(
-    url: string,
-    httpMethod: string,
-  ): SecurityScheme | null {
+  getSecurityScheme(url: string, httpMethod: string): SecurityScheme | null {
     // todo: figure out what happens to parametrized routes
     const operation = this.openApiSource.getOperation(
       url,
@@ -487,6 +494,7 @@ export class OpenAPIParser {
 
   /**
    * Expands a URL template with the given parameters
+   *
    * @param urlTemplateString The URL template as string to expand
    * @param parameters The parameters to expand the URL template with
    * @returns The expanded path or URL as string
@@ -509,7 +517,8 @@ export class OpenAPIParser {
   }
 
   /**
-   * Get a Singleton instance of the authenticator based on the route if the route requires authentication
+   * Get a Singleton instance of the authenticator based on the route if the
+   * route requires authentication
    */
   getAuthenticatorByRoute(
     url: string,

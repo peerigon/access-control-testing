@@ -10,8 +10,9 @@ export class Resource {
   }
 
   /**
-   * Derives a resource description from a resource and an optional resource identifier
-   * Example: "todo:123" or "todo"
+   * Derives a resource description from a resource and an optional resource
+   * identifier Example: "todo:123" or "todo"
+   *
    * @param resource
    * @param resourceIdentifier
    */

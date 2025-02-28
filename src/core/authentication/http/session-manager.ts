@@ -16,10 +16,10 @@ export abstract class SessionManager<SessionType extends Session> {
   ) {}
 
   /**
-   *
-   * @protected
-   * @param credentials The credentials used to find an existing session or to initialize a new one
+   * @param credentials The credentials used to find an existing session or to
+   *   initialize a new one
    * @returns The session
+   * @protected
    */
   protected async findOrInitializeSession(
     credentials: AuthenticationCredentials,

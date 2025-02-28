@@ -1,6 +1,6 @@
 import ObjectSet from "object-set-type";
-import {OPENAPI_FIELD_PREFIX, OpenApiFieldNames} from "./constants.js";
-import {AuthFieldSchema} from "./schemas.js";
+import { OPENAPI_FIELD_PREFIX, OpenApiFieldNames } from "./constants.js";
+import { AuthFieldSchema } from "./schemas.js";
 
 export function isValidUrl(url: string) {
   try {
@@ -17,6 +17,7 @@ type OpenApiFieldValues = (typeof OpenApiFieldNames)[keyof typeof OpenApiFieldNa
 // todo: recheck type for fieldIdentifier
 /**
  * Returns the value of the OpenAPI field with the given field identifier
+ *
  * @param object The object to get the OpenAPI field from
  * @param fieldIdentifier The field identifier of the OpenAPI field to get
  */
