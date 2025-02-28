@@ -2,7 +2,7 @@ import { AuthenticationCredentials } from "../../authentication/http/types.ts";
 import { RelationshipManager } from "../relationship-manager.ts";
 
 export class User extends RelationshipManager {
-  private static readonly userIdentifiers: Set<string> = new Set();
+  private static readonly userIdentifiers = new Set<string>();
   constructor(
     private readonly identifier: string,
     private readonly password: string,
@@ -20,11 +20,11 @@ export class User extends RelationshipManager {
     super();
   }
 
-  public toString(): String {
+  toString(): string {
     return this.identifier;
   }
 
-  public getCredentials(): AuthenticationCredentials {
+  getCredentials(): AuthenticationCredentials {
     return {
       identifier: this.identifier,
       password: this.password,

@@ -2,7 +2,7 @@ import { RequestAuthenticator } from "./authenticator.ts";
 import { AuthenticationCredentials, RequestOptions } from "./types.ts";
 
 export class BasicAuthenticator implements RequestAuthenticator {
-  public async authenticateRequest(
+  async authenticateRequest(
     requestOptions: RequestOptions,
     credentials: AuthenticationCredentials,
   ) {

@@ -1,14 +1,14 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
-import { Expectation, TestRunner } from "./test-runner.ts";
+import {describe, it} from "node:test";
+import {Expectation, TestRunner} from "./test-runner.ts";
 
 export class NodeTestRunner implements TestRunner {
   group(name: string, callback: () => void) {
-    describe(name, callback);
+    void describe(name, callback);
   }
 
   test(name: string, callback: () => Promise<void> | void) {
-    it(name, callback);
+    void it(name, callback);
   }
 
   expect(actual: any): Expectation {
@@ -19,7 +19,7 @@ export class NodeTestRunner implements TestRunner {
         if (typeof actual === "string" || Array.isArray(actual)) {
           assert.strictEqual(actual.includes(expected), true);
         } else {
-          throw new Error(
+          throw new TypeError(
             `toContain() expects actual to be a string or an array, got instead: ${typeof actual}`,
           );
         }

@@ -33,7 +33,7 @@ export class TestcaseGenerator {
   ) {}
 
   // todo: this shouldn't be async, solve async in source (OpenAPI parser)
-  public generateTestcases(): Testcases {
+  generateTestcases(): Testcases {
     // todo: generate full-formed URLs with parameters
     // todo: for now only query parameters and path parameters are supported, maybe add support for other types of parameters
     // resource params mapping
@@ -158,12 +158,12 @@ export class TestcaseGenerator {
   }
 
   private generateResourceUserCombinations() {
-    const resourceUserCombinations: ObjectSet<{
+    const resourceUserCombinations = new ObjectSet<{
       user: User;
       resourceName: ResourceName;
       resourceAction: Action;
       resourceIdentifier?: ResourceIdentifier;
-    }> = new ObjectSet();
+    }>();
 
     // generate combinations between users, actions, resources and resource ids
     // for that, go through relations of each user with a resource,
@@ -200,6 +200,6 @@ export class TestcaseGenerator {
       // adds additional test cases only when resource/access combination is not already covered by someone who is allowed to access it
     }
 
-    return Array.from(resourceUserCombinations);
+    return [...resourceUserCombinations];
   }
 }

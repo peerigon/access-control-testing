@@ -44,16 +44,16 @@ export class BearerAuthenticator
     return session;
   }
 
-  public async authenticateRequest(
+  async authenticateRequest(
     requestOptions: RequestOptions,
     credentials: AuthenticationCredentials,
   ) {
     const session = await this.findOrInitializeSession(credentials);
 
-    if (!session?.bearerToken) {
+    if (!session.bearerToken) {
       throw new Error("Could not initialize session with bearer token");
     }
 
-    requestOptions.headers["Authorization"] = `Bearer ${session.bearerToken}`;
+    requestOptions.headers.Authorization = `Bearer ${session.bearerToken}`;
   }
 }

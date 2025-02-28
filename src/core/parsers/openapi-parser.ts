@@ -39,7 +39,7 @@ export class OpenAPIParser {
    * @param specificationUrl The url to the OpenAPI specification
    * @param apiBaseUrl The base URL of the API to be used for making requests
    */
-  public static async create(specificationUrl: string, apiBaseUrl: string) {
+  static async create(specificationUrl: string, apiBaseUrl: string) {
     // todo: create validation function for this
     if (!isValidUrl(specificationUrl)) {
       throw new Error(
@@ -56,7 +56,7 @@ export class OpenAPIParser {
     const isApiBaseUrlContained = openApiSource.api.servers?.some((server) => {
       try {
         return new URL(server.url).origin === new URL(apiBaseUrl).origin;
-      } catch (_) {
+      } catch {
         return false;
       }
     });
@@ -75,7 +75,7 @@ export class OpenAPIParser {
   }
 
   // todo: should this be part of the creation process?
-  public validateCustomFields(resources: Array<Resource>) {
+  validateCustomFields(resources: Array<Resource>) {
     const resourceNames = resources.map((resource) => resource.getName());
     const resourceDescriptorSchema =
       createResourceDescriptorSchema(resourceNames);
@@ -92,7 +92,7 @@ export class OpenAPIParser {
         );
 
         const parameterSchema = parameter.schema as SchemaObject;
-        const parameterDefaultProvided = Boolean(parameterSchema?.default);
+        const parameterDefaultProvided = Boolean(parameterSchema.default);
         const resourceDescriptionNeeded =
           Boolean(parameter.required) && !parameterDefaultProvided;
         // todo: use default parameter values in requests when they are provided for required params
@@ -148,8 +148,8 @@ export class OpenAPIParser {
       // todo: validate / parse x-act-auth-endpoint etc.
       // should be object and contain required properties
       // & is expected to be in at least one path when auth has been defined
-    } catch (e: Error | any) {
-      if (e?.cause?.code === "ECONNREFUSED") {
+    } catch (error: Error | any) {
+      if (error?.cause?.code === "ECONNREFUSED") {
         throw new Error(
           `Could not retrieve given OpenApi specification at ${specificationUrl}, connection to server got refused.`,
         );
@@ -162,7 +162,7 @@ export class OpenAPIParser {
     }
   }
 
-  public getPaths() {
+  getPaths() {
     const oasPaths = this.openApiSource.getPaths();
 
     return this.transformPathsSchema(oasPaths);
@@ -171,7 +171,7 @@ export class OpenAPIParser {
   /**
    * Returns all available paths enriched with resource information for each parameter representing a resource identifier
    */
-  public getPathResourceMappings(filterAuthEndpointsOut: boolean = true) {
+  getPathResourceMappings(filterAuthEndpointsOut = true) {
     // todo: ensure that validation happens before
     // parameterName, parameterLocation, resourceAccess resourceName need to be valid
     const paths = this.getPaths();
@@ -190,7 +190,7 @@ export class OpenAPIParser {
       const parameters = path.getParameters();
 
       const parametrizedResources =
-        parameters?.map((parameter) => ({
+        parameters.map((parameter) => ({
           parameterName: parameter.name,
           parameterLocation: parameter.in,
           resourceName: getOpenApiField(
@@ -254,7 +254,7 @@ export class OpenAPIParser {
    * @param securityScheme
    * @param authenticatorType
    */
-  public getAuthEndpoint(
+  getAuthEndpoint(
     securityScheme: SecurityScheme,
     authenticatorType: AuthenticatorType,
   ): AuthEndpointInformation | null {
@@ -387,7 +387,7 @@ export class OpenAPIParser {
     const responseStatusCodes = authEndpoint.getResponseStatusCodes();
 
     // todo: create a separate method for this
-    for (let responseStatusCode of responseStatusCodes) {
+    for (const responseStatusCode of responseStatusCodes) {
       const [response] =
         authEndpoint.getResponseAsJSONSchema(responseStatusCode);
 
@@ -421,7 +421,7 @@ export class OpenAPIParser {
    * @param httpMethod The HTTP method
    * @returns The security scheme or null if no security scheme is found in which case the route is considered public.
    */
-  public getSecurityScheme(
+  getSecurityScheme(
     url: string,
     httpMethod: string,
   ): SecurityScheme | null {
@@ -461,7 +461,7 @@ export class OpenAPIParser {
     return firstSecuritySchemeCombination[0].security;
   }
 
-  public getAuthenticatorTypeBySecurityScheme(
+  getAuthenticatorTypeBySecurityScheme(
     securityScheme: SecurityScheme,
   ): AuthenticatorType {
     const type = securityScheme.type;
@@ -491,7 +491,7 @@ export class OpenAPIParser {
    * @param parameters The parameters to expand the URL template with
    * @returns The expanded path or URL as string
    */
-  public static expandUrlTemplate(
+  static expandUrlTemplate(
     urlTemplateString: string,
     parameters: Record<string | number | symbol, string | number>,
   ): string {
@@ -500,18 +500,18 @@ export class OpenAPIParser {
     return urlTemplate.expand(parameters);
   }
 
-  public constructFullApiUrl(url: string) {
+  constructFullApiUrl(url: string) {
     return new URL(url, this.apiBaseUrl);
   }
 
-  public static pathContainsParameter(path: string, parameterName: string) {
+  static pathContainsParameter(path: string, parameterName: string) {
     return path.includes(`{${parameterName}}`);
   }
 
   /**
    * Get a Singleton instance of the authenticator based on the route if the route requires authentication
    */
-  public getAuthenticatorByRoute(
+  getAuthenticatorByRoute(
     url: string,
     httpMethod: string,
   ): RequestAuthenticator | null {

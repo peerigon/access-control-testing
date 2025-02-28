@@ -5,10 +5,10 @@ import type { AuthEndpointInformation } from "../../types.js";
 import type { AuthenticationCredentials, Session } from "./types.ts";
 
 export abstract class SessionManager<SessionType extends Session> {
-  protected sessionStore: Map<
+  protected sessionStore = new Map<
     AuthenticationCredentials["identifier"],
     SessionType
-  > = new Map();
+  >();
 
   constructor(
     private readonly authEndpointInformation: AuthEndpointInformation,
@@ -84,7 +84,7 @@ export abstract class SessionManager<SessionType extends Session> {
     };
   }
 
-  public clearSession(credentials: AuthenticationCredentials): void {
+  clearSession(credentials: AuthenticationCredentials): void {
     console.debug("clearing session");
     this.sessionStore.delete(credentials.identifier);
   }

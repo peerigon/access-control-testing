@@ -11,16 +11,16 @@ import {
 } from "./types.ts";
 
 export class RelationshipManager {
-  private readonly relatedResources: Map<ResourceDescription, Relationship[]> =
-    new Map();
+  private readonly relatedResources =
+    new Map<ResourceDescription, Array<Relationship>>();
 
   /**
    * Derives the privileges for a given resourceDescription from the relationships
    */
   // todo: change naming from resource to entity?
-  public getResourcePrivileges(
+  getResourcePrivileges(
     resourceDescription: ResourceDescription,
-  ): Privilege[] | null {
+  ): Array<Privilege> | null {
     const relationships = this.relatedResources.get(resourceDescription);
 
     if (!relationships) {
@@ -38,18 +38,18 @@ export class RelationshipManager {
   /**
    * Lists all resources including the way the user can access them. For concrete resources, the resourceIdentifier is also included.
    */
-  public listResourceAccesses(): Array<{
+  listResourceAccesses(): Array<{
     resourceName: ResourceName;
     resourceIdentifier?: ResourceIdentifier;
     resourceAccess: Action; // todo: unify naming access/action
   }> {
-    return Array.from(this.relatedResources).flatMap(
+    return [...this.relatedResources].flatMap(
       ([resourceDescription, relationships]) => {
         const [resourceName, resourceIdentifier] =
           resourceDescription.split(":");
 
         // each privilege corresponds to an access type
-        let privileges = this.getPrivilegesFromRelationships(relationships);
+        const privileges = this.getPrivilegesFromRelationships(relationships);
 
         // todo: don't inherit create specific privilege from owning a specific resource
         // only create if it is explicitly set
@@ -76,7 +76,7 @@ export class RelationshipManager {
     );
   }
 
-  private getPrivilegesFromRelationships(relationships: Relationship[]) {
+  private getPrivilegesFromRelationships(relationships: Array<Relationship>) {
     // todo: clarify if there can be duplicates in privileges caused by duplicate relationships?
     const privileges = relationships.flatMap(
       (relationship) => RelationshipPrivileges[relationship],
@@ -84,7 +84,7 @@ export class RelationshipManager {
     return privileges;
   }
 
-  public relateTo(
+  relateTo(
     resource: Resource,
     relationship: Relationship,
     resourceIdentifier?: ResourceIdentifier,
@@ -122,7 +122,7 @@ export class RelationshipManager {
    * @param resource
    * @param resourceIdentifier
    */
-  public owns(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
+  owns(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
     this.relateTo(resource, Relationship.OWNERSHIP, resourceIdentifier);
   }
 
@@ -130,7 +130,7 @@ export class RelationshipManager {
    * Specifies that the user can create resources of the given type
    * @param resource
    */
-  public canCreate(resource: Resource) {
+  canCreate(resource: Resource) {
     this.relateTo(resource, Relationship.CREATOR);
   }
 
@@ -139,7 +139,7 @@ export class RelationshipManager {
    * @param resource
    * @param resourceIdentifier Optional resource identifier
    */
-  public canView(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
+  canView(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
     this.relateTo(resource, Relationship.VIEWER, resourceIdentifier);
   }
 
@@ -148,7 +148,7 @@ export class RelationshipManager {
    * @param resource
    * @param resourceIdentifier Optional resource identifier
    */
-  public canEdit(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
+  canEdit(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
     this.relateTo(resource, Relationship.EDITOR, resourceIdentifier);
   }
 
@@ -157,7 +157,7 @@ export class RelationshipManager {
    * @param resource
    * @param resourceIdentifier Optional resource identifier
    */
-  public canDelete(
+  canDelete(
     resource: Resource,
     resourceIdentifier?: ResourceIdentifier,
   ) {

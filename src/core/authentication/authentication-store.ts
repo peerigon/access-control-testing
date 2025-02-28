@@ -31,7 +31,7 @@ export class AuthenticationStore {
 
     if (!authenticatorAlreadyExists) {
       switch (authenticatorType) {
-        case AuthenticatorType.HTTP_BEARER:
+        case AuthenticatorType.HTTP_BEARER: {
           if (!authEndpoint) {
             throw new Error(
               "No auth endpoint information available but required for BearerAuthenticator",
@@ -42,10 +42,12 @@ export class AuthenticationStore {
             apiBaseUrl,
           );
           break;
-        case AuthenticatorType.HTTP_BASIC:
+        }
+        case AuthenticatorType.HTTP_BASIC: {
           this.authenticatorStore[authenticatorType] = new BasicAuthenticator();
           break;
-        case AuthenticatorType.API_KEY_COOKIE:
+        }
+        case AuthenticatorType.API_KEY_COOKIE: {
           if (!authEndpoint) {
             throw new Error(
               "No auth endpoint information available but required for CookieAuthenticator",
@@ -56,6 +58,7 @@ export class AuthenticationStore {
             apiBaseUrl,
           );
           break;
+        }
       }
     }
 

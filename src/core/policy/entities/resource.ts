@@ -5,7 +5,7 @@ export class Resource {
   // todo: also validate that it can't contain a : character since it is used as a separator
   constructor(private readonly name: string) {}
 
-  public getName() {
+  getName() {
     return this.name;
   }
 
@@ -15,7 +15,7 @@ export class Resource {
    * @param resource
    * @param resourceIdentifier
    */
-  public static getResourceDescription(
+  static getResourceDescription(
     resource: Resource,
     resourceIdentifier?: ResourceIdentifier,
   ) {

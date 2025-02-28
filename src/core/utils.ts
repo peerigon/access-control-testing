@@ -1,12 +1,12 @@
 import ObjectSet from "object-set-type";
-import { OPENAPI_FIELD_PREFIX, OpenApiFieldNames } from "./constants.js";
-import { AuthFieldSchema } from "./schemas.js";
+import {OPENAPI_FIELD_PREFIX, OpenApiFieldNames} from "./constants.js";
+import {AuthFieldSchema} from "./schemas.js";
 
 export function isValidUrl(url: string) {
   try {
     new URL(url);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -51,5 +51,5 @@ export function parseOpenApiAuthField(object: Record<string, any> | undefined) {
 export function removeObjectDuplicatesFromArray<ArrayItemType>(
   array: Array<ArrayItemType>,
 ) {
-  return Array.from(new ObjectSet(array));
+  return [...new ObjectSet(array)];
 }

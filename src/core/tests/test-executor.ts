@@ -23,7 +23,7 @@ export class TestExecutor {
     return dataset;
   }*/
 
-  public async runTests(
+  async runTests(
     testRunner: TestRunner,
     openApiUrl: string,
     apiBaseUrl: string,
