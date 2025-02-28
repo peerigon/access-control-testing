@@ -12,7 +12,9 @@
     "test:unit": "tsx tests/test.ts",
     "test:lint": "eslint --max-warnings 0 --cache .",
     "test:format": "prettier --check .",
-    "test:types": "tsc --noEmit"
+    "test:types": "tsc --noEmit",
+    "prettier:fix": "prettier --write .",
+    "eslint:fix": "eslint --fix ."
   },
   "license": "MIT",
   "devDependencies": {
