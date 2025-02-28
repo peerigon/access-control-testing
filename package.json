@@ -11,6 +11,7 @@
     "test": "run-p test:*",
     "test:unit": "tsx tests/test.ts",
     "test:lint": "eslint --max-warnings 0 --cache .",
+    "test:format": "prettier --check .",
     "test:types": "tsc --noEmit"
   },
   "license": "MIT",
