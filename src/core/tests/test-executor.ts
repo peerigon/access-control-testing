@@ -5,9 +5,8 @@ import {
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.js";
-import { Route } from "../types.js";
 import { TestRunner } from "./runner/test-runner.ts";
-import { performRequest } from "./test-utils.ts";
+import { performRequest, Route } from "./test-utils.ts";
 import { TestcaseGenerator } from "./testcase-generator.ts";
 
 type AccessControlResult = "allowed" | "forbidden";
@@ -46,23 +45,11 @@ export class TestExecutor {
     const testController = new TestcaseGenerator(openAPIParser, users);
     const testCases = testController.generateTestCases(); //.bind(testController);
 
-    /* console.log("DATASET");
-    const debugTable = dataset.map((ds) => {
-      const { user, route, expectedRequestToBeAllowed, ...rest } = ds;
-      return {
-        user: user?.toString() ?? "anonymous",
-        route: route.url.toString(),
-        method: route.method,
-        expectedRequestToBeAllowed,
-        ...rest,
-      };
-    });
-    console.table(debugTable);*/
     const results: Array<TestResult> = [];
 
     for (const testCase of testCases) {
+      const { user, route, expectedRequestToBeAllowed } = testCase;
       testRunner.test("", async (t) => {
-        const { user, route, expectedRequestToBeAllowed } = testCase;
         const expected: AccessControlResult = expectedRequestToBeAllowed
           ? "allowed"
           : "forbidden"; // todo: make enum for this?
@@ -171,6 +158,7 @@ export class TestExecutor {
       const transformedResults = results.map((result) => ({
         ...result,
         user: result.user?.toString() ?? "anonymous",
+        route: result.route.toString(),
       }));
 
       console.table(transformedResults);

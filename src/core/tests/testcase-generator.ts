@@ -2,10 +2,10 @@ import ObjectSet from "object-set-type";
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.ts";
-import { PolicyDecisionPoint } from "../policy/policy-decision-point.js";
+import { PolicyDecisionPoint } from "../policy/policy-decision-point.ts";
 import { Action, ResourceIdentifier, ResourceName } from "../policy/types.ts";
-import { Route } from "../types.ts";
-import { removeObjectDuplicatesFromArray } from "../utils.js";
+import { removeObjectDuplicatesFromArray } from "../utils.ts";
+import { Route } from "./test-utils.ts";
 
 export type TestCase = {
   user: User | null; // alternatively: AnonymousUser (extends User)
@@ -75,10 +75,10 @@ export class TestcaseGenerator {
           // test from anonymous user perspective
           return {
             user: null,
-            route: {
-              url: this.openApiParser.constructFullApiUrl(path),
+            route: new Route(
+              this.openApiParser.constructFullApiUrl(path),
               method,
-            },
+            ),
             expectedRequestToBeAllowed: false,
           };
         }
@@ -144,10 +144,7 @@ export class TestcaseGenerator {
 
           return {
             user,
-            route: {
-              url,
-              method,
-            },
+            route: new Route(url, method),
             expectedRequestToBeAllowed,
           };
         });

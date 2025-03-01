@@ -15,8 +15,9 @@ import {
   ParameterLocation,
 } from "../authentication/http/types.ts";
 import { OpenApiFieldNames } from "../constants.ts";
-import type { Resource } from "../policy/entities/resource.js";
+import type { Resource } from "../policy/entities/resource.ts";
 import { createResourceDescriptorSchema } from "../schemas.ts";
+import { Route } from "../tests/test-utils.ts";
 import type { AuthEndpointInformation } from "../types.ts";
 import {
   getOpenApiField,
@@ -511,11 +512,11 @@ export class OpenAPIParser {
   /**
    * Get a Singleton instance of the authenticator based on the route if the route requires authentication
    */
-  public getAuthenticatorByRoute(
-    url: string,
-    httpMethod: string,
-  ): RequestAuthenticator | null {
-    const securityScheme = this.getSecurityScheme(url, httpMethod);
+  public getAuthenticatorByRoute(route: Route): RequestAuthenticator | null {
+    const securityScheme = this.getSecurityScheme(
+      route.url.toString(),
+      route.method,
+    );
 
     if (!securityScheme) {
       return null;

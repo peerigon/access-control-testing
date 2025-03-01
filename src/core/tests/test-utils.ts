@@ -1,3 +1,4 @@
+import type { URL } from "node:url";
 import got, { HTTPError, Method, type PromiseCookieJar } from "got";
 import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
 import { AuthenticationCredentials } from "../authentication/http/types.ts";
@@ -5,7 +6,17 @@ import {
   API_CLIENT_MAX_REQUEST_RETRIES,
   HTTP_UNAUTHORIZED_STATUS_CODE,
 } from "../constants.ts";
-import type { Route } from "../types.ts";
+
+export class Route {
+  constructor(
+    public readonly url: URL,
+    public readonly method: Method,
+  ) {}
+
+  public toString() {
+    return `${this.method.toUpperCase()} ${this.url}`;
+  }
+}
 
 /**
  * Perform a request to the given route with the given authenticator and credentials.
