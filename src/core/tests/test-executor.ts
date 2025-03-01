@@ -6,9 +6,20 @@ import {
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.js";
+import { Route } from "../types.js";
 import { TestRunner } from "./runner/test-runner.ts";
 import { performRequest } from "./test-utils.ts";
 import { TestcaseGenerator } from "./testcase-generator.ts";
+
+type AccessControlResult = "allowed" | "forbidden";
+
+type TestResult = {
+  user: User | null;
+  route: Route;
+  expected: AccessControlResult;
+  actual?: AccessControlResult;
+  testSucceeded?: "✅" | "❌";
+};
 
 export class TestExecutor {
   /*  private async prepareTestDataset() {
@@ -19,7 +30,7 @@ export class TestExecutor {
     const openAPIParser = await OpenAPIParser.create(openApiUrl);
 
     const testController = new TestcaseGenerator(openAPIParser);
-    const dataset: Testcases = testController.generateTestcases(); //.bind(testController);
+    const dataset: TestCases = testController.generateTestCases(); //.bind(testController);
     return dataset;
   }*/
 
@@ -34,7 +45,7 @@ export class TestExecutor {
     openAPIParser.validateCustomFields(resources);
 
     const testController = new TestcaseGenerator(openAPIParser, users);
-    const dataset = testController.generateTestcases(); //.bind(testController);
+    const testCases = testController.generateTestCases(); //.bind(testController);
 
     /* console.log("DATASET");
     const debugTable = dataset.map((ds) => {
@@ -48,10 +59,22 @@ export class TestExecutor {
       };
     });
     console.table(debugTable);*/
+    const results: Array<TestResult> = [];
 
-    const testResults = await Promise.all(
-      dataset.map(async (testCase) => {
+    for (const testCase of testCases) {
+      testRunner.test("", async (t) => {
         const { user, route, expectedRequestToBeAllowed } = testCase;
+        const expected: AccessControlResult = expectedRequestToBeAllowed
+          ? "allowed"
+          : "forbidden"; // todo: make enum for this?
+
+        const testResult: TestResult = {
+          user,
+          route,
+          expected,
+          testSucceeded: "❌",
+        };
+        results.push(testResult);
 
         const isAnonymousUser = user === null;
         const credentials = isAnonymousUser ? null : user.getCredentials();
@@ -72,7 +95,10 @@ export class TestExecutor {
 
         // todo: what to do when 401 has been received? -> we can't really say whether the request was forbidden or not
         if (isUnauthorized) {
+          // for isanonymous its expected, check if its not null user here
+
           // todo: make route toString()
+          console.log(response.statusCode);
           console.warn(
             `Could not impersonate user ${user} for route ${route.method} ${route.url}.
             The server kept responding with status code ${HTTP_UNAUTHORIZED_STATUS_CODE} after ${API_CLIENT_MAX_REQUEST_RETRIES} retries have been made.
@@ -80,10 +106,9 @@ export class TestExecutor {
             Please check whether the credentials are correct and the authentication setup is properly configured.`,
           );
 
-          // todo: explicitly skip test here
+          t.skip("Recurring authentication problem"); // todo: new state for skipped? currently only pass/fail
+          // todo: add user to blocklist
           return;
-
-          // todo: add user to blocklist, skip further tests
         }
 
         // todo: make it configurable what is considered as forbidden
@@ -92,8 +117,7 @@ export class TestExecutor {
         console.debug("STATUSCODE " + statusCode);
 
         // let actualRequestAllowed: boolean;
-        const expected = expectedRequestToBeAllowed ? "allowed" : "forbidden";
-        let actual =
+        let actual: AccessControlResult =
           statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "forbidden" : "allowed";
 
         if (expectedRequestToBeAllowed) {
@@ -104,43 +128,38 @@ export class TestExecutor {
         } else {
           // as anonymous user, unauthorized or forbidden is okay
           if (isAnonymousUser) {
-            testRunner
-              .expect([
-                HTTP_FORBIDDEN_STATUS_CODE, // todo: is forbidden really expected for users without authentication details or should it only be Unauthorized?
-                HTTP_UNAUTHORIZED_STATUS_CODE,
-              ])
-              .toContain(statusCode);
+            const requestForbidden = [
+              HTTP_FORBIDDEN_STATUS_CODE, // todo: is forbidden really expected for users without authentication details or should it only be Unauthorized?
+              HTTP_UNAUTHORIZED_STATUS_CODE,
+            ].includes(statusCode);
 
-            actual =
-              statusCode === HTTP_FORBIDDEN_STATUS_CODE ||
-              statusCode === HTTP_UNAUTHORIZED_STATUS_CODE
-                ? "forbidden"
-                : "allowed"; // todo: maybe rename to rejected (is either forbidden/unauthorized)
+            testRunner.expect(requestForbidden).toBe(true);
+
+            actual = requestForbidden ? "forbidden" : "allowed"; // todo: maybe rename to rejected (is either forbidden/unauthorized)
           } else {
             testRunner.expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
           }
         }
 
-        return {
-          ...testCase,
-          expected,
-          actual,
-          testSucceeded: expected === actual ? "✅" : "❌",
-        };
-      }),
-    );
+        testResult.actual = actual;
+        testResult.testSucceeded = actual === expected ? "✅" : "❌";
+      });
+    }
 
-    console.log("DATASET");
-    const debugTable = testResults.map((ds) => {
-      const { user, route, expectedRequestToBeAllowed, ...rest } = ds;
-      return {
-        user: user?.toString() ?? "anonymous",
-        route: route.url.toString(),
-        method: route.method,
-        expectedRequestToBeAllowed,
-        ...rest,
-      };
+    TestExecutor.printResults(results);
+  }
+
+  private static printResults(results: Array<TestResult>) {
+    process.on("beforeExit", () => {
+      console.log("\nTest Results:");
+      const transformedResults = results.map((result) => ({
+        ...result,
+        user: result.user?.toString() ?? "anonymous",
+      }));
+
+      console.table(transformedResults);
+
+      // todo: enhance this with a detailed report containing all the routes that failed
     });
-    console.table(debugTable);
   }
 }

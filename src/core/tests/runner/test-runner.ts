@@ -3,13 +3,16 @@ import { NodeTestRunner } from "./node-test-runner.ts";
 export interface Expectation {
   toBe(expected: any): void;
   notToBe(expected: any): void;
-  toContain(expected: any): void;
+}
+
+export interface TestContext {
+  skip(reason?: string): void;
 }
 
 // todo: expose TestRunner in api so a custom test-runner can be used when implementing this interface
 export interface TestRunner {
   group(name: string, callback: () => void): void;
-  test(name: string, callback: () => Promise<void> | void): void;
+  test(name: string, callback: (t: TestContext) => Promise<void> | void): void;
   expect(actual: any): Expectation;
 }
 

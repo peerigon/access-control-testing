@@ -7,23 +7,19 @@ export class NodeTestRunner implements TestRunner {
     describe(name, callback);
   }
 
-  test(name: string, callback: () => Promise<void> | void) {
-    it(name, callback);
+  test(
+    name: string,
+    callback: (t: { skip: (reason?: string) => void }) => Promise<void> | void,
+  ) {
+    it(name, async (t) =>
+      callback({ skip: (reason?: string) => t.skip(reason) }),
+    );
   }
 
   expect(actual: any): Expectation {
     return {
       toBe: (expected) => assert.strictEqual(actual, expected),
       notToBe: (expected) => assert.notStrictEqual(actual, expected),
-      toContain: (expected) => {
-        if (typeof actual === "string" || Array.isArray(actual)) {
-          assert.strictEqual(actual.includes(expected), true);
-        } else {
-          throw new Error(
-            `toContain() expects actual to be a string or an array, got instead: ${typeof actual}`,
-          );
-        }
-      },
     };
   }
 }

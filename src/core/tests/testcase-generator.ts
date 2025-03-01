@@ -7,12 +7,12 @@ import { Action, ResourceIdentifier, ResourceName } from "../policy/types.ts";
 import { Route } from "../types.ts";
 import { removeObjectDuplicatesFromArray } from "../utils.js";
 
-export type Testcase = {
+export type TestCase = {
   user: User | null; // alternatively: AnonymousUser (extends User)
   route: Route;
   expectedRequestToBeAllowed: boolean;
 };
-export type Testcases = Array<Testcase>;
+export type TestCases = Array<TestCase>;
 
 /*
 user1.canView(userResource); // can view all Users -> /admin/users & /admin/users/:id
@@ -33,7 +33,7 @@ export class TestcaseGenerator {
   ) {}
 
   // todo: this shouldn't be async, solve async in source (OpenAPI parser)
-  public generateTestcases(): Testcases {
+  public generateTestCases(): TestCases {
     // todo: generate full-formed URLs with parameters
     // todo: for now only query parameters and path parameters are supported, maybe add support for other types of parameters
     // resource params mapping
@@ -42,7 +42,7 @@ export class TestcaseGenerator {
     // each url resource mapping has "<Access> <Resource>" pairs with info where to find resource param
     const resourceUserCombinations = this.generateResourceUserCombinations();
 
-    const testcases: Testcases = pathResourceMappings.flatMap<Testcase>(
+    const testcases: TestCases = pathResourceMappings.flatMap<TestCase>(
       (pathResourceMapping) => {
         // todo: create Route object for url & method to use instead
         const { path, method, isPublicPath, resources } = pathResourceMapping;
