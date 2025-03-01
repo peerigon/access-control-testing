@@ -1,8 +1,6 @@
 import type { URL } from "node:url";
 import got, { HTTPError, Method, type PromiseCookieJar } from "got";
 import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
-import { BearerAuthenticator } from "../authentication/http/bearer-authenticator.js";
-import { CookieAuthenticator } from "../authentication/http/cookie-authenticator.js";
 import { AuthenticationCredentials } from "../authentication/http/types.ts";
 import {
   API_CLIENT_MAX_REQUEST_RETRIES,
@@ -103,8 +101,9 @@ export async function performRequest(
             credentials
           ) {
             if (
-              authenticator instanceof BearerAuthenticator ||
-              authenticator instanceof CookieAuthenticator
+              authenticator &&
+              "clearSession" in authenticator &&
+              typeof authenticator.clearSession === "function"
             ) {
               authenticator.clearSession(credentials);
             }
