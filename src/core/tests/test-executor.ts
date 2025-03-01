@@ -52,7 +52,7 @@ export class TestExecutor {
       const { user, route, expectedRequestToBeAllowed } = testCase;
 
       testRunner.test(
-        `${route} from the perspective of user '${user}'`,
+        `${route} from the perspective of user '${user ?? "anonymous"}'`,
         async (t) => {
           const userHasBeenBlocked =
             user !== null &&
