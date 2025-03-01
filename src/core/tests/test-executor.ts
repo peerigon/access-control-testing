@@ -46,12 +46,24 @@ export class TestExecutor {
     const testCases = testController.generateTestCases(); //.bind(testController);
 
     const results: Array<TestResult> = [];
+    const blockedUserIdentifiers: Array<User["identifier"]> = [];
 
     for (const testCase of testCases) {
       const { user, route, expectedRequestToBeAllowed } = testCase;
+
       testRunner.test(
         `${route} from the perspective of user '${user}'`,
         async (t) => {
+          const userHasBeenBlocked =
+            user !== null &&
+            blockedUserIdentifiers.includes(user.getCredentials().identifier);
+          if (userHasBeenBlocked) {
+            t.skip(
+              `User '${user}' has been blocked since a previous attempt to authenticate failed.`,
+            );
+            return;
+          }
+
           const expected: AccessControlResult = expectedRequestToBeAllowed
             ? "allowed"
             : "forbidden"; // todo: make enum for this?
@@ -73,6 +85,7 @@ export class TestExecutor {
           try {
             response = await performRequest(route, authenticator, credentials);
           } catch (e: unknown) {
+            // todo: create two Error instances
             if (e instanceof Error) {
               console.error(e.message);
 
@@ -82,9 +95,12 @@ export class TestExecutor {
             Please check whether you provided correct credentials and the authentication setup is properly configured.`,
               );
 
+              if (user !== null) {
+                blockedUserIdentifiers.push(user.getCredentials().identifier);
+              }
+
               testResult.testResult = "⏭️";
               t.skip(e.message);
-              // todo: add user to blocklist
             }
 
             return;
