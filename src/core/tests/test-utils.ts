@@ -1,4 +1,4 @@
-import got, { type PromiseCookieJar } from "got";
+import got, { Method, type PromiseCookieJar } from "got";
 import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
 import { AuthenticationCredentials } from "../authentication/http/types.ts";
 import {
@@ -21,13 +21,19 @@ export async function performRequest(
   authenticator: RequestAuthenticator | null,
   credentials: AuthenticationCredentials | null,
 ) {
+  // only retry when authenticator is present
+  const retry =
+    authenticator !== null
+      ? {
+          methods: ["GET", "POST", "PUT", "PATCH", "DELETE"] as Array<Method>, // todo: what about the rest?
+          statusCodes: [HTTP_UNAUTHORIZED_STATUS_CODE],
+          limit: API_CLIENT_MAX_REQUEST_RETRIES,
+        }
+      : undefined;
+
   return got(route.url, {
     method: route.method,
-    retry: {
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // todo: what about the rest?
-      statusCodes: [HTTP_UNAUTHORIZED_STATUS_CODE],
-      limit: API_CLIENT_MAX_REQUEST_RETRIES,
-    },
+    retry,
     throwHttpErrors: false,
     hooks: {
       beforeRetry: [
