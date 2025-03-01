@@ -42,6 +42,13 @@ export abstract class SessionManager<SessionType extends Session> {
     credentials: AuthenticationCredentials,
   ): Promise<SessionType>;
 
+  /**
+   * Obtains a new session by sending a request to the authentication endpoint
+   * @param credentials
+   * @throws
+   * See {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
+   * @protected
+   */
   protected async obtainSession(credentials: AuthenticationCredentials) {
     console.debug("obtaining new session");
 
@@ -75,6 +82,7 @@ export abstract class SessionManager<SessionType extends Session> {
         [passwordParameterName]: credentials.password,
       },
       cookieJar,
+      throwHttpErrors: true,
     });
 
     return {

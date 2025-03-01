@@ -1,5 +1,4 @@
 import {
-  API_CLIENT_MAX_REQUEST_RETRIES,
   HTTP_FORBIDDEN_STATUS_CODE,
   HTTP_UNAUTHORIZED_STATUS_CODE,
 } from "../constants.ts";
@@ -84,32 +83,48 @@ export class TestExecutor {
           route.method,
         );
 
-        const response = await performRequest(
-          route,
-          authenticator,
-          credentials,
-        );
+        let response;
+        try {
+          response = await performRequest(route, authenticator, credentials);
+        } catch (e: unknown) {
+          if (e instanceof Error) {
+            console.error(e.message);
+
+            console.warn(
+              `Could not impersonate user '${user}' while trying to reach route ${route.method} ${route.url}.
+            This test will be skipped and further testcases for user '${user}' will be cancelled.
+            Please check whether you provided correct credentials and the authentication setup is properly configured.`,
+            );
+
+            t.skip(e.message); // todo: new state for skipped? currently only pass/fail
+            // todo: add user to blocklist
+          }
+
+          return;
+        }
 
         const isUnauthorized =
           response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE;
 
-        // todo: what to do when 401 has been received? -> we can't really say whether the request was forbidden or not
-        if (isUnauthorized) {
-          // for isanonymous its expected, check if its not null user here
-
+        /*       if (isUnauthorized && !isAnonymousUser) {
           // todo: make route toString()
-          console.log(response.statusCode);
+          const { retryCount } = response;
+          const recurringAuthenticationProblem = retryCount > 0;
+
           console.warn(
-            `Could not impersonate user ${user} for route ${route.method} ${route.url}.
-            The server kept responding with status code ${HTTP_UNAUTHORIZED_STATUS_CODE} after ${API_CLIENT_MAX_REQUEST_RETRIES} retries have been made.
-            No further tests will be executed for this user.
+            `Although the user ${user} has been authenticated using the authentication endpoint, the server responded with status code ${HTTP_UNAUTHORIZED_STATUS_CODE} when trying to access route ${route.method} ${route.url}.
+            ${recurringAuthenticationProblem ? `The server kept responding with status code ${response.statusCode} after ${retryCount} retries have been made.` : `The server responded with status code ${response.statusCode}.`}
+            This testcase will be skipped.
             Please check whether the credentials are correct and the authentication setup is properly configured.`,
           );
 
-          t.skip("Recurring authentication problem"); // todo: new state for skipped? currently only pass/fail
-          // todo: add user to blocklist
+          t.skip(
+            recurringAuthenticationProblem
+              ? "Recurring authentication problem"
+              : "Authentication problem",
+          ); // todo: new state for skipped? currently only pass/fail
           return;
-        }
+        }*/
 
         // todo: make it configurable what is considered as forbidden
         // for now, forbidden is when the corresponding status code has been sent
@@ -142,6 +157,7 @@ export class TestExecutor {
         }
 
         testResult.actual = actual;
+        //testResult.authenticator = authenticator;
         testResult.testSucceeded = actual === expected ? "✅" : "❌";
       });
     }

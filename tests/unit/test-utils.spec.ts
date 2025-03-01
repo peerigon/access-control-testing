@@ -34,17 +34,14 @@ test.group("TestUtils", (group) => {
     expect(response.statusCode).toBe(200);
   });
 
-  test("performRequest should have 401 status code as response when using invalid credentials", async ({
-    expect,
-    test,
-  }) => {
+  test("performRequest should throw when using invalid credentials", async () => {
     const route = { url: new URL(`${BASE_URL}/protected`), method: "GET" };
 
-    const response = await performRequest(route, createCookieAuthenticator(), {
+    await performRequest(route, createCookieAuthenticator(), {
       identifier: validUsername,
       password: "wrongpassword",
     });
-
-    expect(response.statusCode).toBe(401);
-  }).disableTimeout();
+  })
+    .throws(/authentication endpoint returned a non-successful response/)
+    .disableTimeout();
 });

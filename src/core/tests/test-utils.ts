@@ -1,4 +1,4 @@
-import got, { Method, type PromiseCookieJar } from "got";
+import got, { HTTPError, Method, type PromiseCookieJar } from "got";
 import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
 import { AuthenticationCredentials } from "../authentication/http/types.ts";
 import {
@@ -13,7 +13,7 @@ import type { Route } from "../types.ts";
  * @param route
  * @param authenticator
  * @param credentials
- * @throws
+ * @throws {Error} if the request needed prior authentication but failed to authenticate
  * See {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
  */
 export async function performRequest(
@@ -44,7 +44,25 @@ export async function performRequest(
       beforeRequest: [
         async (options) => {
           if (authenticator && credentials) {
-            await authenticator.authenticateRequest(options, credentials);
+            try {
+              await authenticator.authenticateRequest(options, credentials);
+            } catch (e) {
+              const isNonSuccessfulResponse = e instanceof HTTPError;
+
+              // todo: include info about authentication endpoint in error message
+              const user = credentials.identifier;
+              if (isNonSuccessfulResponse) {
+                // authentication endpoint was reached but got non-successful response
+                throw new Error(
+                  `The authentication endpoint returned a non-successful response indicating that the user '${user}' could not be authenticated.`,
+                );
+              } else {
+                // something else went wrong, make sure auth endpoint is available
+                throw new Error(
+                  `Something went wrong while trying to reach the authentication endpoint for user '${user}', make sure it is available.`,
+                );
+              }
+            }
           }
 
           // todo: this is a temporary workaround to ensure that cookies get set
