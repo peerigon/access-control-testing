@@ -54,16 +54,6 @@ export class TestExecutor {
       testRunner.test(
         `${route} from the perspective of user '${user ?? "anonymous"}'`,
         async (t) => {
-          const userHasBeenBlocked =
-            user !== null &&
-            blockedUserIdentifiers.includes(user.getCredentials().identifier);
-          if (userHasBeenBlocked) {
-            t.skip(
-              `User '${user}' has been blocked since a previous attempt to authenticate failed.`,
-            );
-            return;
-          }
-
           const expected: AccessControlResult = expectedRequestToBeAllowed
             ? "allowed"
             : "forbidden"; // todo: make enum for this?
@@ -75,6 +65,17 @@ export class TestExecutor {
             testResult: "❌",
           };
           results.push(testResult);
+
+          const userHasBeenBlocked =
+            user !== null &&
+            blockedUserIdentifiers.includes(user.getCredentials().identifier);
+          if (userHasBeenBlocked) {
+            testResult.testResult = "⏭️";
+            t.skip(
+              `User '${user}' has been blocked since a previous attempt to authenticate failed.`,
+            );
+            return;
+          }
 
           const isAnonymousUser = user === null;
           const credentials = isAnonymousUser ? null : user.getCredentials();
