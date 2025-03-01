@@ -468,9 +468,9 @@ export class OpenAPIParser {
 
     if (type === "http" && "scheme" in securityScheme) {
       const scheme = securityScheme.scheme;
-      if (scheme === "bearer") {
+      if (scheme === "Bearer") {
         return AuthenticatorType.HTTP_BEARER;
-      } else if (scheme === "basic") {
+      } else if (scheme === "Basic") {
         return AuthenticatorType.HTTP_BASIC;
       }
     }
