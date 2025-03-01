@@ -134,7 +134,6 @@ export class TestExecutor {
           const { statusCode } = response;
           console.debug("STATUSCODE " + statusCode);
 
-          // let actualRequestAllowed: boolean;
           let actual: AccessControlResult =
             statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "forbidden" : "allowed";
 
