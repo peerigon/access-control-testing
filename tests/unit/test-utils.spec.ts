@@ -60,7 +60,11 @@ test.group("TestUtils", (group) => {
       isOldSession: true, // used to test if old session gets removed
     });
 
-    await performRequest(protectedRoute, cookieAuthenticator, credentials);
+    const response = await performRequest(
+      protectedRoute,
+      cookieAuthenticator,
+      credentials,
+    );
 
     // since the existing session can't be used, it should have been removed
     // and a new one should have been created
@@ -68,5 +72,7 @@ test.group("TestUtils", (group) => {
     expect(session).toBeDefined();
     expect(session?.cookies).toBeDefined();
     expect(session?.isOldSession).toBeUndefined();
+
+    expect(response.statusCode).toBe(200);
   }).disableTimeout();
 });
