@@ -16,7 +16,7 @@ type TestResult = {
   route: Route;
   expected: AccessControlResult;
   actual?: AccessControlResult;
-  testSucceeded?: "✅" | "❌";
+  testResult?: "✅" | "❌" | "⏭️";
 };
 
 export class TestExecutor {
@@ -49,51 +49,51 @@ export class TestExecutor {
 
     for (const testCase of testCases) {
       const { user, route, expectedRequestToBeAllowed } = testCase;
-      testRunner.test("", async (t) => {
-        const expected: AccessControlResult = expectedRequestToBeAllowed
-          ? "allowed"
-          : "forbidden"; // todo: make enum for this?
+      testRunner.test(
+        `${route} from the perspective of user '${user}'`,
+        async (t) => {
+          const expected: AccessControlResult = expectedRequestToBeAllowed
+            ? "allowed"
+            : "forbidden"; // todo: make enum for this?
 
-        const testResult: TestResult = {
-          user,
-          route,
-          expected,
-          testSucceeded: "❌",
-        };
-        results.push(testResult);
+          const testResult: TestResult = {
+            user,
+            route,
+            expected,
+            testResult: "❌",
+          };
+          results.push(testResult);
 
-        const isAnonymousUser = user === null;
-        const credentials = isAnonymousUser ? null : user.getCredentials();
+          const isAnonymousUser = user === null;
+          const credentials = isAnonymousUser ? null : user.getCredentials();
 
-        const authenticator = openAPIParser.getAuthenticatorByRoute(
-          route.url.toString(),
-          route.method,
-        );
+          const authenticator = openAPIParser.getAuthenticatorByRoute(route);
 
-        let response;
-        try {
-          response = await performRequest(route, authenticator, credentials);
-        } catch (e: unknown) {
-          if (e instanceof Error) {
-            console.error(e.message);
+          let response;
+          try {
+            response = await performRequest(route, authenticator, credentials);
+          } catch (e: unknown) {
+            if (e instanceof Error) {
+              console.error(e.message);
 
-            console.warn(
-              `Could not impersonate user '${user}' while trying to reach route ${route.method} ${route.url}.
+              console.warn(
+                `Could not impersonate user '${user}' while trying to reach route ${route.method} ${route.url}.
             This test will be skipped and further testcases for user '${user}' will be cancelled.
             Please check whether you provided correct credentials and the authentication setup is properly configured.`,
-            );
+              );
 
-            t.skip(e.message); // todo: new state for skipped? currently only pass/fail
-            // todo: add user to blocklist
+              testResult.testResult = "⏭️";
+              t.skip(e.message);
+              // todo: add user to blocklist
+            }
+
+            return;
           }
 
-          return;
-        }
+          const isUnauthorized =
+            response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE;
 
-        const isUnauthorized =
-          response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE;
-
-        /*       if (isUnauthorized && !isAnonymousUser) {
+          /*       if (isUnauthorized && !isAnonymousUser) {
           // todo: make route toString()
           const { retryCount } = response;
           const recurringAuthenticationProblem = retryCount > 0;
@@ -113,40 +113,41 @@ export class TestExecutor {
           return;
         }*/
 
-        // todo: make it configurable what is considered as forbidden
-        // for now, forbidden is when the corresponding status code has been sent
-        const { statusCode } = response;
-        console.debug("STATUSCODE " + statusCode);
+          // todo: make it configurable what is considered as forbidden
+          // for now, forbidden is when the corresponding status code has been sent
+          const { statusCode } = response;
+          console.debug("STATUSCODE " + statusCode);
 
-        // let actualRequestAllowed: boolean;
-        let actual: AccessControlResult =
-          statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "forbidden" : "allowed";
+          // let actualRequestAllowed: boolean;
+          let actual: AccessControlResult =
+            statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "forbidden" : "allowed";
 
-        if (expectedRequestToBeAllowed) {
-          // can be one of 2XX codes but could also be an error that occurred due to wrong syntax of request
+          if (expectedRequestToBeAllowed) {
+            // can be one of 2XX codes but could also be an error that occurred due to wrong syntax of request
 
-          // todo: what about anonymous users? for them it should not be forbidden and also not unauthorized
-          testRunner.expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE);
-        } else {
-          // as anonymous user, unauthorized or forbidden is okay
-          if (isAnonymousUser) {
-            const requestForbidden = [
-              HTTP_FORBIDDEN_STATUS_CODE, // todo: is forbidden really expected for users without authentication details or should it only be Unauthorized?
-              HTTP_UNAUTHORIZED_STATUS_CODE,
-            ].includes(statusCode);
-
-            testRunner.expect(requestForbidden).toBe(true);
-
-            actual = requestForbidden ? "forbidden" : "allowed"; // todo: maybe rename to rejected (is either forbidden/unauthorized)
+            // todo: what about anonymous users? for them it should not be forbidden and also not unauthorized
+            testRunner.expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE);
           } else {
-            testRunner.expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
-          }
-        }
+            // as anonymous user, unauthorized or forbidden is okay
+            if (isAnonymousUser) {
+              const requestForbidden = [
+                HTTP_FORBIDDEN_STATUS_CODE, // todo: is forbidden really expected for users without authentication details or should it only be Unauthorized?
+                HTTP_UNAUTHORIZED_STATUS_CODE,
+              ].includes(statusCode);
 
-        testResult.actual = actual;
-        //testResult.authenticator = authenticator;
-        testResult.testSucceeded = actual === expected ? "✅" : "❌";
-      });
+              testRunner.expect(requestForbidden).toBe(true);
+
+              actual = requestForbidden ? "forbidden" : "allowed"; // todo: maybe rename to rejected (is either forbidden/unauthorized)
+            } else {
+              testRunner.expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
+            }
+          }
+
+          testResult.actual = actual;
+          //testResult.authenticator = authenticator;
+          testResult.testResult = actual === expected ? "✅" : "❌";
+        },
+      );
     }
 
     TestExecutor.printResults(results);
