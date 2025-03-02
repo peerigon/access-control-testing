@@ -3,7 +3,7 @@ import { User } from "./entities/user.ts";
 import { Privilege } from "./privilege.ts";
 import { Action, ResourceIdentifier } from "./types.ts";
 
-export class PolicyDecisionPoint {
+export const PolicyDecisionPoint = {
   // todo: rename resource with ResourceType, since its not a concrete instance of a Resource?
   // some resources could be public for all (-> make that configurable)
   /**
@@ -20,7 +20,7 @@ export class PolicyDecisionPoint {
    * @returns True if the user is allowed to perform the action on the resource,
    *   false otherwise
    */
-  static isAllowed(
+  isAllowed(
     user: User,
     action: Action,
     resource: Resource,
@@ -44,10 +44,10 @@ export class PolicyDecisionPoint {
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return Boolean(userHasPrivilegeExplicitly || userInheritedPrivilege);
-  }
+  },
 
   // todo: rename action to accessType?
-  private static convertActionToPrivilege(action: Action): Privilege {
+  convertActionToPrivilege(action: Action): Privilege {
     switch (action) {
       case "create": {
         return Privilege.CREATE;
@@ -62,10 +62,10 @@ export class PolicyDecisionPoint {
         return Privilege.DELETE;
       }
     }
-  }
+  },
 
   // todo: move somewhere else
-  static convertPrivilegeToAction(privilege: Privilege): Action {
+  convertPrivilegeToAction(privilege: Privilege): Action {
     switch (privilege) {
       case Privilege.CREATE: {
         return "create";
@@ -80,5 +80,5 @@ export class PolicyDecisionPoint {
         return "delete";
       }
     }
-  }
-}
+  },
+};

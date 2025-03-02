@@ -152,8 +152,8 @@ export class OpenAPIParser {
       // todo: validate / parse x-act-auth-endpoint etc.
       // should be object and contain required properties
       // & is expected to be in at least one path when auth has been defined
-    } catch (error: Error | any) {
-      if (error?.cause?.code === "ECONNREFUSED") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.cause?.code === "ECONNREFUSED") {
         throw new Error(
           `Could not retrieve given OpenApi specification at ${specificationUrl}, connection to server got refused.`,
         );

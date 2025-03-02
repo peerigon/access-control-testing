@@ -5,19 +5,16 @@ import { BearerAuthenticator } from "./http/bearer-authenticator.ts";
 import { CookieAuthenticator } from "./http/cookie-authenticator.ts";
 import { AuthenticatorType } from "./http/types.ts";
 
-export class AuthenticationStore {
-  static authenticatorStore: Record<
-    AuthenticatorType,
-    RequestAuthenticator | null
-  > = {
+export const AuthenticationStore = {
+  authenticatorStore: {
     [AuthenticatorType.HTTP_BEARER]: null,
     [AuthenticatorType.HTTP_BASIC]: null,
     [AuthenticatorType.API_KEY_COOKIE]: null,
     [AuthenticatorType.NONE]: null, // todo: remove this
-  };
+  } as Record<AuthenticatorType, RequestAuthenticator | null>,
 
   // todo: authEndpoint required for bearer/cookie
-  static getOrCreateAuthenticator(
+  getOrCreateAuthenticator(
     authenticatorType: AuthenticatorType,
     apiBaseUrl: string,
     authEndpoint?: AuthEndpointInformation | null,
@@ -63,5 +60,5 @@ export class AuthenticationStore {
     }
 
     return this.authenticatorStore[authenticatorType];
-  }
-}
+  },
+};
