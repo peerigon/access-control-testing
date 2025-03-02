@@ -53,7 +53,7 @@ test.group("TestUtils", (group) => {
       password: validPassword,
     };
 
-    // @ts-expect-error
+    // @ts-expect-error sessionStore is manipulated for testing purposes
     const sessionStore = cookieAuthenticator.sessionStore;
     sessionStore.set(credentials.identifier, {
       cookies: new CookieJar(),

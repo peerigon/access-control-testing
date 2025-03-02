@@ -20,18 +20,6 @@ type TestResult = {
 };
 
 export class TestExecutor {
-  /*  private async prepareTestDataset() {
-    const configurationParser = new ConfigurationParser();
-    // todo: no more Configuration -> constructor options? but how to get params into this file?
-    const { openApiUrl } = await configurationParser.parse();
-
-    const openAPIParser = await OpenAPIParser.create(openApiUrl);
-
-    const testController = new TestcaseGenerator(openAPIParser);
-    const dataset: TestCases = testController.generateTestCases(); //.bind(testController);
-    return dataset;
-  }*/
-
   async runTests(
     testRunner: TestRunner,
     openApiUrl: string,
@@ -85,10 +73,10 @@ export class TestExecutor {
           let response;
           try {
             response = await performRequest(route, authenticator, credentials);
-          } catch (e: unknown) {
+          } catch (error: unknown) {
             // todo: create two Error instances
-            if (e instanceof Error) {
-              console.error(e.message);
+            if (error instanceof Error) {
+              console.error(error.message);
 
               console.warn(
                 `Could not impersonate user '${user}' while trying to reach route ${route.method} ${route.url}.
@@ -101,14 +89,14 @@ export class TestExecutor {
               }
 
               testResult.testResult = "⏭️";
-              t.skip(e.message);
+              t.skip(error.message);
             }
 
             return;
           }
 
-          const isUnauthorized =
-            response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE;
+          /*const isUnauthorized =
+            response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE;*/
 
           /*       if (isUnauthorized && !isAnonymousUser) {
           // todo: make route toString()

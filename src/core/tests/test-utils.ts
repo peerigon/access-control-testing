@@ -13,7 +13,7 @@ export class Route {
     public readonly method: Method,
   ) {}
 
-  public toString() {
+  toString() {
     return `${this.method.toUpperCase()} ${this.url}`;
   }
 }
@@ -26,8 +26,9 @@ export class Route {
  * @param route
  * @param authenticator
  * @param credentials
- * @throws {Error} if the request needed prior authentication but failed to authenticate
- * See {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
+ * @throws {Error} If the request needed prior authentication but failed to
+ *   authenticate See
+ *   {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
  * @throws See
  *   {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
  */
@@ -63,8 +64,8 @@ export async function performRequest(
           if (authenticator && credentials) {
             try {
               await authenticator.authenticateRequest(options, credentials);
-            } catch (e) {
-              const isNonSuccessfulResponse = e instanceof HTTPError;
+            } catch (error) {
+              const isNonSuccessfulResponse = error instanceof HTTPError;
 
               // todo: include info about authentication endpoint in error message
               const user = credentials.identifier;
@@ -102,15 +103,12 @@ export async function performRequest(
         (response) => {
           if (
             response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE &&
-            credentials
+            credentials &&
+            authenticator &&
+            "clearSession" in authenticator &&
+            typeof authenticator.clearSession === "function"
           ) {
-            if (
-              authenticator &&
-              "clearSession" in authenticator &&
-              typeof authenticator.clearSession === "function"
-            ) {
-              authenticator.clearSession(credentials);
-            }
+            authenticator.clearSession(credentials);
           }
 
           return response;
