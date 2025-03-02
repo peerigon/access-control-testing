@@ -2,17 +2,17 @@ import ObjectSet from "object-set-type";
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.ts";
-import { PolicyDecisionPoint } from "../policy/policy-decision-point.js";
+import { PolicyDecisionPoint } from "../policy/policy-decision-point.ts";
 import { Action, ResourceIdentifier, ResourceName } from "../policy/types.ts";
-import { Route } from "../types.ts";
-import { removeObjectDuplicatesFromArray } from "../utils.js";
+import { removeObjectDuplicatesFromArray } from "../utils.ts";
+import { Route } from "./test-utils.ts";
 
-export type Testcase = {
+export type TestCase = {
   user: User | null; // alternatively: AnonymousUser (extends User)
   route: Route;
   expectedRequestToBeAllowed: boolean;
 };
-export type Testcases = Array<Testcase>;
+export type TestCases = Array<TestCase>;
 
 /*
 user1.canView(userResource); // can view all Users -> /admin/users & /admin/users/:id
@@ -33,7 +33,7 @@ export class TestcaseGenerator {
   ) {}
 
   // todo: this shouldn't be async, solve async in source (OpenAPI parser)
-  generateTestcases(): Testcases {
+  generateTestCases(): TestCases {
     // todo: generate full-formed URLs with parameters
     // todo: for now only query parameters and path parameters are supported, maybe add support for other types of parameters
     // resource params mapping
@@ -42,7 +42,7 @@ export class TestcaseGenerator {
     // each url resource mapping has "<Access> <Resource>" pairs with info where to find resource param
     const resourceUserCombinations = this.generateResourceUserCombinations();
 
-    const testcases: Testcases = pathResourceMappings.flatMap<Testcase>(
+    const testcases: TestCases = pathResourceMappings.flatMap<TestCase>(
       (pathResourceMapping) => {
         // todo: create Route object for url & method to use instead
         const { path, method, isPublicPath, resources } = pathResourceMapping;
@@ -75,10 +75,10 @@ export class TestcaseGenerator {
           // test from anonymous user perspective
           return {
             user: null,
-            route: {
-              url: this.openApiParser.constructFullApiUrl(path),
+            route: new Route(
+              this.openApiParser.constructFullApiUrl(path),
               method,
-            },
+            ),
             expectedRequestToBeAllowed: false,
           };
         }
@@ -144,10 +144,7 @@ export class TestcaseGenerator {
 
           return {
             user,
-            route: {
-              url,
-              method,
-            },
+            route: new Route(url, method),
             expectedRequestToBeAllowed,
           };
         });

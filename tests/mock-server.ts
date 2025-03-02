@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import { CookieAuthenticator } from "../src/core/authentication/http/cookie-authenticator.js";
+import { Route } from "../src/core/tests/test-utils.js";
 import { AuthEndpointInformation } from "../src/core/types.js";
 
 const PORT = 5000;
@@ -145,6 +146,8 @@ const startMockServer = () =>
 const stopMockServer = () =>
   new Promise((resolve) => mockServer.close(() => resolve));
 
+const protectedRoute = new Route(new URL(`${BASE_URL}/protected`), "GET");
+
 export {
   startMockServer,
   stopMockServer,
@@ -153,4 +156,5 @@ export {
   validUsername,
   validPassword,
   validSessionId,
+  protectedRoute,
 };

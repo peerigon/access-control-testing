@@ -1,11 +1,22 @@
-import got, { type PromiseCookieJar } from "got";
+import type { URL } from "node:url";
+import got, { HTTPError, Method, type PromiseCookieJar } from "got";
 import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
 import { AuthenticationCredentials } from "../authentication/http/types.ts";
 import {
   API_CLIENT_MAX_REQUEST_RETRIES,
   HTTP_UNAUTHORIZED_STATUS_CODE,
 } from "../constants.ts";
-import type { Route } from "../types.ts";
+
+export class Route {
+  constructor(
+    public readonly url: URL,
+    public readonly method: Method,
+  ) {}
+
+  public toString() {
+    return `${this.method.toUpperCase()} ${this.url}`;
+  }
+}
 
 /**
  * Perform a request to the given route with the given authenticator and
@@ -15,6 +26,8 @@ import type { Route } from "../types.ts";
  * @param route
  * @param authenticator
  * @param credentials
+ * @throws {Error} if the request needed prior authentication but failed to authenticate
+ * See {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
  * @throws See
  *   {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
  */
@@ -23,13 +36,21 @@ export async function performRequest(
   authenticator: RequestAuthenticator | null,
   credentials: AuthenticationCredentials | null,
 ) {
+  const routeRequiresAuthentication = authenticator !== null;
+  const userCredentialsAvailable = credentials !== null;
+
+  const shouldRetry = routeRequiresAuthentication && userCredentialsAvailable;
+  const retry = shouldRetry
+    ? {
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"] as Array<Method>, // todo: what about the rest?
+        statusCodes: [HTTP_UNAUTHORIZED_STATUS_CODE],
+        limit: API_CLIENT_MAX_REQUEST_RETRIES,
+      }
+    : undefined;
+
   return got(route.url, {
     method: route.method,
-    retry: {
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // todo: what about the rest?
-      statusCodes: [HTTP_UNAUTHORIZED_STATUS_CODE],
-      limit: API_CLIENT_MAX_REQUEST_RETRIES,
-    },
+    retry,
     throwHttpErrors: false,
     hooks: {
       beforeRetry: [
@@ -40,7 +61,25 @@ export async function performRequest(
       beforeRequest: [
         async (options) => {
           if (authenticator && credentials) {
-            await authenticator.authenticateRequest(options, credentials);
+            try {
+              await authenticator.authenticateRequest(options, credentials);
+            } catch (e) {
+              const isNonSuccessfulResponse = e instanceof HTTPError;
+
+              // todo: include info about authentication endpoint in error message
+              const user = credentials.identifier;
+              if (isNonSuccessfulResponse) {
+                // authentication endpoint was reached but got non-successful response
+                throw new Error(
+                  `The authentication endpoint returned a non-successful response indicating that the user '${user}' could not be authenticated.`,
+                );
+              } else {
+                // something else went wrong, make sure auth endpoint is available
+                throw new Error(
+                  `Something went wrong while trying to reach the authentication endpoint for user '${user}', make sure it is available.`,
+                );
+              }
+            }
           }
 
           // todo: this is a temporary workaround to ensure that cookies get set
@@ -57,6 +96,24 @@ export async function performRequest(
               options.headers.Cookie = cookieString;
             }
           }
+        },
+      ],
+      afterResponse: [
+        (response) => {
+          if (
+            response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE &&
+            credentials
+          ) {
+            if (
+              authenticator &&
+              "clearSession" in authenticator &&
+              typeof authenticator.clearSession === "function"
+            ) {
+              authenticator.clearSession(credentials);
+            }
+          }
+
+          return response;
         },
       ],
     },
