@@ -9,6 +9,7 @@ import { User } from "../policy/entities/user.ts";
 import { PolicyDecisionPoint } from "../policy/policy-decision-point.ts";
 import { Action, ResourceIdentifier, ResourceName } from "../policy/types.ts";
 import { removeObjectDuplicatesFromArray } from "../utils.ts";
+import { TestCase } from "./runner/test-runner.ts";
 import { performRequest, Route } from "./test-utils.ts";
 
 export type TestCombination = {
@@ -18,16 +19,6 @@ export type TestCombination = {
 };
 
 type AccessControlResult = "permitted" | "denied";
-
-export type Expectation = (actual: any) => {
-  toBe: (expected: any) => void;
-  notToBe: (expected: any) => void;
-};
-
-export type TestCase = {
-  name: string;
-  test: (expect: Expectation) => void;
-};
 
 type TestResult = {
   user: User | null;
@@ -223,7 +214,7 @@ export class TestcaseGenerator {
 
       return {
         name: `${route} from the perspective of user '${user ?? "anonymous"}'`,
-        test: async (expect) => {
+        test: async ({ expect, skip }) => {
           const expected: AccessControlResult = expectedRequestToBeAllowed
             ? "permitted"
             : "denied"; // todo: make enum for this?
@@ -241,9 +232,9 @@ export class TestcaseGenerator {
             blockedUserIdentifiers.includes(user.getCredentials().identifier);
           if (userHasBeenBlocked) {
             testResult.testResult = "⏭️";
-            /* t.skip(
+            skip(
               `User '${user}' has been blocked since a previous attempt to authenticate failed.`,
-            );*/
+            );
             return;
           }
 
@@ -272,7 +263,7 @@ export class TestcaseGenerator {
               }
 
               testResult.testResult = "⏭️";
-              //t.skip(e.message);
+              skip(e.message);
             }
 
             return;

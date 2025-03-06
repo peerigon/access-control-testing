@@ -1,37 +1,16 @@
-import { NodeTestRunner } from "./node-test-runner.ts";
+export type Expectation = (actual: unknown) => {
+  toBe: (expected: unknown) => void;
+  notToBe: (expected: unknown) => void;
+};
+export type TestCase = {
+  name: string;
+  test: (testContext: TestContext) => void;
+};
+export type TestContext = {
+  expect: Expectation;
+  skip: (reason?: string) => void;
+};
 
-export interface Expectation {
-  toBe(expected: any): void;
-  notToBe(expected: any): void;
-}
-
-export interface TestContext {
-  skip(reason?: string): void;
-}
-
-// todo: expose TestRunner in api so a custom test-runner can be used when implementing this interface
 export interface TestRunner {
-  group(name: string, callback: () => void): void;
-  test(name: string, callback: (t: TestContext) => Promise<void> | void): void;
-  expect(actual: any): Expectation;
-}
-
-export type TestRunnerIdentifier = "node" | "jest";
-
-const DEFAULT_TEST_RUNNER = "node";
-export class TestRunnerFactory {
-  static createTestRunner(
-    runner: TestRunnerIdentifier = DEFAULT_TEST_RUNNER,
-  ): TestRunner {
-    switch (runner) {
-      case "node":
-        return new NodeTestRunner();
-      /*case "jest":
-        return new JestTestRunner();
-      case "japa":
-        return new JapaTestRunner();*/
-      default:
-        throw new Error(`Unsupported test runner: ${runner}`);
-    }
-  }
+  run(testCases: Array<TestCase>): void;
 }

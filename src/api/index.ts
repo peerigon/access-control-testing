@@ -1,7 +1,6 @@
 import { OpenAPIParser } from "../core/parsers/openapi-parser.js";
 import { Resource } from "../core/policy/entities/resource.ts";
 import { User } from "../core/policy/entities/user.ts";
-import { type TestRunnerIdentifier } from "../core/tests/runner/test-runner.ts";
 import { TestcaseGenerator } from "../core/tests/testcase-generator.ts";
 
 type ActOptions = {
@@ -9,7 +8,6 @@ type ActOptions = {
   openApiUrl: string;
   users: Array<User>;
   resources: Array<Resource>;
-  testRunner?: TestRunnerIdentifier;
 };
 
 class Act {
