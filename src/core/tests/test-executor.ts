@@ -43,7 +43,7 @@ export class TestExecutor {
     openAPIParser.validateCustomFields(resources);
 
     const testController = new TestcaseGenerator(openAPIParser, users);
-    const testCases = testController.generateTestCases(); //.bind(testController);
+    const testCases = testController.generateTestCombinations(); //.bind(testController);
 
     const results: Array<TestResult> = [];
     const blockedUserIdentifiers: Array<User["identifier"]> = [];

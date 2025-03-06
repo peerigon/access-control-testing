@@ -1,25 +1,20 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
-import { Expectation, TestRunner } from "./test-runner.ts";
+import { test } from "node:test";
+import { TestCase } from "../testcase-generator.ts";
 
-export class NodeTestRunner implements TestRunner {
-  group(name: string, callback: () => void) {
-    describe(name, callback);
-  }
-
-  test(
-    name: string,
-    callback: (t: { skip: (reason?: string) => void }) => Promise<void> | void,
-  ) {
-    it(name, async (t) =>
-      callback({ skip: (reason?: string) => t.skip(reason) }),
-    );
-  }
-
-  expect(actual: any): Expectation {
-    return {
-      toBe: (expected) => assert.strictEqual(actual, expected),
-      notToBe: (expected) => assert.notStrictEqual(actual, expected),
+export const NodeTestRunner = {
+  run: (testCases: Array<TestCase>) => {
+    const expectation = (actual: any) => {
+      return {
+        toBe: (expected) => assert.strictEqual(actual, expected),
+        notToBe: (expected) => assert.notStrictEqual(actual, expected),
+      };
     };
-  }
-}
+
+    testCases.forEach((testCase) => {
+      test(testCase.name, () => {
+        testCase.test(expectation);
+      });
+    });
+  },
+};

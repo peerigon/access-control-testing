@@ -1,5 +1,5 @@
 import { BaseReporter } from "@japa/runner/core";
-import type { TestCase } from "./testcase-generator.ts";
+import type { TestCombination } from "./testcase-generator.ts";
 
 // todo: clarify how test report will work
 export class TestReporter extends BaseReporter {
@@ -9,7 +9,7 @@ export class TestReporter extends BaseReporter {
     const { hasError: testFailed } = testPayload;
 
     const testStateRepresentation = testFailed ? "❌" : "✅";
-    const testDataset: TestCase = testPayload.dataset.row;
+    const testDataset: TestCombination = testPayload.dataset.row;
 
     const { route, user, expectedRequestToBeAllowed } = testDataset;
     const { url, method } = route;

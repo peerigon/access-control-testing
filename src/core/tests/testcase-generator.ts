@@ -1,18 +1,43 @@
 import ObjectSet from "object-set-type";
+import {
+  HTTP_FORBIDDEN_STATUS_CODE,
+  HTTP_UNAUTHORIZED_STATUS_CODE,
+} from "../constants.ts";
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.ts";
 import { PolicyDecisionPoint } from "../policy/policy-decision-point.ts";
 import { Action, ResourceIdentifier, ResourceName } from "../policy/types.ts";
 import { removeObjectDuplicatesFromArray } from "../utils.ts";
-import { Route } from "./test-utils.ts";
+import { performRequest, Route } from "./test-utils.ts";
 
-export type TestCase = {
+export type TestCombination = {
   user: User | null; // alternatively: AnonymousUser (extends User)
   route: Route;
   expectedRequestToBeAllowed: boolean;
 };
-export type TestCases = Array<TestCase>;
+
+type AccessControlResult = "allowed" | "forbidden";
+
+export type Expectation = (actual: any) => {
+  toBe: (expected: any) => void;
+  notToBe: (expected: any) => void;
+};
+
+export type TestCase = {
+  name: string;
+  test: (expect: Expectation) => void;
+};
+
+type TestResult = {
+  user: User | null;
+  route: Route;
+  expected: AccessControlResult;
+  actual?: AccessControlResult;
+  testResult?: "✅" | "❌" | "⏭️";
+};
+
+export type TestCombinations = Array<TestCombination>;
 
 /*
 user1.canView(userResource); // can view all Users -> /admin/users & /admin/users/:id
@@ -33,7 +58,7 @@ export class TestcaseGenerator {
   ) {}
 
   // todo: this shouldn't be async, solve async in source (OpenAPI parser)
-  public generateTestCases(): TestCases {
+  public generateTestCombinations(): TestCombinations {
     // todo: generate full-formed URLs with parameters
     // todo: for now only query parameters and path parameters are supported, maybe add support for other types of parameters
     // resource params mapping
@@ -42,8 +67,8 @@ export class TestcaseGenerator {
     // each url resource mapping has "<Access> <Resource>" pairs with info where to find resource param
     const resourceUserCombinations = this.generateResourceUserCombinations();
 
-    const testcases: TestCases = pathResourceMappings.flatMap<TestCase>(
-      (pathResourceMapping) => {
+    const testcases: TestCombinations =
+      pathResourceMappings.flatMap<TestCombination>((pathResourceMapping) => {
         // todo: create Route object for url & method to use instead
         const { path, method, isPublicPath, resources } = pathResourceMapping;
 
@@ -148,8 +173,7 @@ export class TestcaseGenerator {
             expectedRequestToBeAllowed,
           };
         });
-      },
-    );
+      });
 
     return removeObjectDuplicatesFromArray(testcases);
   }
@@ -198,5 +222,144 @@ export class TestcaseGenerator {
     }
 
     return Array.from(resourceUserCombinations);
+  }
+
+  public async generateTestCases({
+    openApiUrl,
+    apiBaseUrl,
+    users,
+    resources,
+  }: {
+    openApiUrl: string;
+    apiBaseUrl: string;
+    users: Array<User>;
+    resources: Array<Resource>;
+  }): Promise<Array<TestCase>> {
+    const openAPIParser = await OpenAPIParser.create(openApiUrl, apiBaseUrl);
+    openAPIParser.validateCustomFields(resources);
+
+    const testController = new TestcaseGenerator(openAPIParser, users);
+    const testCombinations = testController.generateTestCombinations(); //.bind(testController);
+
+    const results: Array<TestResult> = [];
+    const blockedUserIdentifiers: Array<User["identifier"]> = []; // todo: still working?
+
+    return testCombinations.map((testCombination) => {
+      const { user, route, expectedRequestToBeAllowed } = testCombination;
+
+      return {
+        name: `${route} from the perspective of user '${user ?? "anonymous"}'`,
+        test: async (expect) => {
+          const expected: AccessControlResult = expectedRequestToBeAllowed
+            ? "allowed"
+            : "forbidden"; // todo: make enum for this?
+
+          const testResult: TestResult = {
+            user,
+            route,
+            expected,
+            testResult: "❌",
+          };
+          results.push(testResult);
+
+          const userHasBeenBlocked =
+            user !== null &&
+            blockedUserIdentifiers.includes(user.getCredentials().identifier);
+          if (userHasBeenBlocked) {
+            testResult.testResult = "⏭️";
+            /* t.skip(
+              `User '${user}' has been blocked since a previous attempt to authenticate failed.`,
+            );*/
+            return;
+          }
+
+          const isAnonymousUser = user === null;
+          const credentials = isAnonymousUser ? null : user.getCredentials();
+
+          const authenticator = openAPIParser.getAuthenticatorByRoute(route);
+
+          let response;
+          try {
+            response = await performRequest(route, authenticator, credentials);
+          } catch (e: unknown) {
+            // todo: create two Error instances
+            if (e instanceof Error) {
+              console.error(e.message);
+
+              console.warn(
+                `Could not impersonate user '${user}' while trying to reach route ${route.method} ${route.url}.
+            This test will be skipped and further testcases for user '${user}' will be cancelled.
+            Please check whether you provided correct credentials and the authentication setup is properly configured.`,
+              );
+
+              if (user !== null) {
+                blockedUserIdentifiers.push(user.getCredentials().identifier);
+              }
+
+              testResult.testResult = "⏭️";
+              //t.skip(e.message);
+            }
+
+            return;
+          }
+
+          const isUnauthorized =
+            response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE;
+
+          /*       if (isUnauthorized && !isAnonymousUser) {
+          // todo: make route toString()
+          const { retryCount } = response;
+          const recurringAuthenticationProblem = retryCount > 0;
+
+          console.warn(
+            `Although the user ${user} has been authenticated using the authentication endpoint, the server responded with status code ${HTTP_UNAUTHORIZED_STATUS_CODE} when trying to access route ${route.method} ${route.url}.
+            ${recurringAuthenticationProblem ? `The server kept responding with status code ${response.statusCode} after ${retryCount} retries have been made.` : `The server responded with status code ${response.statusCode}.`}
+            This testcase will be skipped.
+            Please check whether the credentials are correct and the authentication setup is properly configured.`,
+          );
+
+          t.skip(
+            recurringAuthenticationProblem
+              ? "Recurring authentication problem"
+              : "Authentication problem",
+          ); // todo: new state for skipped? currently only pass/fail
+          return;
+        }*/
+
+          // todo: make it configurable what is considered as forbidden
+          // for now, forbidden is when the corresponding status code has been sent
+          const { statusCode } = response;
+          console.debug("STATUSCODE " + statusCode);
+
+          let actual: AccessControlResult =
+            statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "forbidden" : "allowed";
+
+          if (expectedRequestToBeAllowed) {
+            // can be one of 2XX codes but could also be an error that occurred due to wrong syntax of request
+
+            // todo: what about anonymous users? for them it should not be forbidden and also not unauthorized
+            expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE);
+          } else {
+            // as anonymous user, unauthorized or forbidden is okay
+            if (isAnonymousUser) {
+              const requestForbidden = [
+                HTTP_FORBIDDEN_STATUS_CODE, // todo: is forbidden really expected for users without authentication details or should it only be Unauthorized?
+                HTTP_UNAUTHORIZED_STATUS_CODE,
+              ].includes(statusCode);
+
+              expect(requestForbidden).toBe(true);
+
+              actual = requestForbidden ? "forbidden" : "allowed"; // todo: maybe rename to rejected (is either forbidden/unauthorized)
+            } else {
+              expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
+            }
+          }
+
+          testResult.actual = actual;
+          //testResult.authenticator = authenticator;
+          testResult.testResult = actual === expected ? "✅" : "❌";
+        },
+      };
+    });
   }
 }

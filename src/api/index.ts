@@ -1,3 +1,4 @@
+import { OpenAPIParser } from "../core/parsers/openapi-parser.js";
 import { Resource } from "../core/policy/entities/resource.ts";
 import { User } from "../core/policy/entities/user.ts";
 import {
@@ -5,6 +6,7 @@ import {
   type TestRunnerIdentifier,
 } from "../core/tests/runner/test-runner.ts";
 import { TestExecutor } from "../core/tests/test-executor.ts";
+import { TestcaseGenerator } from "../core/tests/testcase-generator.js";
 
 type ActOptions = {
   apiBaseUrl: string;
@@ -18,6 +20,7 @@ class Act {
     // todo: check if both are valid urls
   }
 
+  // todo: deprecate this
   public async scan() {
     console.log("Scanning...");
 
@@ -33,6 +36,23 @@ class Act {
       this.options.users,
       this.options.resources,
     );
+  }
+
+  public async generateTestCases() {
+    console.log("Generating testcases...");
+    const { openApiUrl, apiBaseUrl, users, resources } = this.options;
+
+    const openAPIParser = await OpenAPIParser.create(openApiUrl, apiBaseUrl);
+    openAPIParser.validateCustomFields(resources);
+
+    const testCaseGenerator = new TestcaseGenerator(openAPIParser, users);
+
+    return testCaseGenerator.generateTestCases({
+      openApiUrl,
+      apiBaseUrl,
+      users,
+      resources,
+    });
   }
 }
 
