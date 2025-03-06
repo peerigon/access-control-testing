@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
-import { CookieAuthenticator } from "../src/core/authentication/http/cookie-authenticator.js";
-import { Route } from "../src/core/tests/test-utils.js";
-import { AuthEndpointInformation } from "../src/core/types.js";
+import { CookieAuthenticator } from "../src/core/authentication/http/cookie-authenticator.ts";
+import { Route } from "../src/core/tests/test-utils.ts";
+import { AuthEndpointInformation } from "../src/core/types.ts";
 
 const PORT = 5000;
 const HOST = "127.0.0.1";

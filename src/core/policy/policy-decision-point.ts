@@ -7,12 +7,12 @@ export class PolicyDecisionPoint {
   // todo: rename resource with ResourceType, since its not a concrete instance of a Resource?
   // some resources could be public for all (-> make that configurable)
   /**
-   * Decides if a user is allowed to perform an action on a resource based on the user's privileges that are derived from the user's relationships to resources.
+   * Decides if a user is permitted to perform an action on a resource based on the user's privileges that are derived from the user's relationships to resources.
    * @param user The user that wants to perform the action
    * @param action The action the user wants to perform
    * @param resource The resource object describing the resource the user wants to perform the action on
    * @param resourceIdentifier The identifier of the specific resource the user wants to perform the action on
-   * @returns true if the user is allowed to perform the action on the resource, false otherwise
+   * @returns true if the user is permitted to perform the action on the resource, false otherwise
    */
   public static isAllowed(
     user: User,

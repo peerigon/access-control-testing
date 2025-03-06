@@ -29,7 +29,7 @@ export class TestReporter extends BaseReporter {
 Test Status:        ${testStateRepresentation}
 Request:            ${requestRepresentation}
 User:               ${user}
-Expection:          ${expectedRequestToBeAllowed ? "Should have been allowed" : "Should have been denied"}
+Expection:          ${expectedRequestToBeAllowed ? "Should have been permitted" : "Should have been denied"}
 -------------------------------------------
 Actual status:      ${actual}
 Expected status:    ${expected}

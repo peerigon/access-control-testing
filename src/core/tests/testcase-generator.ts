@@ -12,12 +12,12 @@ import { removeObjectDuplicatesFromArray } from "../utils.ts";
 import { performRequest, Route } from "./test-utils.ts";
 
 export type TestCombination = {
-  user: User | null; // alternatively: AnonymousUser (extends User)
+  user: User | null;
   route: Route;
   expectedRequestToBeAllowed: boolean;
 };
 
-type AccessControlResult = "allowed" | "forbidden";
+type AccessControlResult = "permitted" | "denied";
 
 export type Expectation = (actual: any) => {
   toBe: (expected: any) => void;
@@ -39,25 +39,12 @@ type TestResult = {
 
 export type TestCombinations = Array<TestCombination>;
 
-/*
-user1.canView(userResource); // can view all Users -> /admin/users & /admin/users/:id
-console.log(
-  "user1canview",
-  PolicyDecisionPoint.isAllowed(user1, "read", userResource, 1), // todo: read vs. view?
-);*/
-// todo: unit test for scenarios:
-// canView(userResource):
-//    isAllowed(user1, "read", userResource, 1) -> true && isAllowed(user1, "read", userResource) -> true
-// canView(userResource, 1):
-//    isAllowed(user1, "read", userResource, 1) -> true && isAllowed(user1, "read", userResource) -> false
-
 export class TestcaseGenerator {
   constructor(
     private readonly openApiParser: OpenAPIParser,
     private readonly users: Array<User>,
   ) {}
 
-  // todo: this shouldn't be async, solve async in source (OpenAPI parser)
   public generateTestCombinations(): TestCombinations {
     // todo: generate full-formed URLs with parameters
     // todo: for now only query parameters and path parameters are supported, maybe add support for other types of parameters
@@ -86,7 +73,7 @@ export class TestcaseGenerator {
 
         // no resources available -> default: deny (except for "public" routes)
         // todo: mark routes as public (for anonymous users) or available for all logged-in users
-        // routes that are public for anonymous users are expected to be allowed for logged-in users too
+        // routes that are public for anonymous users are expected to be permitted for logged-in users too
 
         if (!routeHasResources) {
           if (isPublicPath) {
@@ -186,6 +173,7 @@ export class TestcaseGenerator {
       resourceIdentifier?: ResourceIdentifier;
     }> = new ObjectSet();
 
+    // todo: move this explanation to JSDoc
     // generate combinations between users, actions, resources and resource ids
     // for that, go through relations of each user with a resource,
     // create a test case with expected result of true (for current user) and false (for other users)
@@ -218,28 +206,14 @@ export class TestcaseGenerator {
       // todo: knowledge of resources based on openapi definitions
       // this is only applicable for non-parameterized resources (e.g. GET /users) because no valid resourceIdentifiers are available
       // there will be no guessing of valid resourceIdentifiers in that case
-      // adds additional test cases only when resource/access combination is not already covered by someone who is allowed to access it
+      // adds additional test cases only when resource/access combination is not already covered by someone who is permitted to access it
     }
 
     return Array.from(resourceUserCombinations);
   }
 
-  public async generateTestCases({
-    openApiUrl,
-    apiBaseUrl,
-    users,
-    resources,
-  }: {
-    openApiUrl: string;
-    apiBaseUrl: string;
-    users: Array<User>;
-    resources: Array<Resource>;
-  }): Promise<Array<TestCase>> {
-    const openAPIParser = await OpenAPIParser.create(openApiUrl, apiBaseUrl);
-    openAPIParser.validateCustomFields(resources);
-
-    const testController = new TestcaseGenerator(openAPIParser, users);
-    const testCombinations = testController.generateTestCombinations(); //.bind(testController);
+  public async generateTestCases(): Promise<Array<TestCase>> {
+    const testCombinations = this.generateTestCombinations();
 
     const results: Array<TestResult> = [];
     const blockedUserIdentifiers: Array<User["identifier"]> = []; // todo: still working?
@@ -251,8 +225,8 @@ export class TestcaseGenerator {
         name: `${route} from the perspective of user '${user ?? "anonymous"}'`,
         test: async (expect) => {
           const expected: AccessControlResult = expectedRequestToBeAllowed
-            ? "allowed"
-            : "forbidden"; // todo: make enum for this?
+            ? "permitted"
+            : "denied"; // todo: make enum for this?
 
           const testResult: TestResult = {
             user,
@@ -276,7 +250,8 @@ export class TestcaseGenerator {
           const isAnonymousUser = user === null;
           const credentials = isAnonymousUser ? null : user.getCredentials();
 
-          const authenticator = openAPIParser.getAuthenticatorByRoute(route);
+          const authenticator =
+            this.openApiParser.getAuthenticatorByRoute(route);
 
           let response;
           try {
@@ -303,10 +278,10 @@ export class TestcaseGenerator {
             return;
           }
 
-          const isUnauthorized =
+          /*       const isUnauthorized =
             response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE;
 
-          /*       if (isUnauthorized && !isAnonymousUser) {
+          if (isUnauthorized && !isAnonymousUser) {
           // todo: make route toString()
           const { retryCount } = response;
           const recurringAuthenticationProblem = retryCount > 0;
@@ -326,13 +301,13 @@ export class TestcaseGenerator {
           return;
         }*/
 
-          // todo: make it configurable what is considered as forbidden
-          // for now, forbidden is when the corresponding status code has been sent
+          // todo: make it configurable what is considered as denied
+          // for now, denied is when the corresponding status code (Forbidden) has been sent
           const { statusCode } = response;
           console.debug("STATUSCODE " + statusCode);
 
           let actual: AccessControlResult =
-            statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "forbidden" : "allowed";
+            statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "denied" : "permitted";
 
           if (expectedRequestToBeAllowed) {
             // can be one of 2XX codes but could also be an error that occurred due to wrong syntax of request
@@ -349,7 +324,7 @@ export class TestcaseGenerator {
 
               expect(requestForbidden).toBe(true);
 
-              actual = requestForbidden ? "forbidden" : "allowed"; // todo: maybe rename to rejected (is either forbidden/unauthorized)
+              actual = requestForbidden ? "denied" : "permitted"; // todo: maybe rename to rejected (is either denied/unauthorized)
             } else {
               expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
             }
