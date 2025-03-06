@@ -9,12 +9,12 @@
     "/dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "test": "run-p test:*",
     "test:unit": "tsx tests/test.ts",
     "test:lint": "eslint --cache .",
     "test:format": "prettier --check .",
-    "test:types": "tsc --noEmit",
+    "test:types": "tsc",
     "prettier:fix": "prettier --write .",
     "eslint:fix": "eslint --fix ."
   },

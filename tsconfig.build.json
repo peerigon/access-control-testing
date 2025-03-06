@@ -1,0 +1,4 @@
+{
+  "extends": ["./tsconfig.json", "@peerigon/configs/typescript/lib"],
+  "include": ["src"],
+}
