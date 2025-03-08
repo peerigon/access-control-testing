@@ -1,7 +1,5 @@
 import { test } from "@japa/runner";
 import { CookieJar } from "tough-cookie";
-// todo: Japa types only available in NodeNext
-// but then type issues with library types come up when not set to ESNext
 import { performRequest } from "../../src/core/tests/test-utils.ts";
 import {
   createCookieAuthenticator,
@@ -13,10 +11,10 @@ import {
 } from "../mock-server.ts";
 
 test.group("TestUtils", (group) => {
-  group.setup(async () => {
+  group.each.setup(async () => {
     await startMockServer();
 
-    return async () => stopMockServer();
+    return () => void stopMockServer();
   });
 
   test("performRequest should properly authenticate via cookie-based authentication", async ({

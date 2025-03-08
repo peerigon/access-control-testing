@@ -1,4 +1,3 @@
-// tests/openapi-parser.spec.ts
 import { createServer } from "node:http";
 import { test } from "@japa/runner";
 import { OpenAPIParser } from "../../src/core/parsers/openapi-parser.ts";

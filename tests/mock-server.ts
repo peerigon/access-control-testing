@@ -8,82 +8,11 @@ const HOST = "127.0.0.1";
 const BASE_URL = `http://${HOST}:${PORT}`;
 
 const authEndpointInfo: AuthEndpointInformation = {
+  // @ts-ignore
   authEndpoint: {
     method: "post",
     path: "/login",
-    requestBody: {
-      required: true,
-      content: {
-        "application/json": {
-          schema: {
-            type: "object",
-            properties: {
-              username: {
-                type: "string",
-                format: "email",
-                description: "E-Mail-Adresse des Benutzers",
-                example: "user@example.com",
-                "x-act-auth-field": {
-                  type: "identifier",
-                },
-              },
-              password: {
-                type: "string",
-                format: "password",
-                example: "secretpassword",
-                description: "Passwort des Benutzers",
-                "x-act-auth-field": {
-                  type: "password",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    responses: {
-      "200": {
-        description: "Login erfolgreich",
-        content: {
-          "application/json": {
-            schema: {
-              type: "object",
-              properties: {
-                message: {
-                  type: "string",
-                  example: "Login erfolgreich",
-                },
-              },
-            },
-          },
-        },
-      },
-      "400": {
-        description: "Ungültige Anmeldedaten",
-        content: {
-          "application/json": {
-            schema: {
-              type: "object",
-              properties: {
-                errors: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      message: {
-                        type: "string",
-                        example: "Invalid user credentials",
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    "x-act-auth-endpoint": "cookieAuthentication",
+    // todo: supply with operation data coming from OpenAPIParser
   },
   authRequestParameterDescription: {
     username: {
@@ -132,7 +61,6 @@ const mockServer = createServer((req, res) => {
 
     res.end();
   } else {
-    console.log("requrl", req.url);
     res.writeHead(404);
     res.end();
   }
@@ -142,9 +70,14 @@ const createCookieAuthenticator = () =>
   new CookieAuthenticator(authEndpointInfo, BASE_URL);
 
 const startMockServer = () =>
-  new Promise((resolve) => mockServer.listen(PORT, HOST, resolve));
+  new Promise((resolve) => {
+    mockServer.listen(PORT, HOST, void resolve);
+  });
+
 const stopMockServer = () =>
-  new Promise((resolve) => mockServer.close(() => resolve));
+  new Promise((resolve) => {
+    mockServer.close(() => resolve);
+  });
 
 const protectedRoute = new Route(new URL(`${BASE_URL}/protected`), "GET");
 

@@ -1,4 +1,3 @@
-import { HTTPError } from "got";
 import Oas from "oas";
 import OASNormalize from "oas-normalize";
 import type {
@@ -154,8 +153,8 @@ export class OpenAPIParser {
       // todo: validate / parse x-act-auth-endpoint etc.
       // should be object and contain required properties
       // & is expected to be in at least one path when auth has been defined
-    } catch (error: unknown) {
-      if (error instanceof HTTPError && error.cause?.code === "ECONNREFUSED") {
+    } catch (error: any) {
+      if (error?.cause?.code === "ECONNREFUSED") {
         throw new Error(
           `Could not retrieve given OpenApi specification at ${specificationUrl}, connection to server got refused.`,
         );
@@ -203,22 +202,22 @@ export class OpenAPIParser {
           resourceName: getOpenApiField(
             parameter,
             OpenApiFieldNames.RESOURCE_NAME,
-          ),
+          ) as string, // todo: replace this with zod parsing
           resourceAccess: getOpenApiField(
             parameter,
             OpenApiFieldNames.RESOURCE_ACCESS,
-          ),
+          ) as string,
         })) ?? [];
 
       // todo: at the moment it is considered that there can be at most one non-parametrized resource per path (e.g. /users)
       const nonParametrizedResourceName = getOpenApiField(
         path.schema,
         OpenApiFieldNames.RESOURCE_NAME,
-      );
+      ) as string;
       const nonParametrizedResourceAccess = getOpenApiField(
         path.schema,
         OpenApiFieldNames.RESOURCE_ACCESS,
-      );
+      ) as string;
       const nonParametrizedResources =
         nonParametrizedResourceName && nonParametrizedResourceAccess
           ? [

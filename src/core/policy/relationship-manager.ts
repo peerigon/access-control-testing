@@ -49,8 +49,9 @@ export class RelationshipManager {
   }> {
     return [...this.relatedResources].flatMap(
       ([resourceDescription, relationships]) => {
-        const [resourceName, resourceIdentifier] =
-          resourceDescription.split(":");
+        const [resourceName, resourceIdentifier] = resourceDescription.split(
+          ":",
+        ) as [string, string | undefined];
 
         // each privilege corresponds to an access type
         const privileges = this.getPrivilegesFromRelationships(relationships);
