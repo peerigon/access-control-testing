@@ -1,4 +1,4 @@
-import { AuthenticationCredentials } from "../../authentication/http/types.ts";
+import { type AuthenticationCredentials } from "../../authentication/http/types.ts";
 import { RelationshipManager } from "../relationship-manager.ts";
 
 export class User extends RelationshipManager {
@@ -20,7 +20,7 @@ export class User extends RelationshipManager {
     super();
   }
 
-  toString(): string {
+  override toString(): string {
     return this.identifier;
   }
 

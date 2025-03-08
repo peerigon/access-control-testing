@@ -1,7 +1,8 @@
 import type { URL } from "node:url";
-import got, { HTTPError, Method, type PromiseCookieJar } from "got";
-import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
-import { AuthenticationCredentials } from "../authentication/http/types.ts";
+import got, { HTTPError, type Method, type PromiseCookieJar } from "got";
+import { type RequestAuthenticator } from "../authentication/http/authenticator.ts";
+import { SessionManager } from "../authentication/http/session-manager.ts";
+import type { AuthenticationCredentials } from "../authentication/http/types.ts";
 import {
   API_CLIENT_MAX_REQUEST_RETRIES,
   HTTP_UNAUTHORIZED_STATUS_CODE,
@@ -94,7 +95,9 @@ export async function performRequest(
             );
 
             if (cookieString.length > 0) {
-              options.headers.Cookie = cookieString;
+              // this is wanted by the request library
+              // eslint-disable-next-line require-atomic-updates
+              options.headers["Cookie"] = cookieString;
             }
           }
         },
@@ -104,9 +107,7 @@ export async function performRequest(
           if (
             response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE &&
             credentials &&
-            authenticator &&
-            "clearSession" in authenticator &&
-            typeof authenticator.clearSession === "function"
+            authenticator instanceof SessionManager
           ) {
             authenticator.clearSession(credentials);
           }

@@ -1,4 +1,4 @@
-import { RequestAuthenticator } from "./authenticator.ts";
+import { type RequestAuthenticator } from "./authenticator.ts";
 import { SessionManager } from "./session-manager.ts";
 import type {
   AuthenticationCredentials,
@@ -54,6 +54,6 @@ export class BearerAuthenticator
       throw new Error("Could not initialize session with bearer token");
     }
 
-    requestOptions.headers.Authorization = `Bearer ${session.bearerToken}`;
+    requestOptions.headers["Authorization"] = `Bearer ${session.bearerToken}`;
   }
 }

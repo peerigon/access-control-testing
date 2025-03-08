@@ -1,4 +1,4 @@
-import { RequestAuthenticator } from "./authenticator.ts";
+import type { RequestAuthenticator } from "./authenticator.ts";
 import { SessionManager } from "./session-manager.ts";
 import type {
   AuthenticationCredentials,

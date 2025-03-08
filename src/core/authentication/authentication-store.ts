@@ -1,5 +1,5 @@
-import type { AuthEndpointInformation } from "../types.js";
-import { RequestAuthenticator } from "./http/authenticator.ts";
+import type { AuthEndpointInformation } from "../types.ts";
+import { type RequestAuthenticator } from "./http/authenticator.ts";
 import { BasicAuthenticator } from "./http/basic-authenticator.ts";
 import { BearerAuthenticator } from "./http/bearer-authenticator.ts";
 import { CookieAuthenticator } from "./http/cookie-authenticator.ts";

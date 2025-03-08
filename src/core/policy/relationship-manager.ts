@@ -3,7 +3,7 @@ import { PolicyDecisionPoint } from "./policy-decision-point.ts";
 import { Privilege } from "./privilege.ts";
 import { RelationshipPrivileges } from "./relationship-privileges.ts";
 import { Relationship } from "./relationship.ts";
-import {
+import type {
   Action,
   ResourceDescription,
   ResourceIdentifier,

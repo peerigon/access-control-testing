@@ -4,8 +4,8 @@ import {
 } from "../constants.ts";
 import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { Resource } from "../policy/entities/resource.ts";
-import { User } from "../policy/entities/user.js";
-import { TestRunner } from "./runner/test-runner.ts";
+import { User } from "../policy/entities/user.ts";
+import type { TestRunner } from "./runner/test-runner.ts";
 import { performRequest, Route } from "./test-utils.ts";
 import { TestcaseGenerator } from "./testcase-generator.ts";
 

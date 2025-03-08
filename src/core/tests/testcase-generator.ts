@@ -3,7 +3,11 @@ import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.ts";
 import { PolicyDecisionPoint } from "../policy/policy-decision-point.ts";
-import { Action, ResourceIdentifier, ResourceName } from "../policy/types.ts";
+import type {
+  Action,
+  ResourceIdentifier,
+  ResourceName,
+} from "../policy/types.ts";
 import { removeObjectDuplicatesFromArray } from "../utils.ts";
 import { Route } from "./test-utils.ts";
 
@@ -47,9 +51,6 @@ export class TestcaseGenerator {
         // todo: create Route object for url & method to use instead
         const { path, method, isPublicPath, resources } = pathResourceMapping;
 
-        // todo: handle multiple resources: foreach resource in resources
-        const currentResource = resources[0];
-
         if (resources.length > 1) {
           console.warn(
             "Multiple resources in a single route are not supported yet. Only the first resource will be used.",
@@ -83,6 +84,9 @@ export class TestcaseGenerator {
           };
         }
 
+        // todo: handle multiple resources: foreach resource in resources
+        const currentResource = resources[0]!;
+
         // only use resourceUserCombinations that match with the given resource and access type
 
         // resource (from resources inside of pathResourceMapping) is a Resource object mapped to the iterated url
@@ -113,7 +117,7 @@ export class TestcaseGenerator {
               path,
               currentResource.parameterName,
             ) &&
-            resourceIdentifier == undefined;
+            resourceIdentifier === undefined;
 
           if (resourceIdentifierRequiredButNotProvided) {
             return [];

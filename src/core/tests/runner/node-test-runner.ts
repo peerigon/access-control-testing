@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { Expectation, TestRunner } from "./test-runner.ts";
+import type { Expectation, TestRunner } from "./test-runner.ts";
 
 export class NodeTestRunner implements TestRunner {
   group(name: string, callback: () => void) {

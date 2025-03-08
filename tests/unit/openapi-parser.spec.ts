@@ -2,7 +2,7 @@
 import { createServer } from "node:http";
 import { test } from "@japa/runner";
 import { OpenAPIParser } from "../../src/core/parsers/openapi-parser.ts";
-import { Resource } from "../../src/core/policy/entities/resource.js";
+import { Resource } from "../../src/core/policy/entities/resource.ts";
 import openApiSpec from "../fixtures/openapi.json" with { type: "json" };
 
 test.group("OpenAPIParser", (group) => {
@@ -77,6 +77,8 @@ test.group("OpenAPIParser", (group) => {
 
   test("should throw when incorrect resource name is specified", async () => {
     const resources = [new Resource("User")];
+
+    // @ts-expect-error mutation of spec is expected
     currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
       "resource-name"
     ] = "test";
@@ -89,6 +91,7 @@ test.group("OpenAPIParser", (group) => {
   test("should throw when incorrect resource access is specified", async () => {
     const resources = [new Resource("User")];
 
+    // @ts-expect-error mutation of spec is expected
     currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
       "resource-access"
     ] = "test";
@@ -103,6 +106,7 @@ test.group("OpenAPIParser", (group) => {
   test("should throw when resource access but not resource name is specified", async () => {
     const resources = [new Resource("User")];
 
+    // @ts-expect-error mutation of spec is expected
     (currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
       "resource-name"
     ] as any) = undefined;
@@ -115,9 +119,10 @@ test.group("OpenAPIParser", (group) => {
   test("should throw when resource name but not resource access is specified", async () => {
     const resources = [new Resource("User")];
 
-    (currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
+    // @ts-expect-error mutation of spec is expected
+    currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"][
       "resource-access"
-    ] as any) = undefined;
+    ] = undefined;
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
@@ -127,7 +132,8 @@ test.group("OpenAPIParser", (group) => {
   test("should throw when resource description is omitted for required parameters", async () => {
     const resources = [new Resource("User")];
 
-    (currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"] as any) =
+    // @ts-expect-error mutation of spec is expected
+    currentSpec.paths["/admin/users/{id}"].get.parameters[0]["x-act"] =
       undefined;
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);

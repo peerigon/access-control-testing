@@ -1,5 +1,8 @@
-import { RequestAuthenticator } from "./authenticator.ts";
-import { AuthenticationCredentials, RequestOptions } from "./types.ts";
+import { type RequestAuthenticator } from "./authenticator.ts";
+import {
+  type AuthenticationCredentials,
+  type RequestOptions,
+} from "./types.ts";
 
 export class BasicAuthenticator implements RequestAuthenticator {
   async authenticateRequest(

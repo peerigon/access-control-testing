@@ -1,7 +1,7 @@
 import { URL } from "node:url";
 import got from "got";
 import { CookieJar } from "tough-cookie";
-import type { AuthEndpointInformation } from "../../types.js";
+import type { AuthEndpointInformation } from "../../types.ts";
 import type { AuthenticationCredentials, Session } from "./types.ts";
 
 export abstract class SessionManager<SessionType extends Session> {
@@ -44,9 +44,10 @@ export abstract class SessionManager<SessionType extends Session> {
 
   /**
    * Obtains a new session by sending a request to the authentication endpoint
+   *
    * @param credentials
-   * @throws
-   * See {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
+   * @throws See
+   *   {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
    * @protected
    */
   protected async obtainSession(credentials: AuthenticationCredentials) {

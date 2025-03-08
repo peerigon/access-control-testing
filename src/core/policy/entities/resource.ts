@@ -1,4 +1,4 @@
-import { ResourceIdentifier } from "../types.js";
+import { type ResourceIdentifier } from "../types.ts";
 
 export class Resource {
   // todo: make sure name is unique?

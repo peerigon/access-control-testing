@@ -1,3 +1,4 @@
+import { HTTPError } from "got";
 import Oas from "oas";
 import OASNormalize from "oas-normalize";
 import type {
@@ -8,11 +9,11 @@ import type {
 } from "oas/types";
 import { parseTemplate } from "url-template";
 import { AuthenticationStore } from "../authentication/authentication-store.ts";
-import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
+import { type RequestAuthenticator } from "../authentication/http/authenticator.ts";
 import {
   AuthenticatorType,
-  AuthParameterLocationDescription,
-  ParameterLocation,
+  type AuthParameterLocationDescription,
+  type ParameterLocation,
 } from "../authentication/http/types.ts";
 import { OpenApiFieldNames } from "../constants.ts";
 import type { Resource } from "../policy/entities/resource.ts";
@@ -154,7 +155,7 @@ export class OpenAPIParser {
       // should be object and contain required properties
       // & is expected to be in at least one path when auth has been defined
     } catch (error: unknown) {
-      if (error instanceof Error && error.cause?.code === "ECONNREFUSED") {
+      if (error instanceof HTTPError && error.cause?.code === "ECONNREFUSED") {
         throw new Error(
           `Could not retrieve given OpenApi specification at ${specificationUrl}, connection to server got refused.`,
         );
@@ -400,7 +401,7 @@ export class OpenAPIParser {
       const [response] =
         authEndpoint.getResponseAsJSONSchema(responseStatusCode);
 
-      for (const propertyKey in response.schema.properties) {
+      for (const propertyKey in response?.schema.properties) {
         const property = response.schema.properties[propertyKey];
 
         if (typeof property !== "object") {
@@ -440,7 +441,6 @@ export class OpenAPIParser {
     );
 
     if (!operation) {
-      // todo: add proper error handling
       throw new Error("Operation not found");
     }
 

@@ -55,10 +55,13 @@ test.group("TestUtils", (group) => {
 
     // @ts-expect-error sessionStore is manipulated for testing purposes
     const sessionStore = cookieAuthenticator.sessionStore;
-    sessionStore.set(credentials.identifier, {
+
+    const temporarySession = {
       cookies: new CookieJar(),
       isOldSession: true, // used to test if old session gets removed
-    });
+    };
+
+    sessionStore.set(credentials.identifier, temporarySession);
 
     const response = await performRequest(
       protectedRoute,
@@ -71,7 +74,8 @@ test.group("TestUtils", (group) => {
     const session = sessionStore.get(credentials.identifier);
     expect(session).toBeDefined();
     expect(session?.cookies).toBeDefined();
-    expect(session?.isOldSession).toBeUndefined();
+
+    expect(session).not.toHaveProperty("isOldSession");
 
     expect(response.statusCode).toBe(200);
   }).disableTimeout();

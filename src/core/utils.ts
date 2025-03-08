@@ -1,9 +1,11 @@
 import ObjectSet from "object-set-type";
-import { OPENAPI_FIELD_PREFIX, OpenApiFieldNames } from "./constants.js";
-import { AuthFieldSchema } from "./schemas.js";
+import { OPENAPI_FIELD_PREFIX, OpenApiFieldNames } from "./constants.ts";
+import { AuthFieldSchema } from "./schemas.ts";
 
 export const isValidUrl = (url: string) => {
   try {
+    // side effect is wanted here to catch errors thrown by the URL constructor
+    // to determine if the URL is valid
     // eslint-disable-next-line no-new
     new URL(url);
     return true;
