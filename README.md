@@ -14,5 +14,5 @@ Hierfür können folgende Befehle ausgeführt werden, nachdem yalc global instal
 npm run build
 npx yalc publish
 cd demo-application
-yalc add access-control-testing 
+yalc add access-control-testing
 ```

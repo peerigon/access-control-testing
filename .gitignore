@@ -3,3 +3,4 @@
 *.sqlite
 node_modules/
 /dist/
+.eslintcache

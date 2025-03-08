@@ -1,4 +1,4 @@
-import { OpenAPIParser } from "../core/parsers/openapi-parser.js";
+import { OpenAPIParser } from "../core/parsers/openapi-parser.ts";
 import { Resource } from "../core/policy/entities/resource.ts";
 import { User } from "../core/policy/entities/user.ts";
 import { TestcaseGenerator } from "../core/tests/testcase-generator.ts";
@@ -15,7 +15,7 @@ class Act {
     // todo: check if both are valid urls
   }
 
-  public async generateTestCases() {
+  async generateTestCases() {
     console.log("Generating testcases...");
     const { openApiUrl, apiBaseUrl, users, resources } = this.options;
 
@@ -27,4 +27,7 @@ class Act {
   }
 }
 
-export { Act, User, Resource };
+export { Act };
+
+export { User } from "../core/policy/entities/user.ts";
+export { Resource } from "../core/policy/entities/resource.ts";

@@ -1,7 +1,8 @@
 import type { URL } from "node:url";
-import got, { HTTPError, Method, type PromiseCookieJar } from "got";
-import { RequestAuthenticator } from "../authentication/http/authenticator.ts";
-import { AuthenticationCredentials } from "../authentication/http/types.ts";
+import got, { HTTPError, type Method, type PromiseCookieJar } from "got";
+import { type RequestAuthenticator } from "../authentication/http/authenticator.ts";
+import { SessionManager } from "../authentication/http/session-manager.ts";
+import type { AuthenticationCredentials } from "../authentication/http/types.ts";
 import {
   API_CLIENT_MAX_REQUEST_RETRIES,
   HTTP_UNAUTHORIZED_STATUS_CODE,
@@ -13,19 +14,24 @@ export class Route {
     public readonly method: Method,
   ) {}
 
-  public toString() {
+  toString() {
     return `${this.method.toUpperCase()} ${this.url}`;
   }
 }
 
 /**
- * Perform a request to the given route with the given authenticator and credentials.
- * Retries the request if it fails and throws an error if the request continues to fail with a non 2xx/3xx status code.
+ * Perform a request to the given route with the given authenticator and
+ * credentials. Retries the request if it fails and throws an error if the
+ * request continues to fail with a non 2xx/3xx status code.
+ *
  * @param route
  * @param authenticator
  * @param credentials
- * @throws {Error} if the request needed prior authentication but failed to authenticate
- * See {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
+ * @throws {Error} If the request needed prior authentication but failed to
+ *   authenticate See
+ *   {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
+ * @throws See
+ *   {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
  */
 export async function performRequest(
   route: Route,
@@ -59,8 +65,8 @@ export async function performRequest(
           if (authenticator && credentials) {
             try {
               await authenticator.authenticateRequest(options, credentials);
-            } catch (e) {
-              const isNonSuccessfulResponse = e instanceof HTTPError;
+            } catch (error) {
+              const isNonSuccessfulResponse = error instanceof HTTPError;
 
               // todo: include info about authentication endpoint in error message
               const user = credentials.identifier;
@@ -89,7 +95,9 @@ export async function performRequest(
             );
 
             if (cookieString.length > 0) {
-              options.headers.Cookie = cookieString;
+              // this is wanted by the request library
+              // eslint-disable-next-line require-atomic-updates
+              options.headers["Cookie"] = cookieString;
             }
           }
         },
@@ -98,15 +106,10 @@ export async function performRequest(
         (response) => {
           if (
             response.statusCode === HTTP_UNAUTHORIZED_STATUS_CODE &&
-            credentials
+            credentials &&
+            authenticator instanceof SessionManager
           ) {
-            if (
-              authenticator &&
-              "clearSession" in authenticator &&
-              typeof authenticator.clearSession === "function"
-            ) {
-              authenticator.clearSession(credentials);
-            }
+            authenticator.clearSession(credentials);
           }
 
           return response;

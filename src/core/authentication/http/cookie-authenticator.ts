@@ -1,4 +1,4 @@
-import { RequestAuthenticator } from "./authenticator.ts";
+import type { RequestAuthenticator } from "./authenticator.ts";
 import { SessionManager } from "./session-manager.ts";
 import type {
   AuthenticationCredentials,
@@ -26,13 +26,13 @@ export class CookieAuthenticator
     return session;
   }
 
-  public async authenticateRequest(
+  async authenticateRequest(
     requestOptions: RequestOptions,
     credentials: AuthenticationCredentials,
   ) {
     const session = await this.findOrInitializeSession(credentials);
 
-    if (!session?.cookies) {
+    if (!session.cookies) {
       throw new Error("Could not initialize session with cookies");
     }
 

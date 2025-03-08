@@ -1,14 +1,14 @@
 import { URL } from "node:url";
 import got from "got";
 import { CookieJar } from "tough-cookie";
-import type { AuthEndpointInformation } from "../../types.js";
+import type { AuthEndpointInformation } from "../../types.ts";
 import type { AuthenticationCredentials, Session } from "./types.ts";
 
 export abstract class SessionManager<SessionType extends Session> {
-  protected sessionStore: Map<
+  protected sessionStore = new Map<
     AuthenticationCredentials["identifier"],
     SessionType
-  > = new Map();
+  >();
 
   constructor(
     private readonly authEndpointInformation: AuthEndpointInformation,
@@ -16,10 +16,10 @@ export abstract class SessionManager<SessionType extends Session> {
   ) {}
 
   /**
-   *
-   * @protected
-   * @param credentials The credentials used to find an existing session or to initialize a new one
+   * @param credentials The credentials used to find an existing session or to
+   *   initialize a new one
    * @returns The session
+   * @protected
    */
   protected async findOrInitializeSession(
     credentials: AuthenticationCredentials,
@@ -44,9 +44,10 @@ export abstract class SessionManager<SessionType extends Session> {
 
   /**
    * Obtains a new session by sending a request to the authentication endpoint
+   *
    * @param credentials
-   * @throws
-   * See {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
+   * @throws See
+   *   {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
    * @protected
    */
   protected async obtainSession(credentials: AuthenticationCredentials) {
@@ -92,7 +93,7 @@ export abstract class SessionManager<SessionType extends Session> {
     };
   }
 
-  public clearSession(credentials: AuthenticationCredentials): void {
+  clearSession(credentials: AuthenticationCredentials): void {
     console.debug("clearing session");
     this.sessionStore.delete(credentials.identifier);
   }

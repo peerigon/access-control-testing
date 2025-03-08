@@ -1,7 +1,7 @@
 import { Privilege } from "./privilege.ts";
 import { Relationship } from "./relationship.ts";
 
-export const RelationshipPrivileges: Record<Relationship, Privilege[]> = {
+export const RelationshipPrivileges: Record<Relationship, Array<Privilege>> = {
   [Relationship.OWNERSHIP]: [
     Privilege.CREATE,
     Privilege.READ,

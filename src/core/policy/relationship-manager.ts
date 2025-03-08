@@ -3,7 +3,7 @@ import { PolicyDecisionPoint } from "./policy-decision-point.ts";
 import { Privilege } from "./privilege.ts";
 import { RelationshipPrivileges } from "./relationship-privileges.ts";
 import { Relationship } from "./relationship.ts";
-import {
+import type {
   Action,
   ResourceDescription,
   ResourceIdentifier,
@@ -11,16 +11,19 @@ import {
 } from "./types.ts";
 
 export class RelationshipManager {
-  private readonly relatedResources: Map<ResourceDescription, Relationship[]> =
-    new Map();
+  private readonly relatedResources = new Map<
+    ResourceDescription,
+    Array<Relationship>
+  >();
 
   /**
-   * Derives the privileges for a given resourceDescription from the relationships
+   * Derives the privileges for a given resourceDescription from the
+   * relationships
    */
   // todo: change naming from resource to entity?
-  public getResourcePrivileges(
+  getResourcePrivileges(
     resourceDescription: ResourceDescription,
-  ): Privilege[] | null {
+  ): Array<Privilege> | null {
     const relationships = this.relatedResources.get(resourceDescription);
 
     if (!relationships) {
@@ -36,20 +39,22 @@ export class RelationshipManager {
   }
 
   /**
-   * Lists all resources including the way the user can access them. For concrete resources, the resourceIdentifier is also included.
+   * Lists all resources including the way the user can access them. For
+   * concrete resources, the resourceIdentifier is also included.
    */
-  public listResourceAccesses(): Array<{
+  listResourceAccesses(): Array<{
     resourceName: ResourceName;
     resourceIdentifier?: ResourceIdentifier;
     resourceAccess: Action; // todo: unify naming access/action
   }> {
-    return Array.from(this.relatedResources).flatMap(
+    return [...this.relatedResources].flatMap(
       ([resourceDescription, relationships]) => {
-        const [resourceName, resourceIdentifier] =
-          resourceDescription.split(":");
+        const [resourceName, resourceIdentifier] = resourceDescription.split(
+          ":",
+        ) as [string, string | undefined];
 
         // each privilege corresponds to an access type
-        let privileges = this.getPrivilegesFromRelationships(relationships);
+        const privileges = this.getPrivilegesFromRelationships(relationships);
 
         // todo: don't inherit create specific privilege from owning a specific resource
         // only create if it is explicitly set
@@ -76,7 +81,7 @@ export class RelationshipManager {
     );
   }
 
-  private getPrivilegesFromRelationships(relationships: Relationship[]) {
+  private getPrivilegesFromRelationships(relationships: Array<Relationship>) {
     // todo: clarify if there can be duplicates in privileges caused by duplicate relationships?
     const privileges = relationships.flatMap(
       (relationship) => RelationshipPrivileges[relationship],
@@ -84,7 +89,7 @@ export class RelationshipManager {
     return privileges;
   }
 
-  public relateTo(
+  relateTo(
     resource: Resource,
     relationship: Relationship,
     resourceIdentifier?: ResourceIdentifier,
@@ -119,48 +124,53 @@ export class RelationshipManager {
   // OR: always use string, convert number or other identifiers to string automatically?
   /**
    * Specifies that the user owns a specific instance of the given resource
+   *
    * @param resource
    * @param resourceIdentifier
    */
-  public owns(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
+  owns(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
     this.relateTo(resource, Relationship.OWNERSHIP, resourceIdentifier);
   }
 
   /**
    * Specifies that the user can create resources of the given type
+   *
    * @param resource
    */
-  public canCreate(resource: Resource) {
+  canCreate(resource: Resource) {
     this.relateTo(resource, Relationship.CREATOR);
   }
 
   /**
-   * Specifies that the user can view resources of the given type or, if a resourceIdentifier is provided, a specific instance of the given resource
+   * Specifies that the user can view resources of the given type or, if a
+   * resourceIdentifier is provided, a specific instance of the given resource
+   *
    * @param resource
    * @param resourceIdentifier Optional resource identifier
    */
-  public canView(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
+  canView(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
     this.relateTo(resource, Relationship.VIEWER, resourceIdentifier);
   }
 
   /**
-   * Specifies that the user can edit resources of the given type or, if a resourceIdentifier is provided, a specific instance of the given resource
+   * Specifies that the user can edit resources of the given type or, if a
+   * resourceIdentifier is provided, a specific instance of the given resource
+   *
    * @param resource
    * @param resourceIdentifier Optional resource identifier
    */
-  public canEdit(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
+  canEdit(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
     this.relateTo(resource, Relationship.EDITOR, resourceIdentifier);
   }
 
   /**
-   * Specifies that the user can delete resources of the given type or, if a resourceIdentifier is provided, a specific instance of the given resource
+   * Specifies that the user can delete resources of the given type or, if a
+   * resourceIdentifier is provided, a specific instance of the given resource
+   *
    * @param resource
    * @param resourceIdentifier Optional resource identifier
    */
-  public canDelete(
-    resource: Resource,
-    resourceIdentifier?: ResourceIdentifier,
-  ) {
+  canDelete(resource: Resource, resourceIdentifier?: ResourceIdentifier) {
     this.relateTo(resource, Relationship.DELETER, resourceIdentifier);
   }
 }

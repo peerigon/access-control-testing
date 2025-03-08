@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { test } from "node:test";
-import { TestRunner } from "./test-runner.ts";
+import type { TestRunner } from "./test-runner.ts";
 
 export const NodeTestRunner: TestRunner = {
   run: (testCases) => {

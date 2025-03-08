@@ -1,23 +1,20 @@
-import type { AuthEndpointInformation } from "../types.js";
-import { RequestAuthenticator } from "./http/authenticator.ts";
+import type { AuthEndpointInformation } from "../types.ts";
+import { type RequestAuthenticator } from "./http/authenticator.ts";
 import { BasicAuthenticator } from "./http/basic-authenticator.ts";
 import { BearerAuthenticator } from "./http/bearer-authenticator.ts";
 import { CookieAuthenticator } from "./http/cookie-authenticator.ts";
 import { AuthenticatorType } from "./http/types.ts";
 
-export class AuthenticationStore {
-  static authenticatorStore: Record<
-    AuthenticatorType,
-    RequestAuthenticator | null
-  > = {
+export const AuthenticationStore = {
+  authenticatorStore: {
     [AuthenticatorType.HTTP_BEARER]: null,
     [AuthenticatorType.HTTP_BASIC]: null,
     [AuthenticatorType.API_KEY_COOKIE]: null,
     [AuthenticatorType.NONE]: null, // todo: remove this
-  };
+  } as Record<AuthenticatorType, RequestAuthenticator | null>,
 
   // todo: authEndpoint required for bearer/cookie
-  static getOrCreateAuthenticator(
+  getOrCreateAuthenticator(
     authenticatorType: AuthenticatorType,
     apiBaseUrl: string,
     authEndpoint?: AuthEndpointInformation | null,
@@ -31,7 +28,7 @@ export class AuthenticationStore {
 
     if (!authenticatorAlreadyExists) {
       switch (authenticatorType) {
-        case AuthenticatorType.HTTP_BEARER:
+        case AuthenticatorType.HTTP_BEARER: {
           if (!authEndpoint) {
             throw new Error(
               "No auth endpoint information available but required for BearerAuthenticator",
@@ -42,10 +39,12 @@ export class AuthenticationStore {
             apiBaseUrl,
           );
           break;
-        case AuthenticatorType.HTTP_BASIC:
+        }
+        case AuthenticatorType.HTTP_BASIC: {
           this.authenticatorStore[authenticatorType] = new BasicAuthenticator();
           break;
-        case AuthenticatorType.API_KEY_COOKIE:
+        }
+        case AuthenticatorType.API_KEY_COOKIE: {
           if (!authEndpoint) {
             throw new Error(
               "No auth endpoint information available but required for CookieAuthenticator",
@@ -56,9 +55,10 @@ export class AuthenticationStore {
             apiBaseUrl,
           );
           break;
+        }
       }
     }
 
     return this.authenticatorStore[authenticatorType];
-  }
-}
+  },
+};

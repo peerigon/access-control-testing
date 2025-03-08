@@ -7,7 +7,11 @@ import { OpenAPIParser } from "../parsers/openapi-parser.ts";
 import { Resource } from "../policy/entities/resource.ts";
 import { User } from "../policy/entities/user.ts";
 import { PolicyDecisionPoint } from "../policy/policy-decision-point.ts";
-import { Action, ResourceIdentifier, ResourceName } from "../policy/types.ts";
+import type {
+  Action,
+  ResourceIdentifier,
+  ResourceName,
+} from "../policy/types.ts";
 import { removeObjectDuplicatesFromArray } from "../utils.ts";
 import { TestCase } from "./runner/test-runner.ts";
 import { performRequest, Route } from "./test-utils.ts";
@@ -36,7 +40,7 @@ export class TestcaseGenerator {
     private readonly users: Array<User>,
   ) {}
 
-  public generateTestCombinations(): TestCombinations {
+  generateTestCombinations(): TestCombinations {
     // todo: generate full-formed URLs with parameters
     // todo: for now only query parameters and path parameters are supported, maybe add support for other types of parameters
     // resource params mapping
@@ -49,9 +53,6 @@ export class TestcaseGenerator {
       pathResourceMappings.flatMap<TestCombination>((pathResourceMapping) => {
         // todo: create Route object for url & method to use instead
         const { path, method, isPublicPath, resources } = pathResourceMapping;
-
-        // todo: handle multiple resources: foreach resource in resources
-        const currentResource = resources[0];
 
         if (resources.length > 1) {
           console.warn(
@@ -86,6 +87,10 @@ export class TestcaseGenerator {
           };
         }
 
+        // todo: handle multiple resources: foreach resource in resources
+        // resource availability was checked before, so there is at least one resource available
+        const currentResource = resources[0]!;
+
         // only use resourceUserCombinations that match with the given resource and access type
 
         // resource (from resources inside of pathResourceMapping) is a Resource object mapped to the iterated url
@@ -111,7 +116,7 @@ export class TestcaseGenerator {
           const resource = new Resource(resourceName);
 
           const resourceIdentifierRequiredButNotProvided =
-            currentResource.parameterName != undefined &&
+            currentResource.parameterName !== undefined &&
             OpenAPIParser.pathContainsParameter(
               path,
               currentResource.parameterName,
@@ -157,12 +162,12 @@ export class TestcaseGenerator {
   }
 
   private generateResourceUserCombinations() {
-    const resourceUserCombinations: ObjectSet<{
+    const resourceUserCombinations = new ObjectSet<{
       user: User;
       resourceName: ResourceName;
       resourceAction: Action;
       resourceIdentifier?: ResourceIdentifier;
-    }> = new ObjectSet();
+    }>();
 
     // todo: move this explanation to JSDoc
     // generate combinations between users, actions, resources and resource ids
@@ -200,7 +205,7 @@ export class TestcaseGenerator {
       // adds additional test cases only when resource/access combination is not already covered by someone who is permitted to access it
     }
 
-    return Array.from(resourceUserCombinations);
+    return [...resourceUserCombinations];
   }
 
   public async generateTestCases(): Promise<Array<TestCase>> {
