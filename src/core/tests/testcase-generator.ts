@@ -13,7 +13,7 @@ import type {
   ResourceName,
 } from "../policy/types.ts";
 import { removeObjectDuplicatesFromArray } from "../utils.ts";
-import { TestCase } from "./runner/test-runner.ts";
+import type { TestCase } from "./runner/test-runner.ts";
 import { performRequest, Route } from "./test-utils.ts";
 
 export type TestCombination = {
@@ -208,7 +208,7 @@ export class TestcaseGenerator {
     return [...resourceUserCombinations];
   }
 
-  public async generateTestCases(): Promise<Array<TestCase>> {
+  async generateTestCases(): Promise<Array<TestCase>> {
     const testCombinations = this.generateTestCombinations();
 
     const results: Array<TestResult> = [];
@@ -252,10 +252,10 @@ export class TestcaseGenerator {
           let response;
           try {
             response = await performRequest(route, authenticator, credentials);
-          } catch (e: unknown) {
+          } catch (error: unknown) {
             // todo: create two Error instances
-            if (e instanceof Error) {
-              console.error(e.message);
+            if (error instanceof Error) {
+              console.error(error.message);
 
               console.warn(
                 `Could not impersonate user '${user}' while trying to reach route ${route.method} ${route.url}.
@@ -268,7 +268,7 @@ export class TestcaseGenerator {
               }
 
               testResult.testResult = "⏭️";
-              skip(e.message);
+              skip(error.message);
             }
 
             return;

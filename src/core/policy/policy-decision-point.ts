@@ -17,8 +17,8 @@ export const PolicyDecisionPoint = {
    *   to perform the action on
    * @param resourceIdentifier The identifier of the specific resource the user
    *   wants to perform the action on
-   * @returns True if the user is permitted to perform the action on the resource,
-   *   false otherwise
+   * @returns True if the user is permitted to perform the action on the
+   *   resource, false otherwise
    */
   isAllowed(
     user: User,
