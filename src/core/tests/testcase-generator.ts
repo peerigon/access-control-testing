@@ -85,6 +85,7 @@ export class TestcaseGenerator {
         }
 
         // todo: handle multiple resources: foreach resource in resources
+        // resource availability was checked before, so there is at least one resource available
         const currentResource = resources[0]!;
 
         // only use resourceUserCombinations that match with the given resource and access type
@@ -112,12 +113,12 @@ export class TestcaseGenerator {
           const resource = new Resource(resourceName);
 
           const resourceIdentifierRequiredButNotProvided =
-            currentResource.parameterName != undefined &&
+            currentResource.parameterName !== undefined &&
             OpenAPIParser.pathContainsParameter(
               path,
               currentResource.parameterName,
             ) &&
-            resourceIdentifier === undefined;
+            resourceIdentifier == undefined;
 
           if (resourceIdentifierRequiredButNotProvided) {
             return [];
