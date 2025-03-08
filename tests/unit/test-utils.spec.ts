@@ -1,7 +1,5 @@
 import { test } from "@japa/runner";
 import { CookieJar } from "tough-cookie";
-// todo: Japa types only available in NodeNext
-// but then type issues with library types come up when not set to ESNext
 import { performRequest } from "../../src/core/tests/test-utils.ts";
 import {
   createCookieAuthenticator,
@@ -13,10 +11,10 @@ import {
 } from "../mock-server.ts";
 
 test.group("TestUtils", (group) => {
-  group.setup(async () => {
+  group.each.setup(async () => {
     await startMockServer();
 
-    return async () => await stopMockServer();
+    return () => void stopMockServer();
   });
 
   test("performRequest should properly authenticate via cookie-based authentication", async ({
@@ -53,12 +51,15 @@ test.group("TestUtils", (group) => {
       password: validPassword,
     };
 
-    // @ts-expect-error
+    // @ts-expect-error sessionStore is manipulated for testing purposes
     const sessionStore = cookieAuthenticator.sessionStore;
-    sessionStore.set(credentials.identifier, {
+
+    const temporarySession = {
       cookies: new CookieJar(),
       isOldSession: true, // used to test if old session gets removed
-    });
+    };
+
+    sessionStore.set(credentials.identifier, temporarySession);
 
     const response = await performRequest(
       protectedRoute,
@@ -71,7 +72,8 @@ test.group("TestUtils", (group) => {
     const session = sessionStore.get(credentials.identifier);
     expect(session).toBeDefined();
     expect(session?.cookies).toBeDefined();
-    expect(session?.isOldSession).toBeUndefined();
+
+    expect(session).not.toHaveProperty("isOldSession");
 
     expect(response.statusCode).toBe(200);
   }).disableTimeout();

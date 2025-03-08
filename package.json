@@ -1,28 +1,22 @@
 {
   "name": "access-control-testing",
   "version": "1.0.0",
+  "license": "MIT",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "/dist"
   ],
   "scripts": {
-    "build": "tsc",
-    "test:unit": "tsx tests/test.ts"
-  },
-  "license": "MIT",
-  "devDependencies": {
-    "@japa/expect": "^3.0.3",
-    "@japa/runner": "^4.1.0",
-    "@types/node": "^22.10.1",
-    "eslint": "^8.57.1",
-    "eslint-config-peerigon": "^40.0.0",
-    "eslint-plugin-jsdoc": "^50.6.1",
-    "eslint-plugin-n": "^17.15.1",
-    "prettier": "^3.4.2",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "build": "tsc -p tsconfig.build.json",
+    "test": "run-p test:*",
+    "test:unit": "tsx tests/test.ts",
+    "test:lint": "eslint --cache .",
+    "test:format": "prettier --check .",
+    "test:types": "tsc",
+    "prettier:fix": "prettier --write .",
+    "eslint:fix": "eslint --fix ."
   },
   "dependencies": {
     "got": "^14.4.5",
@@ -33,5 +27,16 @@
     "url-template": "^3.1.1",
     "zod": "^3.24.1"
   },
-  "type": "module"
+  "devDependencies": {
+    "@japa/expect": "^3.0.3",
+    "@japa/runner": "^4.1.0",
+    "@peerigon/configs": "^4.0.0",
+    "@types/node": "^22.10.1",
+    "eslint": "^9.21.0",
+    "npm-run-all2": "^7.0.2",
+    "prettier": "^3.4.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.2"
+  }
 }

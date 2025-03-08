@@ -30,7 +30,7 @@ export const createResourceDescriptorSchema = (
     .object({
       resourceAccess: z.enum(["create", "read", "update", "delete"]).optional(), // todo: unify naming access/action etc.
       resourceName: z
-        .enum(allowedResourceNames as [string, ...string[]])
+        .enum(allowedResourceNames as [string, ...Array<string>])
         .optional(),
     })
     .refine(

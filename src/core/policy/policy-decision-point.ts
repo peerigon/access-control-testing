@@ -1,20 +1,26 @@
 import { Resource } from "./entities/resource.ts";
 import { User } from "./entities/user.ts";
 import { Privilege } from "./privilege.ts";
-import { Action, ResourceIdentifier } from "./types.ts";
+import { type Action, type ResourceIdentifier } from "./types.ts";
 
-export class PolicyDecisionPoint {
+export const PolicyDecisionPoint = {
   // todo: rename resource with ResourceType, since its not a concrete instance of a Resource?
   // some resources could be public for all (-> make that configurable)
   /**
-   * Decides if a user is allowed to perform an action on a resource based on the user's privileges that are derived from the user's relationships to resources.
+   * Decides if a user is allowed to perform an action on a resource based on
+   * the user's privileges that are derived from the user's relationships to
+   * resources.
+   *
    * @param user The user that wants to perform the action
    * @param action The action the user wants to perform
-   * @param resource The resource object describing the resource the user wants to perform the action on
-   * @param resourceIdentifier The identifier of the specific resource the user wants to perform the action on
-   * @returns true if the user is allowed to perform the action on the resource, false otherwise
+   * @param resource The resource object describing the resource the user wants
+   *   to perform the action on
+   * @param resourceIdentifier The identifier of the specific resource the user
+   *   wants to perform the action on
+   * @returns True if the user is allowed to perform the action on the resource,
+   *   false otherwise
    */
-  public static isAllowed(
+  isAllowed(
     user: User,
     action: Action,
     resource: Resource,
@@ -36,34 +42,43 @@ export class PolicyDecisionPoint {
       .getResourcePrivileges(Resource.getResourceDescription(resource))
       ?.some((privilege) => privilege === requiredPrivilege);
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return Boolean(userHasPrivilegeExplicitly || userInheritedPrivilege);
-  }
+  },
 
   // todo: rename action to accessType?
-  private static convertActionToPrivilege(action: Action): Privilege {
+  convertActionToPrivilege(action: Action): Privilege {
     switch (action) {
-      case "create":
+      case "create": {
         return Privilege.CREATE;
-      case "read":
+      }
+      case "read": {
         return Privilege.READ;
-      case "update":
+      }
+      case "update": {
         return Privilege.UPDATE;
-      case "delete":
+      }
+      case "delete": {
         return Privilege.DELETE;
+      }
     }
-  }
+  },
 
   // todo: move somewhere else
-  public static convertPrivilegeToAction(privilege: Privilege): Action {
+  convertPrivilegeToAction(privilege: Privilege): Action {
     switch (privilege) {
-      case Privilege.CREATE:
+      case Privilege.CREATE: {
         return "create";
-      case Privilege.READ:
+      }
+      case Privilege.READ: {
         return "read";
-      case Privilege.UPDATE:
+      }
+      case Privilege.UPDATE: {
         return "update";
-      case Privilege.DELETE:
+      }
+      case Privilege.DELETE: {
         return "delete";
+      }
     }
-  }
-}
+  },
+};

@@ -18,7 +18,7 @@ class Act {
     // todo: check if both are valid urls
   }
 
-  public async scan() {
+  async scan() {
     console.log("Scanning...");
 
     const testRunner = this.options.testRunner
@@ -36,4 +36,7 @@ class Act {
   }
 }
 
-export { Act, User, Resource };
+export { Act };
+
+export { User } from "../core/policy/entities/user.ts";
+export { Resource } from "../core/policy/entities/resource.ts";

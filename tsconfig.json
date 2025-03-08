@@ -1,18 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "NodeNext",
-    "lib": ["ESNext"],
-    "allowJs": true,
-    "outDir": "dist",
-    "rootDir": "./",
-    "strict": true,
-    "noImplicitAny": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
-    "rewriteRelativeImportExtensions": true,
-    "skipLibCheck": true
-  },
-  "include": ["src/**/*", "*.config.js"]
+  "extends": "@peerigon/configs/typescript",
+  "exclude": ["demo-application", "dist"]
 }

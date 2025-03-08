@@ -1,4 +1,4 @@
-import { RequestAuthenticator } from "./authenticator.ts";
+import { type RequestAuthenticator } from "./authenticator.ts";
 import { SessionManager } from "./session-manager.ts";
 import type {
   AuthenticationCredentials,
@@ -44,13 +44,13 @@ export class BearerAuthenticator
     return session;
   }
 
-  public async authenticateRequest(
+  async authenticateRequest(
     requestOptions: RequestOptions,
     credentials: AuthenticationCredentials,
   ) {
     const session = await this.findOrInitializeSession(credentials);
 
-    if (!session?.bearerToken) {
+    if (!session.bearerToken) {
       throw new Error("Could not initialize session with bearer token");
     }
 

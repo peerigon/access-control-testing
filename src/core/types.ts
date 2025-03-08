@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { AuthParameterLocationDescription } from "./authentication/http/types.js";
-import type { OpenAPIParser } from "./parsers/openapi-parser.js";
+import type { AuthParameterLocationDescription } from "./authentication/http/types.ts";
+import type { OpenAPIParser } from "./parsers/openapi-parser.ts";
 import type { ConfigurationSchema, OpenApiPathsSchema } from "./schemas.ts";
 
 export type Configuration = z.infer<typeof ConfigurationSchema>;

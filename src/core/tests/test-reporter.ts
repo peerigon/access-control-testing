@@ -3,9 +3,9 @@ import type { TestCase } from "./testcase-generator.ts";
 
 // todo: clarify how test report will work
 export class TestReporter extends BaseReporter {
-  static name = "custom";
+  static override name = "custom";
 
-  onTestEnd(testPayload: any) {
+  override onTestEnd(testPayload: any) {
     const { hasError: testFailed } = testPayload;
 
     const testStateRepresentation = testFailed ? "❌" : "✅";
@@ -45,10 +45,10 @@ Expected status:    ${expected}
     }
   }
 
-  async start() {
+  override async start() {
     console.log("starting");
   }
-  async end() {
+  override async end() {
     if (!this.runner) return;
 
     const summary = this.runner.getSummary();

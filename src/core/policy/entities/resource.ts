@@ -1,21 +1,22 @@
-import { ResourceIdentifier } from "../types.js";
+import { type ResourceIdentifier } from "../types.ts";
 
 export class Resource {
   // todo: make sure name is unique?
   // todo: also validate that it can't contain a : character since it is used as a separator
   constructor(private readonly name: string) {}
 
-  public getName() {
+  getName() {
     return this.name;
   }
 
   /**
-   * Derives a resource description from a resource and an optional resource identifier
-   * Example: "todo:123" or "todo"
+   * Derives a resource description from a resource and an optional resource
+   * identifier Example: "todo:123" or "todo"
+   *
    * @param resource
    * @param resourceIdentifier
    */
-  public static getResourceDescription(
+  static getResourceDescription(
     resource: Resource,
     resourceIdentifier?: ResourceIdentifier,
   ) {
