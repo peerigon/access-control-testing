@@ -10,6 +10,8 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build",
+    "publish:local": "npx yalc publish",
     "test": "run-p test:*",
     "test:unit": "tsx tests/test.ts",
     "test:lint": "eslint --cache .",
