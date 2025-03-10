@@ -3,18 +3,20 @@ import { CookieJar } from "tough-cookie";
 import { performRequest } from "../../src/core/tests/test-utils.ts";
 import {
   createCookieAuthenticator,
+  createMockServer,
   protectedRoute,
-  startMockServer,
-  stopMockServer,
   validPassword,
   validUsername,
 } from "../mock-server.ts";
 
 test.group("TestUtils", (group) => {
   group.each.setup(async () => {
-    await startMockServer();
+    const server = createMockServer();
+    await server.start();
 
-    return () => void stopMockServer();
+    return async () => {
+      await server.stop();
+    };
   });
 
   test("performRequest should properly authenticate via cookie-based authentication", async ({
@@ -37,9 +39,7 @@ test.group("TestUtils", (group) => {
       identifier: validUsername,
       password: "wrongpassword",
     });
-  })
-    .throws(/authentication endpoint returned a non-successful response/)
-    .disableTimeout();
+  }).throws(/authentication endpoint returned a non-successful response/);
 
   test("performRequest should remove invalid credentials from session store", async ({
     expect,

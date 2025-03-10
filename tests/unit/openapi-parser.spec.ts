@@ -32,8 +32,15 @@ test.group("OpenAPIParser", (group) => {
       });
     });
 
-    return () => {
-      server.close();
+    return async () => {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => {
+          if (error) {
+            reject(error);
+          }
+          resolve();
+        });
+      });
     };
   });
 
@@ -141,6 +148,22 @@ test.group("OpenAPIParser", (group) => {
   }).throws(
     "To describe required resources in routes, both 'resourceName' and 'resourceAccess' must be defined at the same time.",
   );
+
+  test("should properly combine api base url containing path with given path", async ({
+    expect,
+  }) => {
+    const apiBaseUrlWithPath = "https://staging.example.com/api/";
+
+    const openAPIParser = await OpenAPIParser.create(
+      specUrl,
+      apiBaseUrlWithPath,
+    );
+
+    const combinedUrl = openAPIParser.constructFullApiUrl("/users");
+    expect(combinedUrl.toString()).toBe(
+      "https://staging.example.com/api/users",
+    );
+  });
 
   // todo: validate that there is an auth endpoint for every security scheme
   // todo: validate auth endpoint field

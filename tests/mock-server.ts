@@ -1,21 +1,20 @@
-import { createServer } from "node:http";
+import { serve, type ServerType } from "@hono/node-server";
+import { Hono } from "hono";
+import { getCookie, setCookie } from "hono/cookie";
 import { CookieAuthenticator } from "../src/core/authentication/http/cookie-authenticator.ts";
 import { Route } from "../src/core/tests/test-utils.ts";
 import type { AuthEndpointInformation } from "../src/core/types.ts";
 
-const PORT = 5000;
-const HOST = "127.0.0.1";
-const BASE_URL = `http://${HOST}:${PORT}`;
+const PORT = 4999;
+const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 const authEndpointInfo: AuthEndpointInformation = {
-  // @ts-ignore
   authEndpoint: {
     method: "post",
     path: "/login",
-    // todo: supply with operation data coming from OpenAPIParser
-  },
+  } as any, // todo: fix the type of authEndpoint to be an Operation
   authRequestParameterDescription: {
-    username: {
+    identifier: {
       parameterName: "username",
       parameterLocation: "body",
     },
@@ -33,57 +32,84 @@ const authEndpointInfo: AuthEndpointInformation = {
 const validUsername = "user";
 const validPassword = "password";
 const validSessionId = "f48cdbd8-3fd0-4a65-8e02-4536172c0661";
-const mockServer = createServer((req, res) => {
-  if (req.url === "/login" && req.method === "POST") {
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk;
-    });
-    req.on("end", () => {
-      const { username, password } = JSON.parse(body);
-      if (username === validUsername && password === validPassword) {
-        const sessionCookie = `session=${validSessionId}`;
-        res.writeHead(200, { "Set-Cookie": sessionCookie });
-      } else {
-        res.writeHead(401);
-      }
-      res.end();
-    });
-  } else if (req.url === "/protected") {
-    const cookieHeader = req.headers.cookie;
 
-    const isValidSessionId = cookieHeader?.includes(validSessionId);
-    if (isValidSessionId) {
-      res.writeHead(200);
-    } else {
-      res.writeHead(401);
-    }
+class MockServer {
+  private app: Hono;
+  private server: ServerType | null = null;
 
-    res.end();
-  } else {
-    res.writeHead(404);
-    res.end();
+  constructor() {
+    this.app = new Hono();
+    this.setupRoutes();
   }
-});
 
+  private setupRoutes() {
+    this.app.post("/login", async (c) => {
+      const { username, password } = await c.req.json();
+
+      if (username === validUsername && password === validPassword) {
+        setCookie(c, "session", validSessionId, { path: "/", httpOnly: true });
+        return c.text("Login successful", 200);
+      }
+
+      return c.text("Unauthorized", 401);
+    });
+
+    this.app.get("/protected", async (c) => {
+      const session = getCookie(c, "session");
+
+      if (session === validSessionId) {
+        return c.text("Access granted", 200);
+      }
+
+      return c.text("Unauthorized", 401);
+    });
+  }
+
+  async start(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.server = serve({
+        fetch: this.app.fetch,
+        port: PORT,
+      });
+
+      console.log(`Mock server listens on ${BASE_URL}`);
+      this.server.on("listening", () => {
+        setTimeout(() => {
+          resolve();
+        }, 0); // todo: figure out if this works reliably, also try to find a better solution
+      });
+
+      this.server.on("error", (error: Error) => {
+        reject(error);
+      });
+    });
+  }
+
+  async stop(): Promise<void> {
+    if (this.server) {
+      return new Promise<void>((resolve, reject) => {
+        this.server!.close((err) => {
+          console.log("Mock server stopped");
+          if (err) {
+            return reject(err);
+          }
+          this.server = null;
+          resolve();
+        });
+      });
+    }
+  }
+}
+
+// **Exportiere Factory-Funktionen für einfachere Nutzung**
+const createMockServer = () => new MockServer();
 const createCookieAuthenticator = () =>
   new CookieAuthenticator(authEndpointInfo, BASE_URL);
-
-const startMockServer = () =>
-  new Promise((resolve) => {
-    mockServer.listen(PORT, HOST, void resolve);
-  });
-
-const stopMockServer = () =>
-  new Promise((resolve) => {
-    mockServer.close(() => resolve);
-  });
 
 const protectedRoute = new Route(new URL(`${BASE_URL}/protected`), "GET");
 
 export {
-  startMockServer,
-  stopMockServer,
+  createMockServer,
   createCookieAuthenticator,
   BASE_URL,
   validUsername,

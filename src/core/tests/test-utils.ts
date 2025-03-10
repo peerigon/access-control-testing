@@ -66,7 +66,9 @@ export async function performRequest(
             try {
               await authenticator.authenticateRequest(options, credentials);
             } catch (error) {
-              const isNonSuccessfulResponse = error instanceof HTTPError;
+              const isNonSuccessfulResponse =
+                error instanceof HTTPError &&
+                error.code === "ERR_NON_2XX_3XX_RESPONSE";
 
               // todo: include info about authentication endpoint in error message
               const user = credentials.identifier;

@@ -4,8 +4,7 @@ import { Privilege } from "./privilege.ts";
 import { type Action, type ResourceIdentifier } from "./types.ts";
 
 export const PolicyDecisionPoint = {
-  // todo: rename resource with ResourceType, since its not a concrete instance of a Resource?
-  // some resources could be public for all (-> make that configurable)
+  // todo: some resources could be public for all (-> make that configurable)
   /**
    * Decides if a user is permitted to perform an action on a resource based on
    * the user's privileges that are derived from the user's relationships to
@@ -47,7 +46,7 @@ export const PolicyDecisionPoint = {
   },
 
   // todo: rename action to accessType?
-  convertActionToPrivilege(action: Action): Privilege {
+  convertActionToPrivilege: (action: Action): Privilege => {
     switch (action) {
       case "create": {
         return Privilege.CREATE;
@@ -65,7 +64,7 @@ export const PolicyDecisionPoint = {
   },
 
   // todo: move somewhere else
-  convertPrivilegeToAction(privilege: Privilege): Action {
+  convertPrivilegeToAction: (privilege: Privilege): Action => {
     switch (privilege) {
       case Privilege.CREATE: {
         return "create";
