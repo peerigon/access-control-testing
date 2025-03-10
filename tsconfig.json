@@ -1,4 +1,7 @@
 {
   "extends": "@peerigon/configs/typescript",
-  "exclude": ["demo-application", "dist"]
+  "exclude": ["demo-application", "dist"],
+  "compilerOptions": {
+    "skipLibCheck": true
+  }
 }

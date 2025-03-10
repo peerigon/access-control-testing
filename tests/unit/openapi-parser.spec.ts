@@ -32,7 +32,16 @@ test.group("OpenAPIParser", (group) => {
       });
     });
 
-    return () => server.close();
+    return async () => {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => {
+          if (error) {
+            reject(error);
+          }
+          resolve();
+        });
+      });
+    };
   });
 
   test("should retrieve spec from local server", async () => {

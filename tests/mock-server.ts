@@ -12,7 +12,7 @@ const authEndpointInfo: AuthEndpointInformation = {
   authEndpoint: {
     method: "post",
     path: "/login",
-  },
+  } as any, // todo: fix the type of authEndpoint to be an Operation
   authRequestParameterDescription: {
     identifier: {
       parameterName: "username",
@@ -66,7 +66,7 @@ class MockServer {
   }
 
   async start(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.server = serve({
         fetch: this.app.fetch,
         port: PORT,
@@ -79,8 +79,8 @@ class MockServer {
         }, 0); // todo: figure out if this works reliably, also try to find a better solution
       });
 
-      this.server.on("error", (err) => {
-        reject(err);
+      this.server.on("error", (error: Error) => {
+        reject(error);
       });
     });
   }
