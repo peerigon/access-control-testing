@@ -29,6 +29,7 @@ class Act {
 }
 
 export { Act };
-
 export { User } from "../core/policy/entities/user.ts";
 export { Resource } from "../core/policy/entities/resource.ts";
+export { NodeTestRunner } from "../core/tests/runner/node-test-runner.ts";
+export { TestRunner } from "../core/tests/runner/test-runner.ts";
