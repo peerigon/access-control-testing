@@ -1,23 +1,29 @@
 import assert from "node:assert";
 import { test } from "node:test";
-import type { TestRunner } from "./test-runner.ts";
+import { TestRunner, type TestCase } from "./test-runner.ts";
 
 const expect = (actual: unknown) => ({
   toBe: (expected: unknown) => assert.strictEqual(actual, expected),
   notToBe: (expected: unknown) => assert.notStrictEqual(actual, expected),
 });
 
-export const NodeTestRunner: TestRunner = {
-  run: (testCases) => {
-    testCases.forEach((testCase) => {
-      void test(testCase.name, () => {
-        testCase.test({
-          expect,
-          skip: (reason) => {
-            void test.skip(reason);
-          },
-        });
-      });
-    });
-  },
-};
+export class NodeTestRunner extends TestRunner {
+  override async run(testCases: Array<TestCase>) {
+    await Promise.all(
+      testCases.map((testCase) =>
+        test(testCase.name, async () => {
+          const testResult = await testCase.test({
+            expect,
+            skip: (reason) => {
+              void test.skip(reason);
+            },
+          });
+
+          if (testResult) {
+            this.testResults.push(testResult);
+          }
+        }),
+      ),
+    );
+  }
+}

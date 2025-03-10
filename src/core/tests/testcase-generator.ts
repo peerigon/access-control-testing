@@ -13,7 +13,7 @@ import type {
   ResourceName,
 } from "../policy/types.ts";
 import { removeObjectDuplicatesFromArray } from "../utils.ts";
-import type { TestCase } from "./runner/test-runner.ts";
+import type { TestCase, TestResult } from "./runner/test-runner.ts";
 import { performRequest, Route } from "./test-utils.ts";
 
 export type TestCombination = {
@@ -23,14 +23,6 @@ export type TestCombination = {
 };
 
 type AccessControlResult = "permitted" | "denied";
-
-type TestResult = {
-  user: User | null;
-  route: Route;
-  expected: AccessControlResult;
-  actual?: AccessControlResult;
-  testResult?: "✅" | "❌" | "⏭️";
-};
 
 export type TestCombinations = Array<TestCombination>;
 
@@ -211,7 +203,7 @@ export class TestcaseGenerator {
   async generateTestCases(): Promise<Array<TestCase>> {
     const testCombinations = this.generateTestCombinations();
 
-    const results: Array<TestResult> = [];
+    //const results: Array<TestResult> = [];
     const blockedUserIdentifiers: Array<User["identifier"]> = []; // todo: still working?
 
     return testCombinations.map((testCombination) => {
@@ -230,7 +222,7 @@ export class TestcaseGenerator {
             expected,
             testResult: "❌",
           };
-          results.push(testResult);
+          //results.push(testResult);
 
           const userHasBeenBlocked =
             user !== null &&
@@ -329,6 +321,8 @@ export class TestcaseGenerator {
           testResult.actual = actual;
           //testResult.authenticator = authenticator;
           testResult.testResult = actual === expected ? "✅" : "❌";
+
+          return testResult;
         },
       };
     });
