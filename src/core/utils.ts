@@ -58,3 +58,11 @@ export const parseOpenApiAuthField = (
 export const removeObjectDuplicatesFromArray = <ArrayItemType>(
   array: Array<ArrayItemType>,
 ) => [...new ObjectSet(array)];
+
+export const removeTrailingSlash = (str: string): string => {
+  return str.endsWith("/") ? str.slice(0, -1) : str;
+};
+
+export const removeLeadingSlash = (str: string): string => {
+  return str.startsWith("/") ? str.slice(1) : str;
+};

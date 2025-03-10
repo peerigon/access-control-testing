@@ -23,6 +23,8 @@ import {
   getOpenApiField,
   isValidUrl,
   parseOpenApiAuthField,
+  removeLeadingSlash,
+  removeTrailingSlash,
 } from "../utils.ts";
 
 type SpecificationUrl = ConstructorParameters<typeof OASNormalize>[0];
@@ -510,8 +512,14 @@ export class OpenAPIParser {
     return urlTemplate.expand(parameters);
   }
 
+  static combineUrl(baseUrl: string, path: string) {
+    return new URL(
+      removeTrailingSlash(baseUrl) + "/" + removeLeadingSlash(path),
+    );
+  }
+
   constructFullApiUrl(url: string) {
-    return new URL(url, this.apiBaseUrl);
+    return OpenAPIParser.combineUrl(this.apiBaseUrl, url);
   }
 
   static pathContainsParameter(path: string, parameterName: string) {
