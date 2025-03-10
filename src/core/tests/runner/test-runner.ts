@@ -27,6 +27,10 @@ export type TestCase = {
 
 export type TestContext = {
   expect: Expectation;
+  /**
+   * Skip the current test case. For test runners that do not support skipping
+   * an already running test case, an appropriate warning should be displayed.
+   */
   skip: (reason?: string) => void;
 };
 
