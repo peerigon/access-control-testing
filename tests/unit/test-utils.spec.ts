@@ -13,6 +13,7 @@ test.group("TestUtils", (group) => {
   group.each.setup(async () => {
     const server = createMockServer();
     await server.start();
+    console.log("test");
 
     return async () => {
       await server.stop();
