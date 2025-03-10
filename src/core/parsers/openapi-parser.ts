@@ -169,7 +169,7 @@ export class OpenAPIParser {
     }
   }
 
-  getPaths() {
+  getPaths(): ReturnType<OpenAPIParser["transformPathsSchema"]> {
     const oasPaths = this.openApiSource.getPaths();
 
     return this.transformPathsSchema(oasPaths);
