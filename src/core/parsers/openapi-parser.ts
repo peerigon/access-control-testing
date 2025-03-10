@@ -141,7 +141,9 @@ export class OpenAPIParser {
     const jsonSpecification =
       await OpenAPIParser.parseOpenAPI(specificationUrl);
 
-    return new Oas(jsonSpecification as OASDocument); // todo: fix type
+    const oasInstance = new Oas(jsonSpecification as OASDocument); // .dereference(); // todo: fix type
+    await oasInstance.dereference();
+    return oasInstance;
   }
 
   private static async parseOpenAPI(specificationUrl: SpecificationUrl) {
