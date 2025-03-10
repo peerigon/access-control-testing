@@ -1,7 +1,7 @@
 import { User } from "../../policy/entities/user";
 import { Route } from "../test-utils";
 
-type AccessControlResult = "permitted" | "denied";
+export type AccessControlResult = "permitted" | "denied";
 
 export type TestResult = {
   user: User | null;
@@ -16,9 +16,13 @@ export type Expectation = (actual: unknown) => {
   notToBe: (expected: unknown) => void;
 };
 
+export type TestCaseFunction = (
+  testContext: TestContext,
+) => Promise<TestResult | undefined>;
+
 export type TestCase = {
   name: string;
-  test: (testContext: TestContext) => Promise<TestResult | undefined>;
+  test: TestCaseFunction;
 };
 
 export type TestContext = {
