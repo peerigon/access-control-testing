@@ -1,25 +1,29 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
-import type { Expectation, TestRunner } from "./test-runner.ts";
+import { test } from "node:test";
+import { TestRunner, type TestCase } from "./test-runner.ts";
 
-export class NodeTestRunner implements TestRunner {
-  group(name: string, callback: () => void) {
-    void describe(name, callback);
-  }
+const expect = (actual: unknown) => ({
+  toBe: (expected: unknown) => assert.strictEqual(actual, expected),
+  notToBe: (expected: unknown) => assert.notStrictEqual(actual, expected),
+});
 
-  test(
-    name: string,
-    callback: (t: { skip: (reason?: string) => void }) => Promise<void> | void,
-  ) {
-    void it(name, async (t) =>
-      callback({ skip: (reason?: string) => t.skip(reason) }),
+export class NodeTestRunner extends TestRunner {
+  override async run(testCases: Array<TestCase>) {
+    await Promise.all(
+      testCases.map((testCase) =>
+        test(testCase.name, async () => {
+          const testResult = await testCase.test({
+            expect,
+            skip: (reason) => {
+              void test.skip(reason);
+            },
+          });
+
+          if (testResult) {
+            this.testResults.push(testResult);
+          }
+        }),
+      ),
     );
-  }
-
-  expect(actual: any): Expectation {
-    return {
-      toBe: (expected) => assert.strictEqual(actual, expected),
-      notToBe: (expected) => assert.notStrictEqual(actual, expected),
-    };
   }
 }

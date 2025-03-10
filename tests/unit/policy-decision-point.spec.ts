@@ -5,7 +5,7 @@ import { PolicyDecisionPoint } from "../../src/core/policy/policy-decision-point
 
 // todo: how to name tests and test files?
 test.group("PolicyDecisionPoint.isAllowed", () => {
-  test("allowed access is allowed", ({ expect }) => {
+  test("allowed access is permitted", ({ expect }) => {
     const user1 = new User("user1", "password");
     const todoResource = new Resource("Todo");
     const resourceIdentifier = 123;

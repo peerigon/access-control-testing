@@ -6,7 +6,7 @@ import { type Action, type ResourceIdentifier } from "./types.ts";
 export const PolicyDecisionPoint = {
   // todo: some resources could be public for all (-> make that configurable)
   /**
-   * Decides if a user is allowed to perform an action on a resource based on
+   * Decides if a user is permitted to perform an action on a resource based on
    * the user's privileges that are derived from the user's relationships to
    * resources.
    *
@@ -16,8 +16,8 @@ export const PolicyDecisionPoint = {
    *   to perform the action on
    * @param resourceIdentifier The identifier of the specific resource the user
    *   wants to perform the action on
-   * @returns True if the user is allowed to perform the action on the resource,
-   *   false otherwise
+   * @returns True if the user is permitted to perform the action on the
+   *   resource, false otherwise
    */
   isAllowed(
     user: User,

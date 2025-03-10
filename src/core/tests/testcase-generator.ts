@@ -9,26 +9,17 @@ import type {
   ResourceName,
 } from "../policy/types.ts";
 import { removeObjectDuplicatesFromArray } from "../utils.ts";
+import type { TestCase } from "./runner/test-runner.ts";
 import { Route } from "./test-utils.ts";
+import { TestCaseExecutor } from "./testcase-executor.ts";
 
-export type TestCase = {
-  user: User | null; // alternatively: AnonymousUser (extends User)
+export type TestCombination = {
+  user: User | null;
   route: Route;
   expectedRequestToBeAllowed: boolean;
 };
-export type TestCases = Array<TestCase>;
 
-/*
-user1.canView(userResource); // can view all Users -> /admin/users & /admin/users/:id
-console.log(
-  "user1canview",
-  PolicyDecisionPoint.isAllowed(user1, "read", userResource, 1), // todo: read vs. view?
-);*/
-// todo: unit test for scenarios:
-// canView(userResource):
-//    isAllowed(user1, "read", userResource, 1) -> true && isAllowed(user1, "read", userResource) -> true
-// canView(userResource, 1):
-//    isAllowed(user1, "read", userResource, 1) -> true && isAllowed(user1, "read", userResource) -> false
+export type TestCombinations = Array<TestCombination>;
 
 export class TestcaseGenerator {
   constructor(
@@ -36,8 +27,7 @@ export class TestcaseGenerator {
     private readonly users: Array<User>,
   ) {}
 
-  // todo: this shouldn't be async, solve async in source (OpenAPI parser)
-  generateTestCases(): TestCases {
+  generateTestCombinations(): TestCombinations {
     // todo: generate full-formed URLs with parameters
     // todo: for now only query parameters and path parameters are supported, maybe add support for other types of parameters
     // resource params mapping
@@ -46,8 +36,8 @@ export class TestcaseGenerator {
     // each url resource mapping has "<Access> <Resource>" pairs with info where to find resource param
     const resourceUserCombinations = this.generateResourceUserCombinations();
 
-    const testcases: TestCases = pathResourceMappings.flatMap<TestCase>(
-      (pathResourceMapping) => {
+    const testcases: TestCombinations =
+      pathResourceMappings.flatMap<TestCombination>((pathResourceMapping) => {
         // todo: create Route object for url & method to use instead
         const { path, method, isPublicPath, resources } = pathResourceMapping;
 
@@ -62,7 +52,7 @@ export class TestcaseGenerator {
 
         // no resources available -> default: deny (except for "public" routes)
         // todo: mark routes as public (for anonymous users) or available for all logged-in users
-        // routes that are public for anonymous users are expected to be allowed for logged-in users too
+        // routes that are public for anonymous users are expected to be permitted for logged-in users too
 
         if (!routeHasResources) {
           if (isPublicPath) {
@@ -153,8 +143,7 @@ export class TestcaseGenerator {
             expectedRequestToBeAllowed,
           };
         });
-      },
-    );
+      });
 
     return removeObjectDuplicatesFromArray(testcases);
   }
@@ -167,6 +156,7 @@ export class TestcaseGenerator {
       resourceIdentifier?: ResourceIdentifier;
     }>();
 
+    // todo: move this explanation to JSDoc
     // generate combinations between users, actions, resources and resource ids
     // for that, go through relations of each user with a resource,
     // create a test case with expected result of true (for current user) and false (for other users)
@@ -199,9 +189,20 @@ export class TestcaseGenerator {
       // todo: knowledge of resources based on openapi definitions
       // this is only applicable for non-parameterized resources (e.g. GET /users) because no valid resourceIdentifiers are available
       // there will be no guessing of valid resourceIdentifiers in that case
-      // adds additional test cases only when resource/access combination is not already covered by someone who is allowed to access it
+      // adds additional test cases only when resource/access combination is not already covered by someone who is permitted to access it
     }
 
     return [...resourceUserCombinations];
+  }
+
+  async generateTestCases(): Promise<Array<TestCase>> {
+    const testCombinations = this.generateTestCombinations();
+    const testCaseExecutor = new TestCaseExecutor(this.openApiParser);
+
+    return testCombinations.map((testCombination) => ({
+      name: `${testCombination.route} from the perspective of user '${testCombination.user ?? "anonymous"}'`,
+      test: async (testContext) =>
+        testCaseExecutor.execute(testCombination, testContext),
+    }));
   }
 }

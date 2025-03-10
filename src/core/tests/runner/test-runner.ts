@@ -1,42 +1,59 @@
-import { NodeTestRunner } from "./node-test-runner.ts";
+import { User } from "../../policy/entities/user";
+import { Route } from "../test-utils";
 
-export type Expectation = {
-  toBe: (expected: any) => void;
-  notToBe: (expected: any) => void;
+export type AccessControlResult = "permitted" | "denied";
+
+export type TestResult = {
+  user: User | null;
+  route: Route;
+  expected: AccessControlResult;
+  actual?: AccessControlResult;
+  testResult?: "✅" | "❌" | "⏭️";
+};
+
+export type Expectation = (actual: unknown) => {
+  toBe: (expected: unknown) => void;
+  notToBe: (expected: unknown) => void;
+};
+
+export type TestCaseFunction = (
+  testContext: TestContext,
+) => Promise<TestResult | undefined>;
+
+export type TestCase = {
+  name: string;
+  test: TestCaseFunction;
 };
 
 export type TestContext = {
+  expect: Expectation;
+  /**
+   * Skip the current test case. For test runners that do not support skipping
+   * an already running test case, an appropriate warning should be displayed.
+   */
   skip: (reason?: string) => void;
 };
 
-// todo: expose TestRunner in api so a custom test-runner can be used when implementing this interface
-export type TestRunner = {
-  group: (name: string, callback: () => void) => void;
-  test: (
-    name: string,
-    callback: (t: TestContext) => Promise<void> | void,
-  ) => void;
-  expect: (actual: any) => Expectation;
-};
+export abstract class TestRunner {
+  protected testResults: Array<TestResult> = [];
 
-export type TestRunnerIdentifier = "node" | "jest";
+  constructor() {
+    process.on("beforeExit", () => this.printReport());
+  }
 
-const DEFAULT_TEST_RUNNER = "node";
-export const TestRunnerFactory = {
-  createTestRunner(
-    runner: TestRunnerIdentifier = DEFAULT_TEST_RUNNER,
-  ): TestRunner {
-    switch (runner) {
-      case "node": {
-        return new NodeTestRunner();
-      }
-      /*case "jest":
-        return new JestTestRunner();
-      case "japa":
-        return new JapaTestRunner();*/
-      default: {
-        throw new Error(`Unsupported test runner: ${runner}`);
-      }
-    }
-  },
-};
+  abstract run(testCases: Array<TestCase>): Promise<void>;
+
+  protected printReport(): void {
+    console.log("\n=== Test Report ===");
+
+    const transformedResults = this.testResults.map((result) => ({
+      ...result,
+      user: result.user?.toString() ?? "anonymous",
+      route: result.route.toString(),
+    }));
+
+    console.table(transformedResults);
+
+    // todo: enhance this with a detailed report containing all the routes that failed
+  }
+}

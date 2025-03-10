@@ -1,5 +1,5 @@
-// todo: replace this with from 'access-control-testing' later
 import { Act, Resource, User } from '../../src/api/index.ts'
+import { NodeTestRunner } from '../../src/core/tests/runner/node-test-runner.ts'
 
 const test = async () => {
   // todo: seed the database with testing data
@@ -24,7 +24,10 @@ const test = async () => {
     users,
     resources,
   })
-  await act.scan()
+
+  const testCases = await act.generateTestCases()
+  const testRunner = new NodeTestRunner()
+  await testRunner.run(testCases)
 }
 
 test()
