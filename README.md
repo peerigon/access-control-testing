@@ -14,5 +14,7 @@ Hierfür können folgende Befehle ausgeführt werden, nachdem yalc global instal
 npm run build
 npx yalc publish
 cd demo-application
-yalc add access-control-testing
+npx yalc add access-control-testing
 ```
+
+Um die Library zu updaten: `npx yalc update access-control-testing`

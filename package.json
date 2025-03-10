@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/api/index.js",
+  "types": "dist/api/index.d.ts",
   "files": [
-    "/dist"
+    "dist"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
