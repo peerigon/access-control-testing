@@ -59,12 +59,12 @@ export abstract class SessionManager<SessionType extends Session> {
       authResponseParameterDescription,
     } = this.authEndpointInformation;
 
-    const { parameterName: usernameParameterName } =
-      authRequestParameterDescription.username;
+    const { parameterName: identifierParameterName } =
+      authRequestParameterDescription.identifier;
     const { parameterName: passwordParameterName } =
       authRequestParameterDescription.password;
 
-    if (!usernameParameterName || !passwordParameterName) {
+    if (!identifierParameterName || !passwordParameterName) {
       // todo: better error handling
       // todo: maybe use a default value as fallback for email/password field names
       throw new Error("Username and password parameter names are required");
@@ -79,7 +79,7 @@ export abstract class SessionManager<SessionType extends Session> {
     const response = await got(url, {
       method: authEndpoint.method,
       json: {
-        [usernameParameterName]: credentials.identifier,
+        [identifierParameterName]: credentials.identifier,
         [passwordParameterName]: credentials.password,
       },
       cookieJar,

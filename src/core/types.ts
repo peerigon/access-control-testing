@@ -4,7 +4,7 @@ import type { OpenAPIParser } from "./parsers/openapi-parser.ts";
 export type AuthEndpointInformation = {
   authEndpoint: ReturnType<OpenAPIParser["getPaths"]>[0];
   authRequestParameterDescription: {
-    username: AuthParameterLocationDescription;
+    identifier: AuthParameterLocationDescription;
     password: AuthParameterLocationDescription;
   };
   authResponseParameterDescription: AuthParameterLocationDescription;

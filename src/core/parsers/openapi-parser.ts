@@ -299,11 +299,11 @@ export class OpenAPIParser {
     });
 
     if (authEndpoint) {
-      // todo: accept other formats of auth endpoint, when username/password is not part of the json request body
+      // todo: accept other formats of auth endpoint, when identifier/password is not part of the json request body
       // const requestBody = authEndpoint.getRequestBody("application/json");
       const parameters = authEndpoint.getParametersAsJSONSchema();
 
-      let usernameDescription: AuthParameterLocationDescription | null = null;
+      let identifierDescription: AuthParameterLocationDescription | null = null;
       let passwordDescription: AuthParameterLocationDescription | null = null;
 
       for (const parameter of parameters) {
@@ -312,8 +312,8 @@ export class OpenAPIParser {
         for (const propertyKey in parameter.schema.properties) {
           const property = parameter.schema.properties[propertyKey];
 
-          // type can only be username or password
-          // this should be validated before, then we can safely assume that the type is either username or password
+          // type can only be identifier or password
+          // this should be validated before, then we can safely assume that the type is either identifier or password
 
           if (typeof property !== "object") {
             continue;
@@ -322,7 +322,7 @@ export class OpenAPIParser {
           const authFieldType = parseOpenApiAuthField(property)?.type;
 
           if (authFieldType === "identifier") {
-            usernameDescription = {
+            identifierDescription = {
               parameterName: propertyKey,
               parameterLocation,
             };
@@ -336,18 +336,18 @@ export class OpenAPIParser {
           }
         }
 
-        if (usernameDescription && passwordDescription) {
+        if (identifierDescription && passwordDescription) {
           break;
         }
       }
 
-      if (!usernameDescription || !passwordDescription) {
+      if (!identifierDescription || !passwordDescription) {
         // todo: add proper error handling
         throw new Error("Username or password not found in the request body");
       }
 
       const authRequestParameterDescription = {
-        username: usernameDescription,
+        identifier: identifierDescription,
         password: passwordDescription,
       };
 
@@ -393,7 +393,7 @@ export class OpenAPIParser {
     }
   }
 
-  // todo: move out filtering part to a separate function (to be reused for username/password extract function)
+  // todo: move out filtering part to a separate function (to be reused for identifier/password extract function)
   private getTokenParameterDescription(
     authEndpoint: ReturnType<OpenAPIParser["getPaths"]>[0],
   ): AuthParameterLocationDescription {

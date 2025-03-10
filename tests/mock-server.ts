@@ -15,7 +15,7 @@ const authEndpointInfo: AuthEndpointInformation = {
     // todo: supply with operation data coming from OpenAPIParser
   },
   authRequestParameterDescription: {
-    username: {
+    identifier: {
       parameterName: "username",
       parameterLocation: "body",
     },
