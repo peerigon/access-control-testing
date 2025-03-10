@@ -1,6 +1,6 @@
-import { URL } from "node:url";
 import got from "got";
 import { CookieJar } from "tough-cookie";
+import { OpenAPIParser } from "../../parsers/openapi-parser.ts";
 import type { AuthEndpointInformation } from "../../types.ts";
 import type { AuthenticationCredentials, Session } from "./types.ts";
 
@@ -72,7 +72,7 @@ export abstract class SessionManager<SessionType extends Session> {
 
     const cookieJar = new CookieJar();
 
-    const url = new URL(authEndpoint.path, this.apiBaseUrl);
+    const url = OpenAPIParser.combineUrl(this.apiBaseUrl, authEndpoint.path);
     // todo: add try/catch block?
 
     // todo: or instead of accepting a base url, accept a got instance?
