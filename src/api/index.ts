@@ -1,6 +1,7 @@
 import { OpenAPIParser } from "../core/parsers/openapi-parser.ts";
 import { Resource } from "../core/policy/entities/resource.ts";
 import { User } from "../core/policy/entities/user.ts";
+import { type TestCase } from "../core/tests/runner/test-runner.ts";
 import { TestcaseGenerator } from "../core/tests/testcase-generator.ts";
 
 type ActOptions = {
@@ -15,7 +16,7 @@ class Act {
     // todo: check if both are valid urls
   }
 
-  async generateTestCases() {
+  async generateTestCases(): Promise<Array<TestCase>> {
     console.log("Generating testcases...");
     const { openApiUrl, apiBaseUrl, users, resources } = this.options;
 

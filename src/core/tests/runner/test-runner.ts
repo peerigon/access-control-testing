@@ -1,5 +1,5 @@
-import { User } from "../../policy/entities/user";
-import { Route } from "../test-utils";
+import { User } from "../../policy/entities/user.ts";
+import { Route } from "../test-utils.ts";
 
 export type AccessControlResult = "permitted" | "denied";
 
