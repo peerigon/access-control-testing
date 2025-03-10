@@ -32,9 +32,7 @@ test.group("OpenAPIParser", (group) => {
       });
     });
 
-    return () => {
-      server.close();
-    };
+    return () => server.close();
   });
 
   test("should retrieve spec from local server", async () => {
