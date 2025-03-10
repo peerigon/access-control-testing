@@ -9,6 +9,8 @@ import {
   validUsername,
 } from "../mock-server.ts";
 
+console.log("test");
+
 test.group("TestUtils", (group) => {
   group.each.setup(async () => {
     const server = createMockServer();
