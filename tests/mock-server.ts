@@ -33,51 +33,63 @@ const authEndpointInfo: AuthEndpointInformation = {
 const validUsername = "user";
 const validPassword = "password";
 const validSessionId = "f48cdbd8-3fd0-4a65-8e02-4536172c0661";
-const mockServer = createServer((req, res) => {
-  if (req.url === "/login" && req.method === "POST") {
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk;
-    });
-    req.on("end", () => {
-      const { username, password } = JSON.parse(body);
-      if (username === validUsername && password === validPassword) {
-        const sessionCookie = `session=${validSessionId}`;
-        res.writeHead(200, { "Set-Cookie": sessionCookie });
-      } else {
-        res.writeHead(401);
-      }
+
+let mockServer: ReturnType<typeof createServer> | null = null;
+
+const startMockServer = async () => {
+  mockServer = createServer((req, res) => {
+    if (req.url === "/login" && req.method === "POST") {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        const { username, password } = JSON.parse(body);
+        if (username === validUsername && password === validPassword) {
+          const sessionCookie = `session=${validSessionId}`;
+          res.writeHead(200, { "Set-Cookie": sessionCookie });
+        } else {
+          res.writeHead(401);
+        }
+        res.end();
+      });
+    } else if (req.url === "/protected") {
+      const cookieHeader = req.headers.cookie;
+      const isValidSessionId = cookieHeader?.includes(validSessionId);
+      res.writeHead(isValidSessionId ? 200 : 401);
       res.end();
-    });
-  } else if (req.url === "/protected") {
-    const cookieHeader = req.headers.cookie;
-
-    const isValidSessionId = cookieHeader?.includes(validSessionId);
-    if (isValidSessionId) {
-      res.writeHead(200);
     } else {
-      res.writeHead(401);
+      res.writeHead(404);
+      res.end();
     }
+  });
 
-    res.end();
-  } else {
-    res.writeHead(404);
-    res.end();
+  await new Promise<void>((resolve) => {
+    mockServer!.listen(PORT, HOST, () => {
+      console.log(`Mock server listens on http://${HOST}:${PORT}`);
+      resolve();
+    });
+  });
+};
+
+const stopMockServer = async () => {
+  if (mockServer) {
+    await new Promise<void>((resolve, reject) => {
+      mockServer!.close((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          console.log("Mock server stopped");
+          resolve();
+        }
+      });
+    });
+    mockServer = null;
   }
-});
+};
 
 const createCookieAuthenticator = () =>
   new CookieAuthenticator(authEndpointInfo, BASE_URL);
-
-const startMockServer = () =>
-  new Promise((resolve) => {
-    mockServer.listen(PORT, HOST, void resolve);
-  });
-
-const stopMockServer = () =>
-  new Promise((resolve) => {
-    mockServer.close(() => resolve);
-  });
 
 const protectedRoute = new Route(new URL(`${BASE_URL}/protected`), "GET");
 
