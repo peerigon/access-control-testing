@@ -1,8 +1,15 @@
-# Access Control Testing Tool
+<p align="center">
+  <h1 align="center">Access Control Testing Tool</h1>
+  <p align="center">Automated detection of Broken Access Control vulnerabilities based on enhanced OpenAPI specifications</p>
+</p>
 
-This TypeScript tool automates testing web applications for **Broken Access Control** vulnerabilities based on an enhanced **OpenAPI specification**. Developed by [Peerigon](https://peerigon.com/) as part of a bachelor's thesis, it leverages a specially annotated OpenAPI specification to explicitly determine which resources an API endpoint accesses and the type of access involved. For details on annotations, see [Annotating Resources](#2-annotating-resources).
+---
 
-The tool generates test cases based on defined user-resource relationships and verifies whether the web application's access control policy is correctly enforced. Results are clearly displayed in a console-based report.
+## Introduction
+
+This tool automates testing web applications for **Broken Access Control** vulnerabilities based on an enhanced **OpenAPI specification**. Developed by [Peerigon](https://peerigon.com/) as part of a bachelor's thesis, it leverages a specially annotated OpenAPI specification to explicitly determine which resources an API endpoint accesses and the type of access involved. For details on annotations, see [Annotating Resources](#2-annotating-resources).
+
+The tool generates test cases based on defined user-resource relationships and [executes them through a test runner](#running-tests), sending requests to the application and verifying whether each request was permitted or denied. The outcome is then compared to the expected behavior defined through a policy replication, enabled by [user-resource relationship definitions](#4-defining-users-and-resources). Results are displayed in a console-based report.
 
 ---
 
@@ -153,7 +160,8 @@ Each value must be explicitly defined either as `x-act-auth-field-type` directly
 
 
 > [!IMPORTANT]  
-> For bearer authentication, the token field must be at the top level of the response. Nested fields like `{ data: { token: "<token>" } }` are currently not supported.
+> For bearer authentication, the token field must be at the top level of the response.  
+> Nested fields like `{ data: { token: "<token>" } }` are currently not supported.
 
 
 <details>
