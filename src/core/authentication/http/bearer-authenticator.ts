@@ -11,7 +11,6 @@ export class BearerAuthenticator
   implements RequestAuthenticator
 {
   protected async initializeSession(credentials: AuthenticationCredentials) {
-    console.debug("init new bearer session");
     const { response, authResponseParameterDescription } =
       await this.obtainSession(credentials);
 

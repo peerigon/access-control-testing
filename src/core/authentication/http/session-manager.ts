@@ -29,11 +29,8 @@ export abstract class SessionManager<SessionType extends Session> {
     const existingSession = this.sessionStore.get(credentials.identifier);
 
     if (existingSession === undefined) {
-      console.debug("SessionManager: INIT NEW SESSION");
       return this.initializeSession(credentials);
     }
-
-    console.debug("Reusing existing session");
 
     return existingSession;
   }
@@ -51,8 +48,6 @@ export abstract class SessionManager<SessionType extends Session> {
    * @protected
    */
   protected async obtainSession(credentials: AuthenticationCredentials) {
-    console.debug("obtaining new session");
-
     const {
       authEndpoint,
       authRequestParameterDescription,
@@ -94,7 +89,6 @@ export abstract class SessionManager<SessionType extends Session> {
   }
 
   clearSession(credentials: AuthenticationCredentials): void {
-    console.debug("clearing session");
     this.sessionStore.delete(credentials.identifier);
   }
 }

@@ -11,7 +11,6 @@ export class CookieAuthenticator
   implements RequestAuthenticator
 {
   protected async initializeSession(credentials: AuthenticationCredentials) {
-    console.debug("init new cookie session");
     const { cookieJar } = await this.obtainSession(credentials);
 
     // todo: make storing all cookies configurable (STORE_ALL_COOKIES)

@@ -412,7 +412,6 @@ export class OpenAPIParser {
         }
 
         if (parseOpenApiAuthField(property)?.type === "token") {
-          console.debug("token", propertyKey);
           // todo: what about nested parameter locations?
           return {
             parameterName: propertyKey,
@@ -450,8 +449,6 @@ export class OpenAPIParser {
     //const securityScheme = operation.getSecurity();
     // todo: maybe set true for filterInvalid?
     const securitySchemeCombinations = operation.getSecurityWithTypes();
-
-    console.debug("securitySchemeCombinations", securitySchemeCombinations);
 
     // todo: figure out if there should be another logic to choose the appropriate security scheme
     // for now, just use the first combination of security schemes available
@@ -539,11 +536,6 @@ export class OpenAPIParser {
     if (!securityScheme) {
       return null;
     }
-
-    const securitySchemeKey = securityScheme._key;
-
-    console.debug(securityScheme);
-    console.debug("GOT SECURITY SCHEME: " + securitySchemeKey);
 
     const authenticatorType =
       this.getAuthenticatorTypeBySecurityScheme(securityScheme);

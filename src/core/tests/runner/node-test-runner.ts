@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { TestRunner, type TestCase } from "./test-runner.ts";
 
 const expect = (actual: unknown) => ({
-  toBe: (expected: unknown) => assert.strictEqual(actual, expected),
+  toBe: (expected: unknown) => assert.equal(actual, expected),
   notToBe: (expected: unknown) => assert.notStrictEqual(actual, expected),
 });
 

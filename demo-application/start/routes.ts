@@ -22,13 +22,12 @@ router.get('/', async () => {
   }
 })
 
-router
-  .get('/basicauth', async () => {
-    return {
-      hello: 'world',
-    }
-  })
-  .use(middleware.auth({ guards: ['basicAuth'] }))
+router.get('/basicauth', async () => {
+  return {
+    hello: 'world',
+  }
+})
+//.use(middleware.auth({ guards: ['basicAuth'] }))
 
 router
   .group(() => {
