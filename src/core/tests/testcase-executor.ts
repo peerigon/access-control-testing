@@ -9,8 +9,8 @@ import type {
   TestContext,
   TestResult,
 } from "./runner/test-runner.ts";
+import type { TestCombination } from "./test-case-generator.ts";
 import { performRequest } from "./test-utils.ts";
-import type { TestCombination } from "./testcase-generator.ts";
 
 /**
  * This helper function calls the given function and ensures that the error

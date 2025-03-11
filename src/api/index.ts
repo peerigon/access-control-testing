@@ -2,7 +2,7 @@ import { OpenAPIParser } from "../core/parsers/openapi-parser.ts";
 import { Resource } from "../core/policy/entities/resource.ts";
 import { User } from "../core/policy/entities/user.ts";
 import { type TestCase } from "../core/tests/runner/test-runner.ts";
-import { TestcaseGenerator } from "../core/tests/testcase-generator.ts";
+import { TestCaseGenerator } from "../core/tests/test-case-generator.ts";
 
 type ActOptions = {
   apiBaseUrl: string;
@@ -23,7 +23,7 @@ class Act {
     const openAPIParser = await OpenAPIParser.create(openApiUrl, apiBaseUrl);
     openAPIParser.validateCustomFields(resources);
 
-    const testCaseGenerator = new TestcaseGenerator(openAPIParser, users);
+    const testCaseGenerator = new TestCaseGenerator(openAPIParser, users);
     return testCaseGenerator.generateTestCases();
   }
 }

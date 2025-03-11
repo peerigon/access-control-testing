@@ -21,7 +21,7 @@ export type TestCombination = {
 
 export type TestCombinations = Array<TestCombination>;
 
-export class TestcaseGenerator {
+export class TestCaseGenerator {
   constructor(
     private readonly openApiParser: OpenAPIParser,
     private readonly users: Array<User>,
@@ -36,7 +36,7 @@ export class TestcaseGenerator {
     // each url resource mapping has "<Access> <Resource>" pairs with info where to find resource param
     const resourceUserCombinations = this.generateResourceUserCombinations();
 
-    const testcases: TestCombinations =
+    const testCombinations: TestCombinations =
       pathResourceMappings.flatMap<TestCombination>((pathResourceMapping) => {
         // todo: create Route object for url & method to use instead
         const { path, method, isPublicPath, resources } = pathResourceMapping;
@@ -145,7 +145,7 @@ export class TestcaseGenerator {
         });
       });
 
-    return removeObjectDuplicatesFromArray(testcases);
+    return removeObjectDuplicatesFromArray(testCombinations);
   }
 
   private generateResourceUserCombinations() {
