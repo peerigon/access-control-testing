@@ -220,6 +220,8 @@ Provide the following properties when configuring the tool:
 <summary><strong>Example of Tool Configuration</strong></summary>
 
 ```typescript
+import { Act, User, Resource, NodeTestRunner } from 'access-control-testing'
+
 const users = [user1]
 const resources = [todoResource]
 
@@ -236,13 +238,15 @@ const act = new Act({
 
 ## Running Tests
 
-After setup, tests are generated and executed as follows:
+Once all setup steps are completed, you can generate test cases using `generateTestCases()` and run them with a test runner using `.run()`.
 
+Tests can be run with any test runner by extending the abstract class `TestRunner`.  
+To use the built-in Node.js test runner, the adapter `NodeTestRunner` is available (requires Node.js version 18 or higher).
 <details open>
 <summary><strong>Example of Running Tests</strong></summary>
 
 ```typescript
-import { Act, NodeTestRunner } from 'access-control-testing'
+import { Act, User, Resource, NodeTestRunner } from 'access-control-testing'
 
 // Assuming setup steps are completed and `act` instance is configured
 const testCases = await act.generateTestCases()
