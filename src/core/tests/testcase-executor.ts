@@ -32,6 +32,7 @@ export class TestCaseExecutor {
       this.blockedUserIdentifiers.includes(user.getCredentials().identifier);
     if (userHasBeenBlocked) {
       testResult.testResult = "⏭️";
+      testResult.explanation = `Skipped, user has been blocked since a previous attempt to authenticate failed.`;
       skip(
         `User '${user}' has been blocked since a previous attempt to authenticate failed.`,
       );
@@ -60,6 +61,7 @@ export class TestCaseExecutor {
         }
 
         testResult.testResult = "⏭️";
+        testResult.explanation = `Skipped, could not impersonate user '${user}'.`;
         skip(error.message);
       }
       return testResult;
@@ -73,15 +75,20 @@ export class TestCaseExecutor {
 
     if (expectedRequestToBeAllowed) {
       expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE);
+      testResult.explanation = `Expected non-${HTTP_FORBIDDEN_STATUS_CODE} status code, received ${statusCode}.`;
     } else {
       if (isAnonymousUser) {
         const requestForbidden = [
           HTTP_FORBIDDEN_STATUS_CODE,
           HTTP_UNAUTHORIZED_STATUS_CODE,
         ].includes(statusCode);
+
         expect(requestForbidden).toBe(true);
+        testResult.explanation = `Expected ${HTTP_FORBIDDEN_STATUS_CODE} or ${HTTP_UNAUTHORIZED_STATUS_CODE} status code, received ${statusCode}.`;
+
         actual = requestForbidden ? "denied" : "permitted";
       } else {
+        testResult.explanation = `Expected ${HTTP_FORBIDDEN_STATUS_CODE}, received ${statusCode}.`;
         expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
       }
     }

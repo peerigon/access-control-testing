@@ -11,6 +11,7 @@ export type TestResult = {
   actual?: AccessControlResult;
   testResult?: "✅" | "❌" | "⏭️";
   statusCode?: number;
+  explanation?: string;
 };
 
 export type Expectation = (actual: unknown) => {
@@ -49,7 +50,15 @@ export abstract class TestRunner {
     console.log("\n=== Test Report ===");
 
     const table = new CliTable3({
-      head: ["User", "Route", "Expected", "Actual", "Status Code", "Result"],
+      head: [
+        "User",
+        "Route",
+        "Expected",
+        "Actual",
+        "Status Code",
+        "Result",
+        "Explanation",
+      ],
     });
 
     this.testResults.forEach((result) => {
@@ -60,6 +69,7 @@ export abstract class TestRunner {
         result.actual,
         result.statusCode,
         result.testResult,
+        result.explanation,
       ]);
     });
 
