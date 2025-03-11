@@ -12,6 +12,23 @@ import type {
 import { performRequest } from "./test-utils.ts";
 import type { TestCombination } from "./testcase-generator.ts";
 
+/**
+ * This helper function calls the given function and ensures that the error
+ * thrown is enhanced with the given testResult object.
+ */
+function enhanceThrownErrorWithTestResult(
+  fn: () => void,
+  testResult: TestResult,
+) {
+  try {
+    fn();
+  } catch (error) {
+    (error as any).testResult = testResult;
+
+    throw error;
+  }
+}
+
 export class TestCaseExecutor {
   private blockedUserIdentifiers: Array<User["identifier"]> = [];
 
@@ -73,7 +90,11 @@ export class TestCaseExecutor {
       statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "denied" : "permitted";
 
     if (expectedRequestToBeAllowed) {
-      expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE);
+      enhanceThrownErrorWithTestResult(
+        () => expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE),
+        testResult,
+      );
+
       testResult.explanation = `Expected non-${HTTP_FORBIDDEN_STATUS_CODE} status code, received ${statusCode}.`;
     } else {
       if (isAnonymousUser) {
@@ -82,13 +103,20 @@ export class TestCaseExecutor {
           HTTP_UNAUTHORIZED_STATUS_CODE,
         ].includes(statusCode);
 
-        expect(requestForbidden).toBe(true);
+        enhanceThrownErrorWithTestResult(
+          () => expect(requestForbidden).toBe(true),
+          testResult,
+        );
         testResult.explanation = `Expected ${HTTP_FORBIDDEN_STATUS_CODE} or ${HTTP_UNAUTHORIZED_STATUS_CODE} status code, received ${statusCode}.`;
 
         actual = requestForbidden ? "denied" : "permitted";
       } else {
         testResult.explanation = `Expected ${HTTP_FORBIDDEN_STATUS_CODE}, received ${statusCode}.`;
-        expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
+
+        enhanceThrownErrorWithTestResult(
+          () => expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE),
+          testResult,
+        );
       }
     }
 

@@ -12,15 +12,23 @@ export class NodeTestRunner extends TestRunner {
     await Promise.all(
       testCases.map((testCase) =>
         test(testCase.name, async () => {
-          const testResult = await testCase.test({
-            expect,
-            skip: (reason) => {
-              void test.skip(reason);
-            },
-          });
+          try {
+            const testResult = await testCase.test({
+              expect,
+              skip: (reason) => {
+                void test.skip(reason);
+              },
+            });
 
-          if (testResult) {
-            this.testResults.push(testResult);
+            if (testResult) {
+              this.testResults.push(testResult);
+            }
+          } catch (error: any) {
+            if (error.testResult) {
+              this.testResults.push(error.testResult);
+            }
+
+            throw error;
           }
         }),
       ),
