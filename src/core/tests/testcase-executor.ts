@@ -16,7 +16,7 @@ import type { TestCombination } from "./testcase-generator.ts";
  * This helper function calls the given function and ensures that the error
  * thrown is enhanced with the given testResult object.
  */
-function enhanceThrownErrorWithTestResult(
+function executeAndEnhanceWithTestResult(
   fn: () => void,
   testResult: TestResult,
 ) {
@@ -42,7 +42,7 @@ export class TestCaseExecutor {
     const expected: AccessControlResult = expectedRequestToBeAllowed
       ? "permitted"
       : "denied";
-    const testResult: TestResult = { user, route, expected, testResult: "❌" };
+    const testResult: TestResult = { user, route, expected, result: "❌" };
 
     const userHasBeenBlocked =
       user !== null &&
@@ -85,12 +85,15 @@ export class TestCaseExecutor {
     }
 
     const { statusCode } = response;
-    testResult.statusCode = statusCode;
+
     let actual: AccessControlResult =
       statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "denied" : "permitted";
 
+    // eslint-disable-next-line unicorn/consistent-function-scoping
+    let expection = () => {};
+
     if (expectedRequestToBeAllowed) {
-      enhanceThrownErrorWithTestResult(
+      executeAndEnhanceWithTestResult(
         () => expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE),
         testResult,
       );
@@ -103,25 +106,21 @@ export class TestCaseExecutor {
           HTTP_UNAUTHORIZED_STATUS_CODE,
         ].includes(statusCode);
 
-        enhanceThrownErrorWithTestResult(
-          () => expect(requestForbidden).toBe(true),
-          testResult,
-        );
+        expection = () => expect(requestForbidden).toBe(true);
         testResult.explanation = `Expected ${HTTP_FORBIDDEN_STATUS_CODE} or ${HTTP_UNAUTHORIZED_STATUS_CODE} status code, received ${statusCode}.`;
 
         actual = requestForbidden ? "denied" : "permitted";
       } else {
+        expection = () => expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
         testResult.explanation = `Expected ${HTTP_FORBIDDEN_STATUS_CODE}, received ${statusCode}.`;
-
-        enhanceThrownErrorWithTestResult(
-          () => expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE),
-          testResult,
-        );
       }
     }
 
+    testResult.statusCode = statusCode;
     testResult.actual = actual;
     testResult.result = actual === expected ? "✅" : "❌";
+
+    executeAndEnhanceWithTestResult(expection, testResult);
     return testResult;
   }
 }
