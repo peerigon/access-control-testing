@@ -1,6 +1,6 @@
 # Access Control Testing Tool
 
-This TypeScript tool automates testing web applications for **Broken Access Control** vulnerabilities based on an enhanced **OpenAPI specification**. Developed by [Peerigon](https://peerigon.com/) as part of a bachelor's thesis, it leverages a specially annotated OpenAPI specification to explicitly determine which resources an API endpoint accesses and the type of access involved. For details on annotations, see [Annotating OpenAPI](#2-openapi-annotate).
+This TypeScript tool automates testing web applications for **Broken Access Control** vulnerabilities based on an enhanced **OpenAPI specification**. Developed by [Peerigon](https://peerigon.com/) as part of a bachelor's thesis, it leverages a specially annotated OpenAPI specification to explicitly determine which resources an API endpoint accesses and the type of access involved. For details on annotations, see [Annotating Resources](#2-annotating-resources).
 
 The tool generates test cases based on defined user-resource relationships and verifies whether the web application's access control policy is correctly enforced. Results are clearly displayed in a console-based report.
 
