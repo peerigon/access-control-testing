@@ -66,6 +66,7 @@ export class TestCaseExecutor {
     }
 
     const { statusCode } = response;
+    testResult.statusCode = statusCode;
     console.debug("STATUSCODE " + statusCode);
     let actual: AccessControlResult =
       statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "denied" : "permitted";

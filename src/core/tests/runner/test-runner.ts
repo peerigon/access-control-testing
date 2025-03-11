@@ -1,3 +1,4 @@
+import CliTable3 from "cli-table3";
 import { User } from "../../policy/entities/user.ts";
 import { Route } from "../test-utils.ts";
 
@@ -9,6 +10,7 @@ export type TestResult = {
   expected: AccessControlResult;
   actual?: AccessControlResult;
   testResult?: "✅" | "❌" | "⏭️";
+  statusCode?: number;
 };
 
 export type Expectation = (actual: unknown) => {
@@ -46,14 +48,22 @@ export abstract class TestRunner {
   protected printReport(): void {
     console.log("\n=== Test Report ===");
 
-    const transformedResults = this.testResults.map((result) => ({
-      ...result,
-      user: result.user?.toString() ?? "anonymous",
-      route: result.route.toString(),
-    }));
+    const table = new CliTable3({
+      head: ["User", "Route", "Expected", "Actual", "Status Code", "Result"],
+    });
 
-    console.table(transformedResults);
+    this.testResults.forEach((result) => {
+      table.push([
+        result.user?.toString() ?? "anonymous",
+        result.route.toString(),
+        result.expected,
+        result.actual,
+        result.statusCode,
+        result.testResult,
+      ]);
+    });
 
+    console.log(table.toString());
     // todo: enhance this with a detailed report containing all the routes that failed
   }
 }
