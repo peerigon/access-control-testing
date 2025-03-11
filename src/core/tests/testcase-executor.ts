@@ -31,7 +31,7 @@ export class TestCaseExecutor {
       user !== null &&
       this.blockedUserIdentifiers.includes(user.getCredentials().identifier);
     if (userHasBeenBlocked) {
-      testResult.testResult = "⏭️";
+      testResult.result = "⏭️";
       testResult.explanation = `Skipped, user has been blocked since a previous attempt to authenticate failed.`;
       skip(
         `User '${user}' has been blocked since a previous attempt to authenticate failed.`,
@@ -60,7 +60,7 @@ export class TestCaseExecutor {
           this.blockedUserIdentifiers.push(user.getCredentials().identifier);
         }
 
-        testResult.testResult = "⏭️";
+        testResult.result = "⏭️";
         testResult.explanation = `Skipped, could not impersonate user '${user}'.`;
         skip(error.message);
       }
@@ -93,7 +93,7 @@ export class TestCaseExecutor {
     }
 
     testResult.actual = actual;
-    testResult.testResult = actual === expected ? "✅" : "❌";
+    testResult.result = actual === expected ? "✅" : "❌";
     return testResult;
   }
 }

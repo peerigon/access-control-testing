@@ -9,7 +9,7 @@ export type TestResult = {
   route: Route;
   expected: AccessControlResult;
   actual?: AccessControlResult;
-  testResult?: "✅" | "❌" | "⏭️";
+  result?: "✅" | "❌" | "⏭️";
   statusCode?: number;
   explanation?: string;
 };
@@ -68,7 +68,7 @@ export abstract class TestRunner {
         result.expected,
         result.actual,
         result.statusCode,
-        result.testResult,
+        result.result,
         result.explanation,
       ]);
     });
