@@ -136,10 +136,21 @@ Before annotating authentication endpoints, ensure a valid security scheme is de
 Use these annotations to allow the tool to authenticate automatically:
 
 - `x-act-auth-endpoint`: Must match your defined security scheme key and must be provided on operation-level.
-- `x-act-auth-field`:
-  - `identifier`: Username/email (request body)
-  - `password`: Password (request body)
-  - `token`: Token returned (response body)
+- `x-act-auth-field`: Defines the relevant fields for authentication and must be set to one of the following valid types:
+
+  | Type         | Description                                                                                          |
+    |--------------|------------------------------------------------------------------------------------------------------|
+  | `identifier` | Specifies the field in the request body that contains the user identifier (e.g., username or email). |
+  | `password`   | Defines the field in the request body that holds the user's password.                                |
+  | `token`      | Specifies the field in the response body where the authentication token is returned.                 |
+
+Each value must be explicitly defined either as `x-act-auth-field-type` directly or as follows:
+
+```yaml
+  x-act-auth-field:
+    type: identifier | password | token
+```
+
 
 > [!IMPORTANT]  
 > For bearer authentication, the token field must be at the top level of the response. Nested fields like `{ data: { token: "<token>" } }` are currently not supported.
