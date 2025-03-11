@@ -34,17 +34,17 @@ npm install
 
 ## Limitations
 
-Additional security mechanisms like **CSRF tokens**, **rate limiting**, or **IP blocking** should be disabled during testing. Otherwise, they may interfere with the testing process. Temporarily disable such protections via environment variables or similar mechanisms to ensure accurate test results.
+Additional security mechanisms like **CSRF tokens**, **rate limiting**, or **IP blocking** should be disabled during testing. Otherwise, they may interfere with the testing process. For example, a `403 Forbidden` status code caused by IP blocking might be misinterpreted by the tool. Temporarily disable such protections via environment variables or similar mechanisms to ensure accurate test results.
 
 Currently, only one resource per operation can be defined. The tool does not support multiple resources in a single route (e.g., `/groups/:groupId/members/:memberId`). Simple routes like `/members/:memberId` are fully supported.
 
-Also, the tool only supports APIs that communicate via JSON. XML or other data formats are not yet supported.
+Also, the tool only supports APIs communicating via JSON. XML or other formats are not yet supported.
 
 ---
 
 ## Assumptions
 
-The tool assumes that tested web applications follow this sequence when handling requests:
+The tool assumes tested web applications follow this sequence when handling requests:
 
 1. User identity verification (*Authentication*)
 2. User permission verification (*Authorization*)
@@ -71,13 +71,13 @@ First, determine clearly which API routes represent resources and the type of ac
 
 The following custom annotations (prefixed with `x-act-`) are required to specify resources and access types:
 
-- `x-act-resource-name`: Indicates the resource accessed by the operation.
-- `x-act-resource-access`: Specifies the access type (`create`, `read`, `update`, `delete`).
+- `x-act-resource-name`: Indicates the resource accessed.
+- `x-act-resource-access`: Specifies access type.
 
-Annotations can be provided inline or nested:
+Annotations can be inline or nested under `x-act`:
 
 <details open>
-<summary>Example of Inline Annotation</summary>
+<summary><strong>Example of Inline Annotation</strong></summary>
 
 ```yaml
 x-act-resource-name: Todo
@@ -86,7 +86,7 @@ x-act-resource-access: read
 </details>
 
 <details open>
-<summary>Example of Nested Annotation</summary>
+<summary><strong>Example of Nested Annotation</strong></summary>
 
 ```yaml
 x-act:
@@ -96,7 +96,7 @@ x-act:
 </details>
 
 <details>
-<summary>Full Example of Resource Annotations</summary>
+<summary><strong>Complete Example of OpenAPI Annotations</strong></summary>
 
 ```yaml
 paths:
@@ -104,12 +104,12 @@ paths:
     get:
       # ...
       x-act:
-        resource-name: User
+        resource-name: Todo
         resource-access: read
     post:
       # ...
       x-act:
-        resource-name: User
+        resource-name: Todo
         resource-access: create
 
   /todos/{id}:
@@ -122,33 +122,31 @@ paths:
           schema:
             type: string
           x-act:
-            resource-name: User
+            resource-name: Todo
             resource-access: read
 ```
 </details>
-
-Additionally, define security schemes in your OpenAPI file, either globally or at the individual operation level. For more details, refer to the [Security Scheme documentation](https://swagger.io/docs/specification/authentication/).
 
 ---
 
 ### 3. Annotating Authentication Endpoints
 
-Ensure you have a valid security scheme defined. Refer to the [Security Scheme documentation](https://learn.openapis.org/specification/security.html).
+Before annotating authentication endpoints, ensure a valid security scheme is defined in your OpenAPI specification. See the [Security Scheme documentation](https://learn.openapis.org/specification/security.html).
 
-To automate authentication, use these annotations:
+Use these annotations to allow the tool to authenticate automatically:
 
-- `x-act-auth-endpoint`: Matches your security scheme key.
+- `x-act-auth-endpoint`: Must match your defined security scheme key and must be provided on operation-level.
 - `x-act-auth-field`:
-  - `identifier`: Username/email.
-  - `password`: Password.
-  - `token`: Token field in response.
+  - `identifier`: Username/email (request body)
+  - `password`: Password (request body)
+  - `token`: Token returned (response body)
 
 > [!IMPORTANT]  
 > For bearer authentication, the token field must be at the top level of the response. Nested fields like `{ data: { token: "<token>" } }` are currently not supported.
 
 
 <details>
-<summary>Example of an annotated Bearer token endpoint</summary>
+<summary><strong>Example of an Authentication Endpoint (Bearer)</strong></summary>
 
 ```yaml
 paths:
@@ -188,16 +186,16 @@ paths:
 
 ### 4. Defining Users and Resources
 
-Define users and resources clearly, ensuring names match exactly (case-sensitive) those in the OpenAPI annotations.
+Define user-resource relationships explicitly. Resource names must match exactly (case-sensitive) the values used in the OpenAPI annotations (`x-act-resource-name`):
 
 <details open>
-<summary>Example of User-Resource Definition</summary>
+<summary><strong>Example of User-Resource Definition</strong></summary>
 
 ```typescript
 import { User, Resource } from 'access-control-testing'
 
 const user1 = new User('myusername', 'mysecretpassword')
-const todoResource = new Resource('Todo') // Matches 'Todo' exactly
+const todoResource = new Resource('Todo') // Name must exactly match OpenAPI spec annotation
 
 user1.canView(todoResource, 123)   // user1 can view Todo instance with identifier 123
 user1.canEdit(todoResource, 123)   // user1 can edit Todo instance with identifier 123
@@ -213,13 +211,13 @@ user1.owns(todoResource)           // user1 owns created Todo instances
 
 Provide the following properties when configuring the tool:
 
-- `apiBaseUrl`: Base URL of the API under test.
-- `openApiUrl`: URL to your annotated OpenAPI spec.
-- `users`: Array of user objects.
-- `resources`: Array of resource objects.
+- `apiBaseUrl`: The base URL where your API is accessible.
+- `openApiUrl`: URL pointing to your annotated OpenAPI spec.
+- `users`: Array of defined users.
+- `resources`: Array of defined resources.
 
 <details open>
-<summary>Example of Tool Configuration</summary>
+<summary><strong>Example of Tool Configuration</strong></summary>
 
 ```typescript
 const users = [user1]
@@ -241,7 +239,7 @@ const act = new Act({
 After setup, tests are generated and executed as follows:
 
 <details open>
-<summary>Example of Running Tests</summary>
+<summary><strong>Example of Running Tests</strong></summary>
 
 ```typescript
 import { Act, NodeTestRunner } from 'access-control-testing'
