@@ -1,7 +1,7 @@
-<p align="center">
+<div align="center">
   <h1 align="center">Access Control Testing Tool</h1>
   <p align="center">Automated detection of Broken Access Control vulnerabilities based on enhanced OpenAPI specifications</p>
-</p>
+</div>
 
 ---
 
@@ -53,8 +53,8 @@ Also, the tool only supports APIs communicating via JSON. XML or other formats a
 
 The tool assumes tested web applications follow this sequence when handling requests:
 
-1. User identity verification (*Authentication*)
-2. User permission verification (*Authorization*)
+1. User identity verification (_Authentication_)
+2. User permission verification (_Authorization_)
 3. Request syntax and semantic validation
 
 If this order is not maintained, the tool may produce inaccurate test outcomes.
@@ -90,6 +90,7 @@ Annotations can be inline or nested under `x-act`:
 x-act-resource-name: Todo
 x-act-resource-access: read
 ```
+
 </details>
 
 <details open>
@@ -100,6 +101,7 @@ x-act:
   resource-name: Todo
   resource-access: read
 ```
+
 </details>
 
 <details>
@@ -132,6 +134,7 @@ paths:
             resource-name: Todo
             resource-access: read
 ```
+
 </details>
 
 ---
@@ -146,7 +149,7 @@ Use these annotations to allow the tool to authenticate automatically:
 - `x-act-auth-field`: Defines the relevant fields for authentication and must be set to one of the following valid types:
 
   | Type         | Description                                                                                          |
-    |--------------|------------------------------------------------------------------------------------------------------|
+  | ------------ | ---------------------------------------------------------------------------------------------------- |
   | `identifier` | Specifies the field in the request body that contains the user identifier (e.g., username or email). |
   | `password`   | Defines the field in the request body that holds the user's password.                                |
   | `token`      | Specifies the field in the response body where the authentication token is returned.                 |
@@ -154,15 +157,13 @@ Use these annotations to allow the tool to authenticate automatically:
 Each value must be explicitly defined either as `x-act-auth-field-type` directly or as follows:
 
 ```yaml
-  x-act-auth-field:
-    type: identifier | password | token
+x-act-auth-field:
+  type: identifier | password | token
 ```
-
 
 > [!IMPORTANT]  
 > For bearer authentication, the token field must be at the top level of the response.  
 > Nested fields like `{ data: { token: "<token>" } }` are currently not supported.
-
 
 <details>
 <summary><strong>Example of an Authentication Endpoint (Bearer)</strong></summary>
@@ -187,7 +188,7 @@ paths:
                   x-act-auth-field:
                     type: password
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
@@ -199,6 +200,7 @@ paths:
                       type: token
       x-act-auth-endpoint: bearerHttpAuthentication
 ```
+
 </details>
 
 ---
@@ -211,17 +213,18 @@ Define user-resource relationships explicitly. Resource names must match exactly
 <summary><strong>Example of User-Resource Definition</strong></summary>
 
 ```typescript
-import { User, Resource } from 'access-control-testing'
+import { Resource, User } from "access-control-testing";
 
-const user1 = new User('myusername', 'mysecretpassword')
-const todoResource = new Resource('Todo') // Name must exactly match OpenAPI spec annotation
+const user1 = new User("myusername", "mysecretpassword");
+const todoResource = new Resource("Todo"); // Name must exactly match OpenAPI spec annotation
 
-user1.canView(todoResource, 123)   // user1 can view Todo instance with identifier 123
-user1.canEdit(todoResource, 123)   // user1 can edit Todo instance with identifier 123
-user1.canDelete(todoResource, 123) // user1 can delete Todo instance with identifier 123
-user1.canCreate(todoResource)      // user1 can create new Todo instances
-user1.owns(todoResource)           // user1 owns created Todo instances
+user1.canView(todoResource, 123); // user1 can view Todo instance with identifier 123
+user1.canEdit(todoResource, 123); // user1 can edit Todo instance with identifier 123
+user1.canDelete(todoResource, 123); // user1 can delete Todo instance with identifier 123
+user1.canCreate(todoResource); // user1 can create new Todo instances
+user1.owns(todoResource); // user1 owns created Todo instances
 ```
+
 </details>
 
 ---
@@ -239,18 +242,19 @@ Provide the following properties when configuring the tool:
 <summary><strong>Example of Tool Configuration</strong></summary>
 
 ```typescript
-import { Act, User, Resource, NodeTestRunner } from 'access-control-testing'
+import { Act, NodeTestRunner, Resource, User } from "access-control-testing";
 
-const users = [user1]
-const resources = [todoResource]
+const users = [user1];
+const resources = [todoResource];
 
 const act = new Act({
-  apiBaseUrl: 'http://localhost:3333/',
-  openApiUrl: 'http://localhost:3333/openapi.yml',
+  apiBaseUrl: "http://localhost:3333/",
+  openApiUrl: "http://localhost:3333/openapi.yml",
   users,
   resources,
-})
+});
 ```
+
 </details>
 
 ---
@@ -261,18 +265,20 @@ Once all setup steps are completed, you can generate test cases using `generateT
 
 Tests can be run with any test runner by extending the abstract class `TestRunner`.  
 To use the built-in Node.js test runner, the adapter `NodeTestRunner` is available (requires Node.js version 18 or higher).
+
 <details open>
 <summary><strong>Example of Running Tests</strong></summary>
 
 ```typescript
-import { Act, User, Resource, NodeTestRunner } from 'access-control-testing'
+import { Act, NodeTestRunner, Resource, User } from "access-control-testing";
 
 // Assuming setup steps are completed and `act` instance is configured
-const testCases = await act.generateTestCases()
-const testRunner = new NodeTestRunner()
+const testCases = await act.generateTestCases();
+const testRunner = new NodeTestRunner();
 
-await testRunner.run(testCases)
+await testRunner.run(testCases);
 ```
+
 </details>
 
 Results are automatically presented in a clear tabular format in the console.
