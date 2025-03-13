@@ -93,10 +93,7 @@ export class TestCaseExecutor {
     let expection = () => {};
 
     if (expectedRequestToBeAllowed) {
-      executeAndEnhanceWithTestResult(
-        () => expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE),
-        testResult,
-      );
+      expection = () => expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE);
 
       testResult.explanation = `Expected non-${HTTP_FORBIDDEN_STATUS_CODE} status code, received ${statusCode}.`;
     } else {
