@@ -68,7 +68,7 @@ If this order is not maintained, the tool may produce inaccurate test outcomes.
 Make your application's OpenAPI specification available through your web server in either JSON or YAML format.
 
 > [!IMPORTANT]  
-> Local file paths are not allowed for security reasons. Instead, you must use an `http://` or `https://` URL.
+> Local file paths are not allowed for security reasons. Instead, you must use an URL that starts with `http://` or `https://`.
 
 ---
 
@@ -233,13 +233,13 @@ user1.owns(todoResource); // user1 owns created Todo instances
 
 Provide the following properties when configuring the tool:
 
-- `apiBaseUrl`: The base URL where your API is accessible. The `apiBaseUrl` must be present in the `servers` array.
+- `apiBaseUrl`: The base URL where your API is accessible. It must be present in the `servers` array of the OpenAPI spec.
 - `openApiUrl`: URL pointing to your annotated OpenAPI spec.
 - `users`: Array of defined users.
 - `resources`: Array of defined resources.
 
 > [!WARNING]  
-> The tool currently does not support templates for the URL specified as `apiBaseUrl`.
+> The tool currently does not support templates for the `apiBaseUrl` inside of the `servers` array of the OpenAPI spec.
 
 <details open>
 <summary><strong>Example of Tool Configuration</strong></summary>
