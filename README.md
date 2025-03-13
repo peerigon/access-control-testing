@@ -33,7 +33,7 @@ npm run publish:local
 Then, inside your project's directory, add the tool:
 
 ```bash
-yalc add access-control-testing
+npx yalc add access-control-testing
 npm install
 ```
 
@@ -161,7 +161,7 @@ x-act-auth-field:
   type: identifier | password | token
 ```
 
-> [!IMPORTANT]  
+> [!WARNING]  
 > For bearer authentication, the token field must be at the top level of the response.  
 > Nested fields like `{ data: { token: "<token>" } }` are currently not supported.
 
@@ -233,10 +233,13 @@ user1.owns(todoResource); // user1 owns created Todo instances
 
 Provide the following properties when configuring the tool:
 
-- `apiBaseUrl`: The base URL where your API is accessible.
+- `apiBaseUrl`: The base URL where your API is accessible. The `apiBaseUrl` must be present in the `servers` array.
 - `openApiUrl`: URL pointing to your annotated OpenAPI spec.
 - `users`: Array of defined users.
 - `resources`: Array of defined resources.
+
+> [!WARNING]  
+> The tool currently does not support templates for the URL specified as `apiBaseUrl`.
 
 <details open>
 <summary><strong>Example of Tool Configuration</strong></summary>
