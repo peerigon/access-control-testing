@@ -90,10 +90,11 @@ export class TestCaseExecutor {
       statusCode === HTTP_FORBIDDEN_STATUS_CODE ? "denied" : "permitted";
 
     // eslint-disable-next-line unicorn/consistent-function-scoping
-    let expection = () => {};
+    let expectation = () => {};
 
     if (expectedRequestToBeAllowed) {
-      expection = () => expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE);
+      expectation = () =>
+        expect(statusCode).notToBe(HTTP_FORBIDDEN_STATUS_CODE);
 
       testResult.explanation = `Expected non-${HTTP_FORBIDDEN_STATUS_CODE} status code, received ${statusCode}.`;
     } else {
@@ -103,12 +104,12 @@ export class TestCaseExecutor {
           HTTP_UNAUTHORIZED_STATUS_CODE,
         ].includes(statusCode);
 
-        expection = () => expect(requestForbidden).toBe(true);
+        expectation = () => expect(requestForbidden).toBe(true);
         testResult.explanation = `Expected ${HTTP_FORBIDDEN_STATUS_CODE} or ${HTTP_UNAUTHORIZED_STATUS_CODE} status code, received ${statusCode}.`;
 
         actual = requestForbidden ? "denied" : "permitted";
       } else {
-        expection = () => expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
+        expectation = () => expect(statusCode).toBe(HTTP_FORBIDDEN_STATUS_CODE);
         testResult.explanation = `Expected ${HTTP_FORBIDDEN_STATUS_CODE}, received ${statusCode}.`;
       }
     }
@@ -117,7 +118,7 @@ export class TestCaseExecutor {
     testResult.actual = actual;
     testResult.result = actual === expected ? "✅" : "❌";
 
-    executeAndEnhanceWithTestResult(expection, testResult);
+    executeAndEnhanceWithTestResult(expectation, testResult);
     return testResult;
   }
 }
