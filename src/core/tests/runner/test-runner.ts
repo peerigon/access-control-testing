@@ -41,7 +41,13 @@ export abstract class TestRunner {
   protected testResults: Array<TestResult> = [];
 
   constructor() {
-    process.on("exit", () => this.printReport());
+    process.on("exit", () => {
+      this.printReport();
+      const failedTestCases = this.testResults.some(
+        (testResult) => testResult.result === "❌",
+      );
+      process.exit(failedTestCases ? 1 : 0);
+    });
   }
 
   abstract run(testCases: Array<TestCase>): Promise<void>;
