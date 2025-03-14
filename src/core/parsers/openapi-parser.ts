@@ -204,21 +204,70 @@ export class OpenAPIParser {
       : paths;
 
     return filteredPaths.map((path) => {
-      const parameters = path.getParameters();
+      // todo: getParametersAsJSONSchema seems to return null (which is not present in the type definition), open an issue
 
-      const parametrizedResources =
-        parameters.map((parameter) => ({
-          parameterName: parameter.name,
-          parameterLocation: parameter.in,
-          resourceName: getOpenApiField(
-            parameter,
-            OpenApiFieldNames.RESOURCE_NAME,
-          ) as string, // todo: replace this with zod parsing
-          resourceAccess: getOpenApiField(
-            parameter,
-            OpenApiFieldNames.RESOURCE_ACCESS,
-          ) as string,
-        })) ?? [];
+      // unfortunately, getParametersAsJSONSchema strips x-act fields for other parameter types such as path or query
+      // this is why there are separate calls for requestBody and parameters
+      // todo: maybe find a better way to handle this/open an issue
+      const resourcesFromRequestBody = path.hasRequestBody()
+        ? path.getParametersAsJSONSchema().flatMap((parameterType) => {
+            const parameterLocation = parameterType.type as ParameterLocation;
+
+            if (
+              !parameterType.schema.properties ||
+              parameterLocation !== "body"
+            ) {
+              return [];
+            }
+
+            return Object.entries(parameterType.schema.properties).flatMap(
+              ([parameterName, property]) => {
+                if (typeof property !== "object") {
+                  return [];
+                }
+
+                const resourceName = getOpenApiField(
+                  property,
+                  OpenApiFieldNames.RESOURCE_NAME,
+                ) as string;
+
+                const resourceAccess = getOpenApiField(
+                  property,
+                  OpenApiFieldNames.RESOURCE_ACCESS,
+                ) as string;
+
+                if (!resourceName || !resourceAccess) {
+                  return [];
+                }
+
+                return {
+                  resourceName,
+                  resourceAccess,
+                  parameterName,
+                  parameterLocation,
+                };
+              },
+            );
+          })
+        : [];
+
+      const resourcesFromParameters = path.getParameters().map((parameter) => ({
+        parameterName: parameter.name,
+        parameterLocation: parameter.in,
+        resourceName: getOpenApiField(
+          parameter,
+          OpenApiFieldNames.RESOURCE_NAME,
+        ) as string, // todo: replace this with zod parsing
+        resourceAccess: getOpenApiField(
+          parameter,
+          OpenApiFieldNames.RESOURCE_ACCESS,
+        ) as string,
+      }));
+
+      const parametrizedResources = [
+        ...resourcesFromRequestBody,
+        ...resourcesFromParameters,
+      ];
 
       // todo: at the moment it is considered that there can be at most one non-parametrized resource per path (e.g. /users)
       const nonParametrizedResourceName = getOpenApiField(
