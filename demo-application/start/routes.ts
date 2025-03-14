@@ -40,6 +40,19 @@ router
       return User.query()
     })
 
+    router.patch('/users', async ({ request, response }) => {
+      // no check if user can be accessed
+      // for now just a dummy endpoint for changing some user data
+
+      const { id } = request.body()
+
+      if (!id) {
+        return response.status(400).send({})
+      }
+
+      return User.findOrFail(id)
+    })
+
     router.get('/users/:id', async ({ params }) => {
       return User.findOrFail(params.id)
     })

@@ -22,22 +22,26 @@ test.group("TestUtils", (group) => {
   test("performRequest should properly authenticate via cookie-based authentication", async ({
     expect,
   }) => {
-    const response = await performRequest(
-      protectedRoute,
-      createCookieAuthenticator(),
-      {
+    const response = await performRequest({
+      route: protectedRoute,
+      authenticator: createCookieAuthenticator(),
+      credentials: {
         identifier: validUsername,
         password: validPassword,
       },
-    );
+    });
 
     expect(response.statusCode).toBe(200);
   });
 
   test("performRequest should throw when using invalid credentials", async () => {
-    await performRequest(protectedRoute, createCookieAuthenticator(), {
-      identifier: validUsername,
-      password: "wrongpassword",
+    await performRequest({
+      route: protectedRoute,
+      authenticator: createCookieAuthenticator(),
+      credentials: {
+        identifier: validUsername,
+        password: "wrongpassword",
+      },
     });
   }).throws(/authentication endpoint returned a non-successful response/);
 
@@ -61,11 +65,11 @@ test.group("TestUtils", (group) => {
 
     sessionStore.set(credentials.identifier, temporarySession);
 
-    const response = await performRequest(
-      protectedRoute,
-      cookieAuthenticator,
+    const response = await performRequest({
+      route: protectedRoute,
+      authenticator: cookieAuthenticator,
       credentials,
-    );
+    });
 
     // since the existing session can't be used, it should have been removed
     // and a new one should have been created

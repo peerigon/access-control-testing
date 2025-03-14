@@ -1,13 +1,14 @@
 import chalk from "chalk";
 import CliTable3 from "cli-table3";
 import type { User } from "../../policy/entities/user.ts";
-import type { Route } from "../test-utils.ts";
+import type { RequestBody, Route } from "../test-utils.ts";
 
 export type AccessControlResult = "permitted" | "denied";
 
 export type TestResult = {
   user: User | null;
   route: Route;
+  requestBody?: RequestBody;
   expected: AccessControlResult;
   actual?: AccessControlResult;
   result?: "✅" | "❌" | "⏭️";
@@ -53,6 +54,14 @@ export abstract class TestRunner {
 
   abstract run(testCases: Array<TestCase>): Promise<void>;
 
+  protected formatRequestBody(body: object): string {
+    try {
+      return chalk.cyan(JSON.stringify(body, null, 2));
+    } catch {
+      return chalk.red("Invalid JSON");
+    }
+  }
+
   protected printReport(): void {
     console.log("\n=== Test Report ===");
 
@@ -69,9 +78,14 @@ export abstract class TestRunner {
     });
 
     this.testResults.forEach((result) => {
+      const requestInfo =
+        typeof result.requestBody === "object"
+          ? `${result.route}\n${this.formatRequestBody(result.requestBody)}`
+          : result.route.toString();
+
       reportTable.push([
         result.user?.toString() ?? "anonymous",
-        result.route.toString(),
+        requestInfo,
         result.expected,
         result.actual,
         result.statusCode,

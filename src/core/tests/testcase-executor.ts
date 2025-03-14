@@ -38,11 +38,18 @@ export class TestCaseExecutor {
     testCombination: TestCombination,
     { expect, skip }: TestContext,
   ): Promise<TestResult | undefined> {
-    const { user, route, expectedRequestToBeAllowed } = testCombination;
+    const { user, route, requestBody, expectedRequestToBeAllowed } =
+      testCombination;
     const expected: AccessControlResult = expectedRequestToBeAllowed
       ? "permitted"
       : "denied";
-    const testResult: TestResult = { user, route, expected, result: "❌" };
+    const testResult: TestResult = {
+      user,
+      route,
+      requestBody,
+      expected,
+      result: "❌",
+    };
 
     const userHasBeenBlocked =
       user !== null &&
@@ -62,7 +69,12 @@ export class TestCaseExecutor {
 
     let response;
     try {
-      response = await performRequest(route, authenticator, credentials);
+      response = await performRequest({
+        route,
+        requestBody,
+        authenticator,
+        credentials,
+      });
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error(error.message);
