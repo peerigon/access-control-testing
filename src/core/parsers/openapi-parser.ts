@@ -30,6 +30,13 @@ import {
 type SpecificationUrl = ConstructorParameters<typeof OASNormalize>[0];
 type SecurityScheme = KeyedSecuritySchemeObject;
 
+export type ResourceLocationDescriptor = {
+  resourceName: string;
+  resourceAccess: string;
+  parameterName?: string;
+  parameterLocation?: string;
+};
+
 export class OpenAPIParser {
   private constructor(
     private readonly openApiSource: Oas,
@@ -235,12 +242,10 @@ export class OpenAPIParser {
       const securityRequirements = path.getSecurity();
       const isPublicPath = securityRequirements.length === 0;
 
-      const resources: Array<{
-        resourceName: string;
-        resourceAccess: string;
-        parameterName?: string;
-        parameterLocation?: string;
-      }> = [...parametrizedResources, ...nonParametrizedResources];
+      const resources: Array<ResourceLocationDescriptor> = [
+        ...parametrizedResources,
+        ...nonParametrizedResources,
+      ];
 
       return {
         path: path.path,

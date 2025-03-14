@@ -7,6 +7,11 @@ import {
   API_CLIENT_MAX_REQUEST_RETRIES,
   HTTP_UNAUTHORIZED_STATUS_CODE,
 } from "../constants.ts";
+import {
+  OpenAPIParser,
+  type ResourceLocationDescriptor,
+} from "../parsers/openapi-parser.ts";
+import type { ResourceIdentifier } from "../policy/types.ts";
 
 export class Route {
   constructor(
@@ -119,4 +124,42 @@ export async function performRequest(
       ],
     },
   });
+}
+
+/**
+ * Creates the request data for an individual test combination by returning the
+ * route to use and optionally the request body.
+ */
+export function createRequestData({
+  path,
+  method,
+  currentResource,
+  resourceIdentifier,
+  openApiParser,
+}: {
+  path: string;
+  method: Method;
+  currentResource: ResourceLocationDescriptor;
+  resourceIdentifier?: ResourceIdentifier;
+  openApiParser: OpenAPIParser;
+}) {
+  // todo: currently only parameterLocation path supported
+  // function should support parameterLocation, parameterName and parameterValue
+
+  // resourceIdentifier can be undefined when resource access is create for instance
+  // or when access for all resources of a type is described
+  const expandedPath =
+    resourceIdentifier === undefined ||
+    currentResource.parameterName === undefined ||
+    currentResource.parameterLocation === undefined
+      ? path
+      : OpenAPIParser.expandUrlTemplate(path, {
+          [currentResource.parameterName]: resourceIdentifier,
+        }); // todo: for multiple resources and therefore parameters, multiple keys in object -> dynamic mapping required
+
+  const url = openApiParser.constructFullApiUrl(expandedPath);
+
+  return {
+    route: new Route(url, method),
+  };
 }

@@ -10,7 +10,7 @@ import type {
 } from "../policy/types.ts";
 import { removeObjectDuplicatesFromArray } from "../utils.ts";
 import type { TestCase } from "./runner/test-runner.ts";
-import { Route } from "./test-utils.ts";
+import { createRequestData, Route } from "./test-utils.ts";
 import { TestCaseExecutor } from "./testcase-executor.ts";
 
 export type TestCombination = {
@@ -117,27 +117,19 @@ export class TestCaseGenerator {
             path,
             currentResource.parameterName,
           ) &&
-          resourceIdentifier == undefined;
+          resourceIdentifier === undefined;
 
         if (resourceIdentifierRequiredButNotProvided) {
           return [];
         }
 
-        // todo: currently only parameterLocation path supported
-        // function should support parameterLocation, parameterName and parameterValue
-
-        // resourceIdentifier can be undefined when resource access is create for instance
-        // or when access for all resources of a type is described
-        const expandedPath =
-          resourceIdentifier == undefined ||
-          currentResource.parameterName === undefined ||
-          currentResource.parameterLocation === undefined
-            ? path
-            : OpenAPIParser.expandUrlTemplate(path, {
-                [currentResource.parameterName]: resourceIdentifier,
-              }); // todo: for multiple resources and therefore parameters, multiple keys in object -> dynamic mapping required
-
-        const url = this.openApiParser.constructFullApiUrl(expandedPath);
+        const { route } = createRequestData({
+          path,
+          method,
+          currentResource,
+          resourceIdentifier,
+          openApiParser: this.openApiParser,
+        });
 
         const expectedRequestToBeAllowed = PolicyDecisionPoint.isAllowed(
           user,
@@ -148,7 +140,7 @@ export class TestCaseGenerator {
 
         return {
           user,
-          route: new Route(url, method),
+          route,
           expectedRequestToBeAllowed,
           resourceAction,
         };
