@@ -91,7 +91,7 @@ export class OpenAPIParser {
     const resourceNames = resources.map((resource) => resource.getName());
 
     this.getPaths().forEach((path) => {
-      path.getParameters().forEach((parameter) => {
+      const pathParameters = path.getParameters().map((parameter) => {
         const resourceAccess = getOpenApiField(
           parameter,
           OpenApiFieldNames.RESOURCE_ACCESS,
@@ -108,23 +108,43 @@ export class OpenAPIParser {
 
         // todo: use default parameter values in requests when they are provided for required params
 
-        parseZodSchema(
-          createResourceDescriptorSchema({
-            allowedResourceNames: resourceNames,
-            descriptorsRequired,
-          }),
-          {
-            resourceName,
-            resourceAccess,
-          },
-          [
-            "To describe",
-            descriptorsRequired ? "required" : "",
-            `resources in routes, both '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_NAME}' and '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_ACCESS}' must be defined at the same time.
-Parameter '${parameter.name}' in path '${path.path}' must be annotated properly.`,
-          ].join(" "),
-        );
+        return {
+          resourceName,
+          resourceAccess,
+          descriptorsRequired,
+          parameterName: parameter.name,
+          parameterLocation: parameter.in,
+        };
       });
+
+      const allResourceLocations = [...pathParameters];
+
+      allResourceLocations.forEach(
+        ({
+          resourceName,
+          resourceAccess,
+          descriptorsRequired,
+          parameterName,
+          parameterLocation,
+        }) => {
+          parseZodSchema(
+            createResourceDescriptorSchema({
+              allowedResourceNames: resourceNames,
+              descriptorsRequired,
+            }),
+            {
+              resourceName,
+              resourceAccess,
+            },
+            [
+              "To describe",
+              descriptorsRequired ? "required" : "",
+              `resources in routes, both '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_NAME}' and '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_ACCESS}' must be defined at the same time.
+Parameter '${parameterName}' of type '${parameterLocation}' in path '${path.path}' must be annotated properly.`,
+            ].join(" "),
+          );
+        },
+      );
 
       parseZodSchema(
         createResourceDescriptorSchema({
