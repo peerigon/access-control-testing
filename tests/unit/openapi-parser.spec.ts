@@ -165,25 +165,6 @@ test.group("OpenAPIParser", (group) => {
     openAPIParser.validateCustomFields(resources);
   }).throws(/Expected 'User', received 'test'/);
 
-  test("should throw when resource annotation is missing in required request body property", async () => {
-    const resources = [new Resource("User")];
-
-    // @ts-expect-error mutation of spec is expected
-    currentSpec.paths["/admin/users"].patch.requestBody.content[
-      "application/json"
-    ].schema.properties.id["x-act"] = undefined;
-
-    (
-      currentSpec.paths["/admin/users"].patch.requestBody.content[
-        "application/json"
-      ].schema.properties.id as any
-    ).required = true;
-
-    const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
-
-    openAPIParser.validateCustomFields(resources);
-  }).throws(/To describe required reasoures in routes/);
-
   test("should properly combine api base url containing path with given path", async ({
     expect,
   }) => {

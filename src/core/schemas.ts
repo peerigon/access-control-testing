@@ -21,20 +21,14 @@ export const createResourceDescriptorSchema = ({
         ? resourceNameSchema
         : resourceNameSchema.optional(),
     })
-    .refine(
-      (data) => {
-        const bothOrOneIsMissing =
-          (data.resourceAccess === undefined &&
-            data.resourceName === undefined) ||
-          (data.resourceAccess !== undefined &&
-            data.resourceName !== undefined);
+    .refine((data) => {
+      const bothOrOneIsMissing =
+        (data.resourceAccess === undefined &&
+          data.resourceName === undefined) ||
+        (data.resourceAccess !== undefined && data.resourceName !== undefined);
 
-        return bothOrOneIsMissing;
-      },
-      {
-        path: ["resourceAccess", "resourceName"],
-      },
-    );
+      return bothOrOneIsMissing;
+    });
 };
 
 export const AuthFieldSchema = z

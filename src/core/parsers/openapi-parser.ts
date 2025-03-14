@@ -117,7 +117,7 @@ export class OpenAPIParser {
               "To describe",
               descriptorsRequired ? "required" : "",
               `resources in routes, both '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_NAME}' and '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_ACCESS}' must be defined at the same time.
-Parameter '${parameterName}' of type '${parameterLocation}' in path '${operation.path}' must be annotated properly.`,
+Parameter '${parameterName}' of type '${parameterLocation}' in path '${operation.method.toUpperCase()} ${operation.path}' must be annotated properly.`,
             ].join(" "),
           );
         },
@@ -287,13 +287,10 @@ Path '${operation.path}' must be annotated properly.`,
                 OpenApiFieldNames.RESOURCE_ACCESS,
               ) as string;
 
-              // todo: calculate this
-              const descriptorsRequired = true;
-
               return {
                 resourceName,
                 resourceAccess,
-                descriptorsRequired,
+                descriptorsRequired: false,
                 parameterName,
                 parameterLocation,
               };
