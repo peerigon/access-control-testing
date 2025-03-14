@@ -1,6 +1,7 @@
+import chalk from "chalk";
 import CliTable3 from "cli-table3";
-import { User } from "../../policy/entities/user.ts";
-import { Route } from "../test-utils.ts";
+import type { User } from "../../policy/entities/user.ts";
+import type { Route } from "../test-utils.ts";
 
 export type AccessControlResult = "permitted" | "denied";
 
@@ -55,20 +56,20 @@ export abstract class TestRunner {
   protected printReport(): void {
     console.log("\n=== Test Report ===");
 
-    const table = new CliTable3({
+    const reportTable = new CliTable3({
       head: [
-        "User",
-        "Route",
-        "Expected",
-        "Actual",
-        "Status Code",
-        "Result",
-        "Explanation",
+        chalk.gray("User"),
+        chalk.gray("Route"),
+        chalk.gray("Expected"),
+        chalk.gray("Actual"),
+        chalk.gray("Status Code"),
+        chalk.gray("Result"),
+        chalk.gray("Explanation"),
       ],
     });
 
     this.testResults.forEach((result) => {
-      table.push([
+      reportTable.push([
         result.user?.toString() ?? "anonymous",
         result.route.toString(),
         result.expected,
@@ -79,7 +80,30 @@ export abstract class TestRunner {
       ]);
     });
 
-    console.log(table.toString());
-    // todo: enhance this with a detailed report containing all the routes that failed
+    console.log(reportTable.toString());
+
+    const failedTestCases = this.testResults.filter(
+      (testResult) => testResult.result === "❌",
+    );
+
+    if (failedTestCases.length > 0) {
+      console.log(
+        chalk.redBright(
+          `${failedTestCases.length}/${this.testResults.length} test cases failed.`,
+        ),
+      );
+
+      const failedUrls = new Set(
+        failedTestCases.map((testResult) => testResult.route.toString()),
+      );
+
+      if (failedUrls.size > 0) {
+        console.log();
+        console.log(chalk.red.bold("🚨 Routes with failed test cases:"));
+        failedUrls.forEach((url) => console.log(chalk.yellow(`   - ${url}`)));
+      }
+    } else {
+      console.log(chalk.green("All test cases passed! ✅"));
+    }
   }
 }
