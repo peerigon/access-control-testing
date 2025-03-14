@@ -148,6 +148,22 @@ export class TestCaseGenerator {
     return removeObjectDuplicatesFromArray(testCombinations);
   }
 
+  /**
+   * Sorts the test combinations by expected result and makes sure that test
+   * combinations that are expected to be denied are tested first.
+   *
+   * @private
+   * @param testCombinations
+   */
+  private sortTestCombinations(testCombinations: TestCombinations) {
+    // sort by expected:
+    return testCombinations.sort(
+      (a, b) =>
+        Number(a.expectedRequestToBeAllowed) -
+        Number(b.expectedRequestToBeAllowed),
+    );
+  }
+
   private generateResourceUserCombinations() {
     const resourceUserCombinations = new ObjectSet<{
       user: User;
@@ -197,9 +213,10 @@ export class TestCaseGenerator {
 
   async generateTestCases(): Promise<Array<TestCase>> {
     const testCombinations = this.generateTestCombinations();
+    const sortedTestCombinations = this.sortTestCombinations(testCombinations);
     const testCaseExecutor = new TestCaseExecutor(this.openApiParser);
 
-    return testCombinations.map((testCombination) => ({
+    return sortedTestCombinations.map((testCombination) => ({
       name: `${testCombination.route} from the perspective of user '${testCombination.user ?? "anonymous"}'`,
       test: async (testContext) =>
         testCaseExecutor.execute(testCombination, testContext),
