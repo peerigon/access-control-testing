@@ -120,7 +120,9 @@ test.group("OpenAPIParser", (group) => {
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
     openAPIParser.validateCustomFields(resources);
-  }).throws(/both 'resourceName' and 'resourceAccess' must be defined/);
+  }).throws(
+    /both 'x-act-resource-name' and 'x-act-resource-access' must be defined/,
+  );
 
   test("should throw when resource name but not resource access is specified", async () => {
     const resources = [new Resource("User")];
@@ -133,7 +135,9 @@ test.group("OpenAPIParser", (group) => {
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
     openAPIParser.validateCustomFields(resources);
-  }).throws(/both 'resourceName' and 'resourceAccess' must be defined/);
+  }).throws(
+    /both 'x-act-resource-name' and 'x-act-resource-access' must be defined/,
+  );
 
   test("should throw when resource description is omitted for required parameters", async () => {
     const resources = [new Resource("User")];
@@ -146,8 +150,8 @@ test.group("OpenAPIParser", (group) => {
 
     openAPIParser.validateCustomFields(resources);
   }).throws(
-    "To describe required resources in routes, both 'resourceName' and 'resourceAccess' must be defined at the same time.",
-  );
+    /To describe required resources in routes, both 'x-act-resource-name' and 'x-act-resource-access' must be defined at the same time./,
+  ); // todo: also check for "Parameter 'id' in path '/admin/users/{id}' must be annotated properly."
 
   test("should properly combine api base url containing path with given path", async ({
     expect,

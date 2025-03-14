@@ -14,7 +14,7 @@ import {
   type AuthParameterLocationDescription,
   type ParameterLocation,
 } from "../authentication/http/types.ts";
-import { OpenApiFieldNames } from "../constants.ts";
+import { OPENAPI_FIELD_PREFIX, OpenApiFieldNames } from "../constants.ts";
 import type { Resource } from "../policy/entities/resource.ts";
 import { createResourceDescriptorSchema } from "../schemas.ts";
 import { Route } from "../tests/test-utils.ts";
@@ -112,7 +112,8 @@ export class OpenAPIParser {
         // validate that required parameters are annotated with resource name and resource access
         if (resourceDescriptionNeeded && (!resourceAccess || !resourceName)) {
           throw new Error(
-            "To describe required resources in routes, both 'resourceName' and 'resourceAccess' must be defined at the same time.",
+            `To describe required resources in routes, both '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_NAME}' and '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_ACCESS}' must be defined at the same time.
+             Parameter '${parameter.name}' in path '${path.path}' must be annotated properly.`,
           );
         }
 
