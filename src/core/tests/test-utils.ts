@@ -13,7 +13,7 @@ import {
 } from "../parsers/openapi-parser.ts";
 import type { ResourceIdentifier } from "../policy/types.ts";
 
-type RequestBody = object | undefined;
+export type RequestBody = object | undefined;
 
 export class Route {
   constructor(

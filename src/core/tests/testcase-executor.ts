@@ -43,7 +43,13 @@ export class TestCaseExecutor {
     const expected: AccessControlResult = expectedRequestToBeAllowed
       ? "permitted"
       : "denied";
-    const testResult: TestResult = { user, route, expected, result: "❌" };
+    const testResult: TestResult = {
+      user,
+      route,
+      requestBody,
+      expected,
+      result: "❌",
+    };
 
     const userHasBeenBlocked =
       user !== null &&
