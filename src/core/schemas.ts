@@ -56,8 +56,12 @@ const formatZodError = (error: ZodError, prefix: string): string => {
   if (issues[0] === undefined) return prefix;
 
   const firstIssue = formatZodIssue(issues[0]);
+
+  const additionalIssuesCount = issues.length - 1;
   const additionalIssuesHint =
-    issues.length > 1 ? ` (and ${issues.length - 1} more issues)` : "";
+    additionalIssuesCount >= 1
+      ? ` (and ${additionalIssuesCount} more ${additionalIssuesCount > 1 ? "issues" : "issue"})`
+      : "";
 
   return `${prefix}\n\n${firstIssue}${additionalIssuesHint}`;
 };
