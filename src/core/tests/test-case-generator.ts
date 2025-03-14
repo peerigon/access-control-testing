@@ -19,6 +19,13 @@ export type TestCombination = {
   expectedRequestToBeAllowed: boolean;
 };
 
+type ResourceUserCombination = {
+  user: User;
+  resourceName: ResourceName;
+  resourceAction: Action;
+  resourceIdentifier?: ResourceIdentifier;
+};
+
 export type TestCombinations = Array<TestCombination>;
 
 export class TestCaseGenerator {
@@ -36,116 +43,126 @@ export class TestCaseGenerator {
     // each url resource mapping has "<Access> <Resource>" pairs with info where to find resource param
     const resourceUserCombinations = this.generateResourceUserCombinations();
 
-    const testCombinations: TestCombinations =
-      pathResourceMappings.flatMap<TestCombination>((pathResourceMapping) => {
-        // todo: create Route object for url & method to use instead
-        const { path, method, isPublicPath, resources } = pathResourceMapping;
+    const testCombinations: Array<
+      TestCombination & { resourceAction?: Action }
+    > = pathResourceMappings.flatMap<
+      TestCombination & { resourceAction?: Action }
+    >((pathResourceMapping) => {
+      // todo: create Route object for url & method to use instead
+      const { path, method, isPublicPath, resources } = pathResourceMapping;
 
-        if (resources.length > 1) {
-          console.warn(
-            "Multiple resources in a single route are not supported yet. Only the first resource will be used.",
-          );
+      if (resources.length > 1) {
+        console.warn(
+          "Multiple resources in a single route are not supported yet. Only the first resource will be used.",
+        );
+      }
+
+      const routeHasResources =
+        Array.isArray(resources) && resources.length > 0;
+
+      // no resources available -> default: deny (except for "public" routes)
+      // todo: mark routes as public (for anonymous users) or available for all logged-in users
+      // routes that are public for anonymous users are expected to be permitted for logged-in users too
+
+      if (!routeHasResources) {
+        if (isPublicPath) {
+          // todo: if that's the case, no need to test, right?
+          // the only thing that COULD be tested is if legitimate users are not blocked
+          // since it's public anyway, there can be no escalation of privileges, skip for now
+          return [];
         }
 
-        const routeHasResources =
-          Array.isArray(resources) && resources.length > 0;
+        // in case it's non-public/only available for any authenticated user:
+        // test from anonymous user perspective
+        return {
+          user: null,
+          route: new Route(
+            this.openApiParser.constructFullApiUrl(path),
+            method,
+          ),
+          expectedRequestToBeAllowed: false,
+        };
+      }
 
-        // no resources available -> default: deny (except for "public" routes)
-        // todo: mark routes as public (for anonymous users) or available for all logged-in users
-        // routes that are public for anonymous users are expected to be permitted for logged-in users too
+      // todo: handle multiple resources: foreach resource in resources
+      // resource availability was checked before, so there is at least one resource available
+      const currentResource = resources[0]!;
 
-        if (!routeHasResources) {
-          if (isPublicPath) {
-            // todo: if that's the case, no need to test, right?
-            // the only thing that COULD be tested is if legitimate users are not blocked
-            // since it's public anyway, there can be no escalation of privileges, skip for now
-            return [];
-          }
+      // only use resourceUserCombinations that match with the given resource and access type
 
-          // in case it's non-public/only available for any authenticated user:
-          // test from anonymous user perspective
-          return {
-            user: null,
-            route: new Route(
-              this.openApiParser.constructFullApiUrl(path),
-              method,
-            ),
-            expectedRequestToBeAllowed: false,
-          };
+      // resource (from resources inside of pathResourceMapping) is a Resource object mapped to the iterated url
+
+      // each resource has a resourceName as string to map to a Resource instance
+      // it also has a resourceAccess type as string to map to an Action
+      // also, a parameterName as string and a parameterLocation as string to be able to expand the url
+
+      // only consume resourceUserCombinations that match the current resource and access type
+      // todo: should the consumed resourceUserCombinations be removed from the list?
+      const matchingResourceUserCombinations = resourceUserCombinations.filter(
+        (combination) =>
+          combination.resourceName === currentResource.resourceName &&
+          combination.resourceAction === currentResource.resourceAccess &&
+          combination.resourceIdentifier !== undefined, // only consume combinations with a concrete resourceIdentifier
+        // todo: validate that this restriction is wanted
+      );
+
+      return matchingResourceUserCombinations.flatMap((combination) => {
+        const { user, resourceName, resourceAction, resourceIdentifier } =
+          combination;
+        const resource = new Resource(resourceName);
+
+        const resourceIdentifierRequiredButNotProvided =
+          currentResource.parameterName !== undefined &&
+          OpenAPIParser.pathContainsParameter(
+            path,
+            currentResource.parameterName,
+          ) &&
+          resourceIdentifier == undefined;
+
+        if (resourceIdentifierRequiredButNotProvided) {
+          return [];
         }
 
-        // todo: handle multiple resources: foreach resource in resources
-        // resource availability was checked before, so there is at least one resource available
-        const currentResource = resources[0]!;
+        // todo: currently only parameterLocation path supported
+        // function should support parameterLocation, parameterName and parameterValue
 
-        // only use resourceUserCombinations that match with the given resource and access type
+        // resourceIdentifier can be undefined when resource access is create for instance
+        // or when access for all resources of a type is described
+        const expandedPath =
+          resourceIdentifier == undefined ||
+          currentResource.parameterName === undefined ||
+          currentResource.parameterLocation === undefined
+            ? path
+            : OpenAPIParser.expandUrlTemplate(path, {
+                [currentResource.parameterName]: resourceIdentifier,
+              }); // todo: for multiple resources and therefore parameters, multiple keys in object -> dynamic mapping required
 
-        // resource (from resources inside of pathResourceMapping) is a Resource object mapped to the iterated url
+        const url = this.openApiParser.constructFullApiUrl(expandedPath);
 
-        // each resource has a resourceName as string to map to a Resource instance
-        // it also has a resourceAccess type as string to map to an Action
-        // also, a parameterName as string and a parameterLocation as string to be able to expand the url
+        const expectedRequestToBeAllowed = PolicyDecisionPoint.isAllowed(
+          user,
+          resourceAction,
+          resource,
+          resourceIdentifier,
+        );
 
-        // only consume resourceUserCombinations that match the current resource and access type
-        // todo: should the consumed resourceUserCombinations be removed from the list?
-        const matchingResourceUserCombinations =
-          resourceUserCombinations.filter(
-            (combination) =>
-              combination.resourceName === currentResource.resourceName &&
-              combination.resourceAction === currentResource.resourceAccess &&
-              combination.resourceIdentifier !== undefined, // only consume combinations with a concrete resourceIdentifier
-            // todo: validate that this restriction is wanted
-          );
-
-        return matchingResourceUserCombinations.flatMap((combination) => {
-          const { user, resourceName, resourceAction, resourceIdentifier } =
-            combination;
-          const resource = new Resource(resourceName);
-
-          const resourceIdentifierRequiredButNotProvided =
-            currentResource.parameterName !== undefined &&
-            OpenAPIParser.pathContainsParameter(
-              path,
-              currentResource.parameterName,
-            ) &&
-            resourceIdentifier == undefined;
-
-          if (resourceIdentifierRequiredButNotProvided) {
-            return [];
-          }
-
-          // todo: currently only parameterLocation path supported
-          // function should support parameterLocation, parameterName and parameterValue
-
-          // resourceIdentifier can be undefined when resource access is create for instance
-          // or when access for all resources of a type is described
-          const expandedPath =
-            resourceIdentifier == undefined ||
-            currentResource.parameterName === undefined ||
-            currentResource.parameterLocation === undefined
-              ? path
-              : OpenAPIParser.expandUrlTemplate(path, {
-                  [currentResource.parameterName]: resourceIdentifier,
-                }); // todo: for multiple resources and therefore parameters, multiple keys in object -> dynamic mapping required
-
-          const url = this.openApiParser.constructFullApiUrl(expandedPath);
-
-          const expectedRequestToBeAllowed = PolicyDecisionPoint.isAllowed(
-            user,
-            resourceAction,
-            resource,
-            resourceIdentifier,
-          );
-
-          return {
-            user,
-            route: new Route(url, method),
-            expectedRequestToBeAllowed,
-          };
-        });
+        return {
+          user,
+          route: new Route(url, method),
+          expectedRequestToBeAllowed,
+          resourceAction,
+        };
       });
+    });
 
-    return removeObjectDuplicatesFromArray(testCombinations);
+    const uniqueTestCombinations =
+      removeObjectDuplicatesFromArray(testCombinations);
+
+    const sortedTestCombinations = this.sortTestCombinationsByDeleteAction(
+      this.sortTestCombinationsByPermittedState(uniqueTestCombinations),
+    );
+
+    return sortedTestCombinations;
   }
 
   /**
@@ -155,8 +172,9 @@ export class TestCaseGenerator {
    * @private
    * @param testCombinations
    */
-  private sortTestCombinations(testCombinations: TestCombinations) {
-    // sort by expected:
+  private sortTestCombinationsByPermittedState(
+    testCombinations: TestCombinations,
+  ) {
     return testCombinations.sort(
       (a, b) =>
         Number(a.expectedRequestToBeAllowed) -
@@ -164,13 +182,25 @@ export class TestCaseGenerator {
     );
   }
 
+  /**
+   * Sorts the resource user combinations by the action to be performed ensuring
+   * DELETE actions are tested at the end.
+   *
+   * @private
+   * @param testCombinations
+   */
+  private sortTestCombinationsByDeleteAction(
+    testCombinations: Array<TestCombination & { resourceAction?: Action }>,
+  ) {
+    return testCombinations.sort(
+      (a, b) =>
+        Number(a.resourceAction === "delete") -
+        Number(b.resourceAction === "delete"),
+    );
+  }
+
   private generateResourceUserCombinations() {
-    const resourceUserCombinations = new ObjectSet<{
-      user: User;
-      resourceName: ResourceName;
-      resourceAction: Action;
-      resourceIdentifier?: ResourceIdentifier;
-    }>();
+    const resourceUserCombinations = new ObjectSet<ResourceUserCombination>();
 
     // todo: move this explanation to JSDoc
     // generate combinations between users, actions, resources and resource ids
@@ -213,10 +243,10 @@ export class TestCaseGenerator {
 
   async generateTestCases(): Promise<Array<TestCase>> {
     const testCombinations = this.generateTestCombinations();
-    const sortedTestCombinations = this.sortTestCombinations(testCombinations);
+
     const testCaseExecutor = new TestCaseExecutor(this.openApiParser);
 
-    return sortedTestCombinations.map((testCombination) => ({
+    return testCombinations.map((testCombination) => ({
       name: `${testCombination.route} from the perspective of user '${testCombination.user ?? "anonymous"}'`,
       test: async (testContext) =>
         testCaseExecutor.execute(testCombination, testContext),
