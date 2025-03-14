@@ -16,7 +16,7 @@ import {
 } from "../authentication/http/types.ts";
 import { OPENAPI_FIELD_PREFIX, OpenApiFieldNames } from "../constants.ts";
 import type { Resource } from "../policy/entities/resource.ts";
-import { createResourceDescriptorSchema } from "../schemas.ts";
+import { createResourceDescriptorSchema, parseZodSchema } from "../schemas.ts";
 import { Route } from "../tests/test-utils.ts";
 import type { AuthEndpointInformation } from "../types.ts";
 import {
@@ -89,8 +89,6 @@ export class OpenAPIParser {
   // todo: should this be part of the creation process?
   validateCustomFields(resources: Array<Resource>) {
     const resourceNames = resources.map((resource) => resource.getName());
-    const resourceDescriptorSchema =
-      createResourceDescriptorSchema(resourceNames);
 
     this.getPaths().forEach((path) => {
       path.getParameters().forEach((parameter) => {
@@ -105,37 +103,46 @@ export class OpenAPIParser {
 
         const parameterSchema = parameter.schema as SchemaObject;
         const parameterDefaultProvided = Boolean(parameterSchema.default);
-        const resourceDescriptionNeeded =
+        const descriptorsRequired =
           Boolean(parameter.required) && !parameterDefaultProvided;
+
         // todo: use default parameter values in requests when they are provided for required params
 
-        // validate that required parameters are annotated with resource name and resource access
-        if (resourceDescriptionNeeded && (!resourceAccess || !resourceName)) {
-          throw new Error(
-            `To describe required resources in routes, both '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_NAME}' and '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_ACCESS}' must be defined at the same time.
-             Parameter '${parameter.name}' in path '${path.path}' must be annotated properly.`,
-          );
-        }
-
-        // todo: better custom error message
-        // create a ResourceDescriptorParser
-        // it should accept path.schema/parameter.schema and provide a nicer error message
-        resourceDescriptorSchema.parse({
-          resourceName,
-          resourceAccess,
-        });
+        parseZodSchema(
+          createResourceDescriptorSchema({
+            allowedResourceNames: resourceNames,
+            descriptorsRequired,
+          }),
+          {
+            resourceName,
+            resourceAccess,
+          },
+          [
+            "To describe",
+            descriptorsRequired ? "required" : "",
+            `resources in routes, both '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_NAME}' and '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_ACCESS}' must be defined at the same time.
+Parameter '${parameter.name}' in path '${path.path}' must be annotated properly.`,
+          ].join(" "),
+        );
       });
 
-      resourceDescriptorSchema.parse({
-        resourceName: getOpenApiField(
-          path.schema,
-          OpenApiFieldNames.RESOURCE_NAME,
-        ),
-        resourceAccess: getOpenApiField(
-          path.schema,
-          OpenApiFieldNames.RESOURCE_ACCESS,
-        ),
-      });
+      parseZodSchema(
+        createResourceDescriptorSchema({
+          allowedResourceNames: resourceNames,
+        }),
+        {
+          resourceName: getOpenApiField(
+            path.schema,
+            OpenApiFieldNames.RESOURCE_NAME,
+          ),
+          resourceAccess: getOpenApiField(
+            path.schema,
+            OpenApiFieldNames.RESOURCE_ACCESS,
+          ),
+        },
+        `To describe resources in routes, both '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_NAME}' and '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_ACCESS}' must be defined at the same time.
+             Path '${path.path}' must be annotated properly.`,
+      );
     });
   }
 
