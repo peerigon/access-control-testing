@@ -16,7 +16,7 @@ import {
 } from "../authentication/http/types.ts";
 import { OPENAPI_FIELD_PREFIX, OpenApiFieldNames } from "../constants.ts";
 import type { Resource } from "../policy/entities/resource.ts";
-import { createResourceDescriptorSchema } from "../schemas.ts";
+import { createResourceDescriptorSchema, parseZodSchema } from "../schemas.ts";
 import { Route } from "../tests/test-utils.ts";
 import type { AuthEndpointInformation } from "../types.ts";
 import {
@@ -36,6 +36,9 @@ export type ResourceLocationDescriptor = {
   parameterName?: string;
   parameterLocation?: ParameterLocation;
 };
+
+type Operations = ReturnType<OpenAPIParser["transformPathsSchema"]>;
+type Operation = Operations[0];
 
 export class OpenAPIParser {
   private constructor(
@@ -89,53 +92,54 @@ export class OpenAPIParser {
   // todo: should this be part of the creation process?
   validateCustomFields(resources: Array<Resource>) {
     const resourceNames = resources.map((resource) => resource.getName());
-    const resourceDescriptorSchema =
-      createResourceDescriptorSchema(resourceNames);
 
-    this.getPaths().forEach((path) => {
-      path.getParameters().forEach((parameter) => {
-        const resourceAccess = getOpenApiField(
-          parameter,
-          OpenApiFieldNames.RESOURCE_ACCESS,
-        );
-        const resourceName = getOpenApiField(
-          parameter,
-          OpenApiFieldNames.RESOURCE_NAME,
-        );
+    this.getOperations().forEach((operation) => {
+      const parametrizedResources = this.getParametrizedResources(operation);
 
-        const parameterSchema = parameter.schema as SchemaObject;
-        const parameterDefaultProvided = Boolean(parameterSchema.default);
-        const resourceDescriptionNeeded =
-          Boolean(parameter.required) && !parameterDefaultProvided;
-        // todo: use default parameter values in requests when they are provided for required params
-
-        // validate that required parameters are annotated with resource name and resource access
-        if (resourceDescriptionNeeded && (!resourceAccess || !resourceName)) {
-          throw new Error(
-            `To describe required resources in routes, both '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_NAME}' and '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_ACCESS}' must be defined at the same time.
-             Parameter '${parameter.name}' in path '${path.path}' must be annotated properly.`,
-          );
-        }
-
-        // todo: better custom error message
-        // create a ResourceDescriptorParser
-        // it should accept path.schema/parameter.schema and provide a nicer error message
-        resourceDescriptorSchema.parse({
+      parametrizedResources.forEach(
+        ({
           resourceName,
           resourceAccess,
-        });
-      });
+          descriptorsRequired,
+          parameterName,
+          parameterLocation,
+        }) => {
+          parseZodSchema(
+            createResourceDescriptorSchema({
+              allowedResourceNames: resourceNames,
+              descriptorsRequired,
+            }),
+            {
+              resourceName,
+              resourceAccess,
+            },
+            [
+              "To describe",
+              descriptorsRequired ? "required" : "",
+              `resources in routes, both '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_NAME}' and '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_ACCESS}' must be defined at the same time.
+Parameter '${parameterName}' of type '${parameterLocation}' in path '${operation.method.toUpperCase()} ${operation.path}' must be annotated properly.`,
+            ].join(" "),
+          );
+        },
+      );
 
-      resourceDescriptorSchema.parse({
-        resourceName: getOpenApiField(
-          path.schema,
-          OpenApiFieldNames.RESOURCE_NAME,
-        ),
-        resourceAccess: getOpenApiField(
-          path.schema,
-          OpenApiFieldNames.RESOURCE_ACCESS,
-        ),
-      });
+      parseZodSchema(
+        createResourceDescriptorSchema({
+          allowedResourceNames: resourceNames,
+        }),
+        {
+          resourceName: getOpenApiField(
+            operation.schema,
+            OpenApiFieldNames.RESOURCE_NAME,
+          ),
+          resourceAccess: getOpenApiField(
+            operation.schema,
+            OpenApiFieldNames.RESOURCE_ACCESS,
+          ),
+        },
+        `To describe resources in routes, both '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_NAME}' and '${OPENAPI_FIELD_PREFIX}-${OpenApiFieldNames.RESOURCE_ACCESS}' must be defined at the same time.
+Path '${operation.path}' must be annotated properly.`,
+      );
     });
   }
 
@@ -179,7 +183,7 @@ export class OpenAPIParser {
     }
   }
 
-  getPaths(): ReturnType<OpenAPIParser["transformPathsSchema"]> {
+  getOperations(): Operations {
     const oasPaths = this.openApiSource.getPaths();
 
     return this.transformPathsSchema(oasPaths);
@@ -192,9 +196,9 @@ export class OpenAPIParser {
   getPathResourceMappings(filterAuthEndpointsOut = true) {
     // todo: ensure that validation happens before
     // parameterName, parameterLocation, resourceAccess resourceName need to be valid
-    const paths = this.getPaths();
+    const paths = this.getOperations();
 
-    const filteredPaths = filterAuthEndpointsOut
+    const filteredOperations = filterAuthEndpointsOut
       ? paths.filter((path) => {
           const isAuthEndpoint = Boolean(
             getOpenApiField(path.schema, OpenApiFieldNames.AUTH_ENDPOINT),
@@ -204,79 +208,16 @@ export class OpenAPIParser {
         })
       : paths;
 
-    return filteredPaths.map((path) => {
-      // todo: getParametersAsJSONSchema seems to return null (which is not present in the type definition), open an issue
-
-      // unfortunately, getParametersAsJSONSchema strips x-act fields for other parameter types such as path or query
-      // this is why there are separate calls for requestBody and parameters
-      // todo: maybe find a better way to handle this/open an issue
-      const resourcesFromRequestBody = path.hasRequestBody()
-        ? path.getParametersAsJSONSchema().flatMap((parameterType) => {
-            const parameterLocation = parameterType.type as ParameterLocation;
-
-            if (
-              !parameterType.schema.properties ||
-              parameterLocation !== "body"
-            ) {
-              return [];
-            }
-
-            return Object.entries(parameterType.schema.properties).flatMap(
-              ([parameterName, property]) => {
-                if (typeof property !== "object") {
-                  return [];
-                }
-
-                const resourceName = getOpenApiField(
-                  property,
-                  OpenApiFieldNames.RESOURCE_NAME,
-                ) as string;
-
-                const resourceAccess = getOpenApiField(
-                  property,
-                  OpenApiFieldNames.RESOURCE_ACCESS,
-                ) as string;
-
-                if (!resourceName || !resourceAccess) {
-                  return [];
-                }
-
-                return {
-                  resourceName,
-                  resourceAccess,
-                  parameterName,
-                  parameterLocation,
-                };
-              },
-            );
-          })
-        : [];
-
-      const resourcesFromParameters = path.getParameters().map((parameter) => ({
-        parameterName: parameter.name,
-        parameterLocation: parameter.in,
-        resourceName: getOpenApiField(
-          parameter,
-          OpenApiFieldNames.RESOURCE_NAME,
-        ) as string, // todo: replace this with zod parsing
-        resourceAccess: getOpenApiField(
-          parameter,
-          OpenApiFieldNames.RESOURCE_ACCESS,
-        ) as string,
-      }));
-
-      const parametrizedResources = [
-        ...resourcesFromRequestBody,
-        ...resourcesFromParameters,
-      ];
+    return filteredOperations.map((operation) => {
+      const parametrizedResources = this.getParametrizedResources(operation);
 
       // todo: at the moment it is considered that there can be at most one non-parametrized resource per path (e.g. /users)
       const nonParametrizedResourceName = getOpenApiField(
-        path.schema,
+        operation.schema,
         OpenApiFieldNames.RESOURCE_NAME,
       ) as string;
       const nonParametrizedResourceAccess = getOpenApiField(
-        path.schema,
+        operation.schema,
         OpenApiFieldNames.RESOURCE_ACCESS,
       ) as string;
       const nonParametrizedResources =
@@ -289,7 +230,7 @@ export class OpenAPIParser {
             ]
           : [];
 
-      const securityRequirements = path.getSecurity();
+      const securityRequirements = operation.getSecurity();
       const isPublicPath = securityRequirements.length === 0;
 
       const resources: Array<ResourceLocationDescriptor> = [
@@ -298,12 +239,90 @@ export class OpenAPIParser {
       ];
 
       return {
-        path: path.path,
-        method: path.method,
+        path: operation.path,
+        method: operation.method,
         isPublicPath,
         resources,
       };
     });
+  }
+
+  /**
+   * Returns all resources for the given path enriched with resource information
+   * coming from various parameters and the request body
+   *
+   * @private
+   * @param operation
+   */
+  private getParametrizedResources(operation: Operation) {
+    // todo: getParametersAsJSONSchema seems to return null (which is not present in the type definition), open an issue
+
+    // unfortunately, getParametersAsJSONSchema strips x-act fields for other parameter types such as path or query
+    // this is why there are separate calls for requestBody and parameters
+    // todo: maybe find a better way to handle this/open an issue
+    const resourcesFromRequestBody = operation.hasRequestBody()
+      ? operation.getParametersAsJSONSchema().flatMap((parameterType) => {
+          const parameterLocation = parameterType.type as ParameterLocation;
+
+          if (
+            !parameterType.schema.properties ||
+            parameterLocation !== "body"
+          ) {
+            return [];
+          }
+
+          return Object.entries(parameterType.schema.properties).flatMap(
+            ([parameterName, property]) => {
+              if (typeof property !== "object") {
+                return [];
+              }
+
+              const resourceName = getOpenApiField(
+                property,
+                OpenApiFieldNames.RESOURCE_NAME,
+              ) as string;
+
+              const resourceAccess = getOpenApiField(
+                property,
+                OpenApiFieldNames.RESOURCE_ACCESS,
+              ) as string;
+
+              return {
+                resourceName,
+                resourceAccess,
+                descriptorsRequired: false,
+                parameterName,
+                parameterLocation,
+              };
+            },
+          );
+        })
+      : [];
+
+    const resourcesFromParameters = operation
+      .getParameters()
+      .map((parameter) => {
+        const parameterSchema = parameter.schema as SchemaObject;
+        const parameterDefaultProvided = Boolean(parameterSchema.default);
+        const descriptorsRequired =
+          Boolean(parameter.required) && !parameterDefaultProvided;
+
+        return {
+          parameterName: parameter.name,
+          parameterLocation: parameter.in,
+          resourceName: getOpenApiField(
+            parameter,
+            OpenApiFieldNames.RESOURCE_NAME,
+          ) as string, // todo: replace this with zod parsing
+          resourceAccess: getOpenApiField(
+            parameter,
+            OpenApiFieldNames.RESOURCE_ACCESS,
+          ) as string,
+          descriptorsRequired,
+        };
+      });
+
+    return [...resourcesFromRequestBody, ...resourcesFromParameters];
   }
 
   /**
@@ -338,7 +357,7 @@ export class OpenAPIParser {
       return null;
     }
 
-    const paths = this.getPaths();
+    const paths = this.getOperations();
 
     // todo: handle cases when 0 or more than 1 is found
     // maybe 0 or more than 1 are cases to be handled by validation / parsing
@@ -450,7 +469,7 @@ export class OpenAPIParser {
 
   // todo: move out filtering part to a separate function (to be reused for identifier/password extract function)
   private getTokenParameterDescription(
-    authEndpoint: ReturnType<OpenAPIParser["getPaths"]>[0],
+    authEndpoint: ReturnType<OpenAPIParser["getOperations"]>[0],
   ): AuthParameterLocationDescription {
     const responseStatusCodes = authEndpoint.getResponseStatusCodes();
 

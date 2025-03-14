@@ -1,26 +1,34 @@
-import { z } from "zod";
+import { z, ZodError, ZodSchema, type ZodIssue } from "zod";
 
-export const createResourceDescriptorSchema = (
-  allowedResourceNames: Array<string>,
-) => {
+export const createResourceDescriptorSchema = ({
+  allowedResourceNames,
+  descriptorsRequired = false,
+}: {
+  allowedResourceNames: Array<string>;
+  descriptorsRequired?: boolean;
+}) => {
+  const resourceAccessSchema = z.enum(["create", "read", "update", "delete"]);
+  const resourceNameSchema = z.enum(
+    allowedResourceNames as [string, ...Array<string>],
+  );
+
   return z
     .object({
-      resourceAccess: z.enum(["create", "read", "update", "delete"]).optional(), // todo: unify naming access/action etc.
-      resourceName: z
-        .enum(allowedResourceNames as [string, ...Array<string>])
-        .optional(),
+      resourceAccess: descriptorsRequired
+        ? resourceAccessSchema
+        : resourceAccessSchema.optional(),
+      resourceName: descriptorsRequired
+        ? resourceNameSchema
+        : resourceNameSchema.optional(),
     })
-    .refine(
-      (data) =>
-        (data.resourceAccess !== undefined &&
-          data.resourceName !== undefined) ||
-        (data.resourceAccess === undefined && data.resourceName === undefined),
-      {
-        message:
-          "To describe resources in routes, both 'resourceName' and 'resourceAccess' must be defined at the same time.",
-        path: ["resourceAccess", "resourceName"],
-      },
-    );
+    .refine((data) => {
+      const bothOrOneIsMissing =
+        (data.resourceAccess === undefined &&
+          data.resourceName === undefined) ||
+        (data.resourceAccess !== undefined && data.resourceName !== undefined);
+
+      return bothOrOneIsMissing;
+    });
 };
 
 export const AuthFieldSchema = z
@@ -28,3 +36,41 @@ export const AuthFieldSchema = z
     type: z.enum(["identifier", "password", "token"]),
   })
   .optional();
+
+// from https://stackoverflow.com/a/76642589/13156621
+const formatZodIssue = (issue: ZodIssue): string => {
+  const { path, message } = issue;
+  const pathString = path.join(".");
+
+  return `${pathString}: ${message}`;
+};
+
+const formatZodError = (error: ZodError, prefix: string): string => {
+  const { issues } = error;
+  if (issues[0] === undefined) return prefix;
+
+  const firstIssue = formatZodIssue(issues[0]);
+
+  const additionalIssuesCount = issues.length - 1;
+  const additionalIssuesHint =
+    additionalIssuesCount >= 1
+      ? ` (and ${additionalIssuesCount} more ${additionalIssuesCount > 1 ? "issues" : "issue"})`
+      : "";
+
+  return `${prefix}\n\n${firstIssue}${additionalIssuesHint}`;
+};
+
+export const parseZodSchema = <SchemaType>(
+  schema: ZodSchema<SchemaType>,
+  data: unknown,
+  prefix = "An error occurred while trying to parse the provided data.",
+): SchemaType => {
+  try {
+    return schema.parse(data);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new TypeError(formatZodError(error, prefix));
+    }
+    throw error;
+  }
+};
