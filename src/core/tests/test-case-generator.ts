@@ -16,6 +16,7 @@ import { TestCaseExecutor } from "./testcase-executor.ts";
 export type TestCombination = {
   user: User | null;
   route: Route;
+  requestBody?: object;
   expectedRequestToBeAllowed: boolean;
 };
 
@@ -123,7 +124,7 @@ export class TestCaseGenerator {
           return [];
         }
 
-        const { route } = createRequestData({
+        const { route, requestBody } = createRequestData({
           path,
           method,
           currentResource,
@@ -141,6 +142,7 @@ export class TestCaseGenerator {
         return {
           user,
           route,
+          requestBody,
           expectedRequestToBeAllowed,
           resourceAction,
         };

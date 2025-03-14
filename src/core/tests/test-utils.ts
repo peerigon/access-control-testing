@@ -1,8 +1,8 @@
 import type { URL } from "node:url";
 import got, { HTTPError, type Method, type PromiseCookieJar } from "got";
-import { type RequestAuthenticator } from "../authentication/http/authenticator.ts";
+import type { RequestAuthenticator } from "../authentication/http/authenticator";
 import { SessionManager } from "../authentication/http/session-manager.ts";
-import type { AuthenticationCredentials } from "../authentication/http/types.ts";
+import type { AuthenticationCredentials } from "../authentication/http/types";
 import {
   API_CLIENT_MAX_REQUEST_RETRIES,
   HTTP_UNAUTHORIZED_STATUS_CODE,
@@ -12,6 +12,8 @@ import {
   type ResourceLocationDescriptor,
 } from "../parsers/openapi-parser.ts";
 import type { ResourceIdentifier } from "../policy/types.ts";
+
+type RequestBody = object | undefined;
 
 export class Route {
   constructor(
@@ -30,19 +32,24 @@ export class Route {
  * request continues to fail with a non 2xx/3xx status code.
  *
  * @param route
+ * @param requestBody The request body to send as JSON
  * @param authenticator
  * @param credentials
  * @throws {Error} If the request needed prior authentication but failed to
- *   authenticate See
- *   {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
- * @throws See
+ *   authenticate. See
  *   {@link https://github.com/sindresorhus/got/blob/main/documentation/8-errors.md list of errors}
  */
-export async function performRequest(
-  route: Route,
-  authenticator: RequestAuthenticator | null,
-  credentials: AuthenticationCredentials | null,
-) {
+export async function performRequest({
+  route,
+  requestBody,
+  authenticator,
+  credentials,
+}: {
+  route: Route;
+  requestBody?: RequestBody;
+  authenticator: RequestAuthenticator | null;
+  credentials: AuthenticationCredentials | null;
+}) {
   const routeRequiresAuthentication = authenticator !== null;
   const userCredentialsAvailable = credentials !== null;
 
@@ -57,6 +64,7 @@ export async function performRequest(
 
   return got(route.url, {
     method: route.method,
+    json: requestBody,
     retry,
     throwHttpErrors: false,
     hooks: {
@@ -148,10 +156,12 @@ export function createRequestData({
 
   // resourceIdentifier can be undefined when resource access is create for instance
   // or when access for all resources of a type is described
+  let requestBody: RequestBody;
+
   const expandedPath =
     resourceIdentifier === undefined ||
     currentResource.parameterName === undefined ||
-    currentResource.parameterLocation === undefined
+    currentResource.parameterLocation !== "path"
       ? path
       : OpenAPIParser.expandUrlTemplate(path, {
           [currentResource.parameterName]: resourceIdentifier,
@@ -159,7 +169,18 @@ export function createRequestData({
 
   const url = openApiParser.constructFullApiUrl(expandedPath);
 
+  // todo: this only works for params on the top level of the request body
+  if (
+    currentResource.parameterLocation === "body" &&
+    currentResource.parameterName !== undefined
+  ) {
+    requestBody = {
+      [currentResource.parameterName]: resourceIdentifier,
+    };
+  }
+
   return {
     route: new Route(url, method),
+    requestBody,
   };
 }

@@ -34,14 +34,14 @@ export type ResourceLocationDescriptor = {
   resourceName: string;
   resourceAccess: string;
   parameterName?: string;
-  parameterLocation?: string;
+  parameterLocation?: ParameterLocation;
 };
 
 export class OpenAPIParser {
   private constructor(
     private readonly openApiSource: Oas,
     private readonly apiBaseUrl: string,
-  ) {} // private specificationPath: ConstructorParameters<typeof OASNormalize>[0],
+  ) {}
 
   /**
    * Parses the OpenAPI specification and returns a new instance of the
