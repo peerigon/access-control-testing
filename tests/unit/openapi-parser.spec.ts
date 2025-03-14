@@ -153,6 +153,37 @@ test.group("OpenAPIParser", (group) => {
     /To describe required resources in routes, both 'x-act-resource-name' and 'x-act-resource-access' must be defined at the same time./,
   ); // todo: also check for "Parameter 'id' in path '/admin/users/{id}' must be annotated properly."
 
+  test("should throw when resource name is invalid in request body property", async () => {
+    const resources = [new Resource("User")];
+
+    currentSpec.paths["/admin/users"].patch.requestBody.content[
+      "application/json"
+    ].schema.properties.id["x-act"]["resource-name"] = "test";
+
+    const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
+
+    openAPIParser.validateCustomFields(resources);
+  }).throws(/Expected 'User', received 'test'/);
+
+  test("should throw when resource annotation is missing in required request body property", async () => {
+    const resources = [new Resource("User")];
+
+    // @ts-expect-error mutation of spec is expected
+    currentSpec.paths["/admin/users"].patch.requestBody.content[
+      "application/json"
+    ].schema.properties.id["x-act"] = undefined;
+
+    (
+      currentSpec.paths["/admin/users"].patch.requestBody.content[
+        "application/json"
+      ].schema.properties.id as any
+    ).required = true;
+
+    const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
+
+    openAPIParser.validateCustomFields(resources);
+  }).throws(/To describe required reasoures in routes/);
+
   test("should properly combine api base url containing path with given path", async ({
     expect,
   }) => {
