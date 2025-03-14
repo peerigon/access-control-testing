@@ -65,7 +65,7 @@ const formatZodError = (error: ZodError, prefix: string): string => {
 export const parseZodSchema = <SchemaType>(
   schema: ZodSchema<SchemaType>,
   data: unknown,
-  prefix: string,
+  prefix = "An error occurred while trying to parse the provided data.",
 ): SchemaType => {
   try {
     return schema.parse(data);
