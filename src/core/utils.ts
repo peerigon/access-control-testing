@@ -4,8 +4,10 @@ import { AuthFieldSchema } from "./schemas.ts";
 
 export const isValidUrl = (url: string) => {
   try {
-    // side effect is wanted here to catch errors thrown by the URL constructor
-    // to determine if the URL is valid
+    /*
+    side effect is wanted here to catch errors thrown by the URL constructor
+    to determine if the URL is valid
+    */
     // eslint-disable-next-line no-new
     new URL(url);
     return true;
@@ -14,10 +16,6 @@ export const isValidUrl = (url: string) => {
   }
 };
 
-/*type Prefix<Prefix extends string, String extends string> = `${Prefix}${String}`;
-type OpenApiFieldValues = (typeof OpenApiFieldNames)[keyof typeof OpenApiFieldNames]
-{ "x-act": Record<OpenApiFieldValues, unknown> | undefined} & Record<Prefix<OPENAPI_FIELD_PREFIX, OpenApiFieldValues>, unknown>*/
-// todo: recheck type for fieldIdentifier
 /**
  * Returns the value of the OpenAPI field with the given field identifier
  *

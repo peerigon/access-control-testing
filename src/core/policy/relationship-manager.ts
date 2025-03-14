@@ -57,19 +57,6 @@ export class RelationshipManager {
         const privileges = this.getPrivilegesFromRelationships(relationships);
 
         // todo: don't inherit create specific privilege from owning a specific resource
-        // only create if it is explicitly set
-        /* const createExplicitlySet = relationships.includes(
-          Relationship.CREATOR,
-        );
-        if (
-          resourceIdentifier &&
-          privileges.includes(Privilege.CREATE) &&
-          !createExplicitlySet
-        ) {
-          privileges = privileges.filter(
-            (privilege) => privilege !== Privilege.CREATE,
-          );
-        } */
 
         return privileges.map((privilege) => ({
           resourceName,

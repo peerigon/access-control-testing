@@ -10,7 +10,7 @@ export const AuthenticationStore = {
     [AuthenticatorType.HTTP_BEARER]: null,
     [AuthenticatorType.HTTP_BASIC]: null,
     [AuthenticatorType.API_KEY_COOKIE]: null,
-    [AuthenticatorType.NONE]: null, // todo: remove this
+    [AuthenticatorType.NONE]: null,
   } as Record<AuthenticatorType, RequestAuthenticator | null>,
 
   // todo: authEndpoint required for bearer/cookie

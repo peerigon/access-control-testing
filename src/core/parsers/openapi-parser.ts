@@ -83,9 +83,6 @@ export class OpenAPIParser {
       );
     }
 
-    // todo: validate that apiBaseUrl is a valid URL
-    // & validate that it is contained in openapi specification
-    // & validate custom fields
     return new OpenAPIParser(openApiSource, apiBaseUrl);
   }
 
@@ -155,7 +152,7 @@ Path '${operation.path}' must be annotated properly.`,
     const jsonSpecification =
       await OpenAPIParser.parseOpenAPI(specificationUrl);
 
-    const oasInstance = new Oas(jsonSpecification as OASDocument); // .dereference(); // todo: fix type
+    const oasInstance = new Oas(jsonSpecification as OASDocument); // todo: fix type
     await oasInstance.dereference();
     return oasInstance;
   }
@@ -469,7 +466,7 @@ Path '${operation.path}' must be annotated properly.`,
 
   // todo: move out filtering part to a separate function (to be reused for identifier/password extract function)
   private getTokenParameterDescription(
-    authEndpoint: ReturnType<OpenAPIParser["getOperations"]>[0],
+    authEndpoint: Operation,
   ): AuthParameterLocationDescription {
     const responseStatusCodes = authEndpoint.getResponseStatusCodes();
 
@@ -520,7 +517,6 @@ Path '${operation.path}' must be annotated properly.`,
       throw new Error("Operation not found");
     }
 
-    //const securityScheme = operation.getSecurity();
     // todo: maybe set true for filterInvalid?
     const securitySchemeCombinations = operation.getSecurityWithTypes();
 

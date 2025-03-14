@@ -17,14 +17,12 @@ export class BearerAuthenticator
     const { parameterName: tokenParameterName } =
       authResponseParameterDescription;
 
-    // todo: fix response body retrieval
     // todo: what if it's not json?
     const token: string | undefined = JSON.parse(response.body)[
       tokenParameterName
     ];
 
     if (!token) {
-      // todo: add error handling
       throw new Error(
         "No token found in server response for the login endpoint",
       );
