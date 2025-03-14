@@ -287,10 +287,6 @@ Path '${operation.path}' must be annotated properly.`,
                 OpenApiFieldNames.RESOURCE_ACCESS,
               ) as string;
 
-              if (!resourceName || !resourceAccess) {
-                return [];
-              }
-
               // todo: calculate this
               const descriptorsRequired = true;
 
@@ -313,6 +309,7 @@ Path '${operation.path}' must be annotated properly.`,
         const parameterDefaultProvided = Boolean(parameterSchema.default);
         const descriptorsRequired =
           Boolean(parameter.required) && !parameterDefaultProvided;
+
         return {
           parameterName: parameter.name,
           parameterLocation: parameter.in,
