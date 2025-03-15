@@ -56,6 +56,12 @@ router
     router.get('/users/:id', async ({ params }) => {
       return User.findOrFail(params.id)
     })
+
+    router.get('/usersByQueryString', async ({ request }) => {
+      const { id } = request.qs()
+
+      return User.findOrFail(id)
+    })
   })
   .use(middlewareAuth)
   .prefix('/admin')
