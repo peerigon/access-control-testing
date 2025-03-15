@@ -94,7 +94,8 @@ export class OpenAPIParser {
       const securitySchemes = operation.getSecurityWithTypes();
 
       const hasCombinedSecuritySchemes = securitySchemes.some(
-        (securitySchemeItem) => securitySchemeItem.length > 1,
+        (securitySchemeItem) =>
+          Array.isArray(securitySchemeItem) && securitySchemeItem.length > 1,
       );
 
       if (hasCombinedSecuritySchemes) {
