@@ -45,7 +45,9 @@ Additional security mechanisms like **CSRF tokens**, **rate limiting**, or **IP 
 
 Currently, only one resource per operation can be defined. The tool does not support multiple resources in a single route (e.g., `/groups/:groupId/members/:memberId`). Simple routes like `/members/:memberId` are fully supported.
 
-Also, the tool only supports APIs communicating via JSON. XML or other formats are not yet supported.
+The tool only supports APIs communicating via JSON. XML or other formats are not yet supported.
+
+Combining multiple Security Schemes for authentication is not supported. While OpenAPI allows defining multiple Security Schemes with an OR-relationship, the tool always selects only the first defined Security Scheme and does not use others as fallback.
 
 ---
 
@@ -142,6 +144,9 @@ paths:
 ### 3. Annotating Authentication Endpoints
 
 Before annotating authentication endpoints, ensure a valid security scheme is defined in your OpenAPI specification. See the [Security Scheme documentation](https://learn.openapis.org/specification/security.html).
+
+> [!WARNING]  
+> The tool does not support combining multiple Security Schemes for authentication. If an operation or the entire API requires multiple Security Schemes to be used together for authentication, this will not work. While OpenAPI allows defining multiple Security Schemes as an OR-relationship, the tool always selects only the first defined Security Scheme and does not use others as fallback.
 
 Use these annotations to allow the tool to authenticate automatically:
 
