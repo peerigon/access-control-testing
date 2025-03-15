@@ -108,6 +108,11 @@ x-act:
 
 </details>
 
+Annotations for resources can be placed in path parameters, query parameters, or the request body.
+Additionally, they can be defined at the operation level, which is particularly relevant for create operations where no identifier is available for annotation.
+
+Additionally, they can be defined at the operation level for operations that do not include a resource parameter but still perform an action on a resource. This includes, for example, creating (`create`) a new resource or reading (`read`) resources without specifying an identifier (i.e., accessing all resources).
+
 <details>
 <summary><strong>Complete Example of OpenAPI Annotations</strong></summary>
 
@@ -156,7 +161,7 @@ Use these annotations to allow the tool to authenticate automatically:
 - `x-act-auth-field`: Defines the relevant fields for authentication and must be set to one of the following valid types:
 
   | Type         | Description                                                                                          |
-  |--------------|------------------------------------------------------------------------------------------------------|
+  | ------------ | ---------------------------------------------------------------------------------------------------- |
   | `identifier` | Specifies the field in the request body that contains the user identifier (e.g., username or email). |
   | `password`   | Defines the field in the request body that holds the user's password.                                |
   | `token`      | Specifies the field in the response body where the authentication token is returned.                 |
