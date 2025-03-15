@@ -149,7 +149,7 @@ Use these annotations to allow the tool to authenticate automatically:
 - `x-act-auth-field`: Defines the relevant fields for authentication and must be set to one of the following valid types:
 
   | Type         | Description                                                                                          |
-  |--------------|------------------------------------------------------------------------------------------------------|
+  | ------------ | ---------------------------------------------------------------------------------------------------- |
   | `identifier` | Specifies the field in the request body that contains the user identifier (e.g., username or email). |
   | `password`   | Defines the field in the request body that holds the user's password.                                |
   | `token`      | Specifies the field in the response body where the authentication token is returned.                 |
