@@ -61,6 +61,8 @@ The tool assumes tested web applications follow this sequence when handling requ
 
 If this order is not maintained, the tool may produce inaccurate test outcomes.
 
+The tested web application should return semantically correct status codes, as the tool determines whether a test has failed or passed based on the returned status code. The status code `403 Forbidden` should only be sent when an authorization check concludes that the requested resource is not accessible to the user making the request. `403` should not be used for violations of business logic (e.g., when a request is semantically or syntactically incorrect or when the requested action is not possible in the current state of the resource).
+
 ---
 
 ## Setup
