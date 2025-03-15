@@ -576,19 +576,19 @@ Path '${operation.path}' must be annotated properly.`,
   }
 
   /**
-   * Expands a URL template with the given parameters
+   * Expands a URL template with the given path parameters
    *
    * @param urlTemplateString The URL template as string to expand
-   * @param parameters The parameters to expand the URL template with
+   * @param pathParameters The path parameters to expand the URL template with
    * @returns The expanded path or URL as string
    */
   static expandUrlTemplate(
     urlTemplateString: string,
-    parameters: Record<string | number | symbol, string | number>,
+    pathParameters: Record<string | number | symbol, string | number>,
   ): string {
     const urlTemplate = parseTemplate(urlTemplateString);
 
-    return urlTemplate.expand(parameters);
+    return urlTemplate.expand(pathParameters);
   }
 
   static combineUrl(baseUrl: string, path: string) {
@@ -597,8 +597,8 @@ Path '${operation.path}' must be annotated properly.`,
     );
   }
 
-  constructFullApiUrl(url: string) {
-    return OpenAPIParser.combineUrl(this.apiBaseUrl, url);
+  constructFullApiUrl(path: string) {
+    return OpenAPIParser.combineUrl(this.apiBaseUrl, path);
   }
 
   static pathContainsParameter(path: string, parameterName: string) {
