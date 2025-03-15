@@ -21,7 +21,7 @@ export class Resource {
     resourceIdentifier?: ResourceIdentifier,
   ) {
     const resourceName = resource.getName();
-    if (resourceIdentifier === undefined || resourceIdentifier === null) {
+    if (resourceIdentifier === undefined) {
       return resourceName; // todo: is there another convention on how to specify a resource without a concrete instance?
     }
 

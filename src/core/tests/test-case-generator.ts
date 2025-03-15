@@ -91,20 +91,12 @@ export class TestCaseGenerator {
 
       // only use resourceUserCombinations that match with the given resource and access type
 
-      // resource (from resources inside of pathResourceMapping) is a Resource object mapped to the iterated url
-
-      // each resource has a resourceName as string to map to a Resource instance
-      // it also has a resourceAccess type as string to map to an Action
-      // also, a parameterName as string and a parameterLocation as string to be able to expand the url
-
-      // only consume resourceUserCombinations that match the current resource and access type
       // todo: should the consumed resourceUserCombinations be removed from the list?
       const matchingResourceUserCombinations = resourceUserCombinations.filter(
         (combination) =>
           combination.resourceName === currentResource.resourceName &&
           combination.resourceAction === currentResource.resourceAccess &&
           combination.resourceIdentifier !== undefined, // only consume combinations with a concrete resourceIdentifier
-        // todo: validate that this restriction is wanted
       );
 
       return matchingResourceUserCombinations.flatMap((combination) => {

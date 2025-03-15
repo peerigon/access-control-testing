@@ -81,15 +81,7 @@ export class RelationshipManager {
     relationship: Relationship,
     resourceIdentifier?: ResourceIdentifier,
   ) {
-    // todo: clarify what should happen when a resource is related multiple times
-    // combine all the relationshipTypes to a privilege map
-    // or throw an error in this case?
-
-    // -> when relating, we extract the privileges from the given relationship
-    // all privileges, that were not present are added, none are removed
-    // example: owns(), canCreate() -> all privileges
-    // example: canCreate(), owns() -> all privileges
-    // example: canEdit(), canView() -> view, edit (canView() does not remove edit perm from first call)
+    // todo: add tests for when a resource is related multiple times
 
     const resourceDescription = Resource.getResourceDescription(
       resource,
