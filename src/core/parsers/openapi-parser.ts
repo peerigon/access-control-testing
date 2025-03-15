@@ -297,6 +297,12 @@ Path '${operation.path}' must be annotated properly.`,
                 OpenApiFieldNames.RESOURCE_ACCESS,
               ) as string;
 
+              // only skip if both are not defined
+              // if only one is defined, this will be handled by the validation function
+              if (!resourceAccess && !resourceName) {
+                return [];
+              }
+
               return {
                 resourceName,
                 resourceAccess,
