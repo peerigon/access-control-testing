@@ -91,7 +91,7 @@ test.group("OpenAPIParser", (group) => {
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
-    openAPIParser.validateCustomFields(resources);
+    openAPIParser.performCustomValidation(resources);
   }).throws(/Expected 'User', received 'test'/);
 
   test("should throw when incorrect resource access is specified", async () => {
@@ -104,7 +104,7 @@ test.group("OpenAPIParser", (group) => {
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
-    openAPIParser.validateCustomFields(resources);
+    openAPIParser.performCustomValidation(resources);
   }).throws(
     /Expected 'create' | 'read' | 'update' | 'delete', received 'test'/,
   );
@@ -119,7 +119,7 @@ test.group("OpenAPIParser", (group) => {
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
-    openAPIParser.validateCustomFields(resources);
+    openAPIParser.performCustomValidation(resources);
   }).throws(
     /both 'x-act-resource-name' and 'x-act-resource-access' must be defined/,
   );
@@ -134,7 +134,7 @@ test.group("OpenAPIParser", (group) => {
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
-    openAPIParser.validateCustomFields(resources);
+    openAPIParser.performCustomValidation(resources);
   }).throws(
     /both 'x-act-resource-name' and 'x-act-resource-access' must be defined/,
   );
@@ -148,7 +148,7 @@ test.group("OpenAPIParser", (group) => {
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
-    openAPIParser.validateCustomFields(resources);
+    openAPIParser.performCustomValidation(resources);
   }).throws(
     /To describe required resources in routes, both 'x-act-resource-name' and 'x-act-resource-access' must be defined at the same time./,
   ); // todo: also check for "Parameter 'id' in path '/admin/users/{id}' must be annotated properly."
@@ -162,7 +162,7 @@ test.group("OpenAPIParser", (group) => {
 
     const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
 
-    openAPIParser.validateCustomFields(resources);
+    openAPIParser.performCustomValidation(resources);
   }).throws(/Expected 'User', received 'test'/);
 
   test("should properly combine api base url containing path with given path", async ({
@@ -180,6 +180,27 @@ test.group("OpenAPIParser", (group) => {
       "https://staging.example.com/api/users",
     );
   });
+
+  test("should throw when multiple combined security schemes are defined for an operation", async () => {
+    const resources = [new Resource("User")];
+
+    (currentSpec.paths["/admin/users"].get.security as any) = [
+      {
+        basicHttpAuthentication: [],
+        bearerHttpAuthentication: [],
+      },
+      {
+        bearerHttpAuthentication: [],
+        cookieAuthentication: [],
+      },
+    ];
+
+    const openAPIParser = await OpenAPIParser.create(specUrl, apiBaseUrl);
+
+    openAPIParser.performCustomValidation(resources);
+  }).throws(
+    /Combined security schemes where more than one security scheme has to be used for authentication are not supported./,
+  );
 
   // todo: validate that there is an auth endpoint for every security scheme
   // todo: validate auth endpoint field

@@ -21,7 +21,7 @@ class Act {
     const { openApiUrl, apiBaseUrl, users, resources } = this.options;
 
     const openAPIParser = await OpenAPIParser.create(openApiUrl, apiBaseUrl);
-    openAPIParser.validateCustomFields(resources);
+    openAPIParser.performCustomValidation(resources);
 
     const testCaseGenerator = new TestCaseGenerator(openAPIParser, users);
     return testCaseGenerator.generateTestCases();

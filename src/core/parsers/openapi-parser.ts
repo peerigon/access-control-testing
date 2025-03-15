@@ -87,10 +87,22 @@ export class OpenAPIParser {
   }
 
   // todo: should this be part of the creation process?
-  validateCustomFields(resources: Array<Resource>) {
+  performCustomValidation(resources: Array<Resource>) {
     const resourceNames = resources.map((resource) => resource.getName());
 
     this.getOperations().forEach((operation) => {
+      const securitySchemes = operation.getSecurityWithTypes();
+
+      const hasCombinedSecuritySchemes = securitySchemes.some(
+        (securitySchemeItem) => securitySchemeItem.length > 1,
+      );
+
+      if (hasCombinedSecuritySchemes) {
+        throw new Error(
+          "Combined security schemes where more than one security scheme has to be used for authentication are not supported. Please use only one security scheme per route.",
+        );
+      }
+
       const parametrizedResources = this.getParametrizedResources(operation);
 
       parametrizedResources.forEach(
