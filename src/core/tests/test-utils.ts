@@ -157,26 +157,41 @@ export function createRequestData({
   // resourceIdentifier can be undefined when resource access is create for instance
   // or when access for all resources of a type is described
   let requestBody: RequestBody;
+  let processedPath = path;
+  const queryParameters = new URLSearchParams();
 
-  const expandedPath =
-    resourceIdentifier === undefined ||
-    currentResource.parameterName === undefined ||
-    currentResource.parameterLocation !== "path"
-      ? path
-      : OpenAPIParser.expandUrlTemplate(path, {
-          [currentResource.parameterName]: resourceIdentifier,
-        }); // todo: for multiple resources and therefore parameters, multiple keys in object -> dynamic mapping required
-
-  const url = openApiParser.constructFullApiUrl(expandedPath);
-
-  // todo: this only works for params on the top level of the request body
   if (
-    currentResource.parameterLocation === "body" &&
-    currentResource.parameterName !== undefined
+    currentResource.parameterName !== undefined &&
+    resourceIdentifier !== undefined
   ) {
-    requestBody = {
-      [currentResource.parameterName]: resourceIdentifier,
-    };
+    switch (currentResource.parameterLocation) {
+      case "path": {
+        processedPath = OpenAPIParser.expandUrlTemplate(path, {
+          [currentResource.parameterName]: resourceIdentifier,
+        });
+        break;
+      }
+      case "query": {
+        queryParameters.set(
+          currentResource.parameterName,
+          resourceIdentifier.toString(),
+        );
+        break;
+      }
+      case "body": {
+        // todo: this only works for params on the top level of the request body
+        requestBody = {
+          [currentResource.parameterName]: resourceIdentifier,
+        };
+        break;
+      }
+    }
+  }
+
+  const url = openApiParser.constructFullApiUrl(processedPath);
+
+  if (queryParameters.size > 0) {
+    url.search = queryParameters.toString();
   }
 
   return {

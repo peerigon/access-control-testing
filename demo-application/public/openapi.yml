@@ -209,6 +209,52 @@ paths:
       security:
         - bearerHttpAuthentication: [ ]
         - cookieAuthentication: [ ]
+  /admin/usersByQueryString:
+    get:
+      summary: Einzelner Benutzer
+      description: Gibt einen spezifischen Benutzer anhand der ID zurück.
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: User-ID
+          schema:
+            type: integer
+            example: 1
+          x-act:
+            resource-name: User
+            resource-access: read
+      responses:
+        '200':
+          description: Erfolgreiche Antwort
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: Max Mustermann
+                  email:
+                    type: string
+                    example: max@beispiel.de
+        '404':
+          description: Benutzer nicht gefunden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Benutzer nicht gefunden.
+      security:
+        - cookieAuthentication: [ ]
+        - bearerHttpAuthentication: [ ]
+        - basicHttpAuthentication: [ ]
   /admin/users/{id}:
     get:
       summary: Einzelner Benutzer
