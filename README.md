@@ -7,7 +7,9 @@
 
 ## Introduction
 
-This tool automates testing web applications for **Broken Access Control** vulnerabilities based on an enhanced **OpenAPI specification**. Developed by [Peerigon](https://peerigon.com/) as part of a bachelor's thesis, it leverages a specially annotated OpenAPI specification to explicitly determine which resources an API endpoint accesses and the type of access involved. For details on annotations, see [Annotating Resources](#2-annotating-resources).
+This tool automates testing web applications for <a href="https://owasp.org/Top10/A01_2021-Broken_Access_Control/">Broken Access Control</a> vulnerabilities, with a particular focus on detecting <a href="https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/">Broken Object Level Authorization (BOLA)</a>. Broken Access Control is ranked **#1 in the OWASP Top 10 (2021)**, while BOLA is ranked **#1 in the OWASP API Security Top 10 (2023)**, highlighting the importance of effective access control mechanisms in modern web applications.
+
+Developed by [Peerigon](https://peerigon.com/) as part of a bachelor's thesis, it leverages a specially annotated OpenAPI specification to explicitly determine which resources an API endpoint accesses and the type of access involved. For details on annotations, see [Annotating Resources](#2-annotating-resources).
 
 The tool generates test cases based on defined user-resource relationships and [executes them through a test runner](#running-tests), sending requests to the application and verifying whether each request was permitted or denied. The outcome is then compared to the expected behavior defined through a policy replication, enabled by [user-resource relationship definitions](#4-defining-users-and-resources). Results are displayed in a console-based report.
 
